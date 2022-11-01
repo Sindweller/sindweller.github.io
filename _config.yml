@@ -7,3 +7,6 @@ show_downloads: false
 url: "https://sindweller.github.io"
 repository: sindweller/sindweller.github.io
 github_username: sindweller
+# About excerpts
+show_excerpts: true
+excerpt_separator: <!--more-->
