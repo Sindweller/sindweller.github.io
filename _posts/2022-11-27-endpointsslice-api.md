@@ -74,9 +74,9 @@ Endpointslice适用于：
 APISIX Ingress Controller 可以将用户配置的crd路由规则转换为Apache APISIX中的规则。通过这种方式，用户配置crd后使用APISIX完成具体的流量分割。
 
 其具体实现过程：
-- 创建一个 httpbin app，并为其创建20个pod副本。具体deploy文件如下：
+- 创建一个 httpbin app，并为其创建20个pod副本。具体deploy文件如下：(htppbin-deploy.yaml)
+  
 ```
-# htppbin-deploy.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
