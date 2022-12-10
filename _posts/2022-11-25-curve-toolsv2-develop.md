@@ -385,5 +385,5 @@ root@de7603f17cf9:/# ./curve fs list copyset
 Error: rpc[ListCopysetInfo] is fail, the error is: rpc error: code = Unimplemented desc = [172.17.0.2:6700][E1002]Fail to find method on `/curvefs.mds.topology.TopologyService/ListCopysetInfo'
 ```
 
-## curve contributor 证书
+## 我的curve contributor 证书！
 ![curve](assets/curve-contributor.jpeg)
