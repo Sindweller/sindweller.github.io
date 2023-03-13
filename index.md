@@ -1,16 +1,5 @@
 # Sindweller
 
-## 文章目录
-
-<ul>
-  {% for post in site.posts %}
-    <li>
-      <a href="{{ post.url }}">{{ post.title }}</a>
-    </li>
-  {% endfor %}
-</ul>
-
-
 ## 标签分类
 
 {% for tag in site.tags %}
@@ -25,6 +14,15 @@
 ```
 The final element.
 ```
+## 文章目录
+
+<ul>
+  {% for post in site.posts %}
+    <li>
+      <a href="{{ post.url }}">{{ post.title }}</a>
+    </li>
+  {% endfor %}
+</ul>
 
 ## 分类
 - 计算机基础
