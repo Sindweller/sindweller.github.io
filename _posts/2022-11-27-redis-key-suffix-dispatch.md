@@ -18,10 +18,6 @@ tags: [存储]
 
 > 为什么是20次？是因为这个需求的实际场景是消费券模板，假设每个分片上券模版的库存为20.
 
-原文提供的流程图：
-
-![](https://mmbiz.qpic.cn/mmbiz_png/5EcwYhllQOgM9JC70CE93Gv7jUibxuaxW3R9hicndCnibiaib20sgictR0jf2g9KSPXxEoXUxRIsV7wo9NO7egP3TMLw/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1)
-
 ### CRC16 算法
 redis 使用 CRC16 来计算【key+后缀】应当被分配到哪个slot，来尽可能均匀分配。
 
