@@ -1,8 +1,8 @@
 ---
 layout: default
-title: 2022/11/04 754. 到达重点数字 【LeetCode每日一题】
+title: 2022/11/04 LeetCode 754. 到达重点数字
 author: sindweller <sindweller5530@gmail.com>
-tags: [每日一题]
+tags: [LeetCode]
 ---
 
 ## **754. 到达终点数字**
