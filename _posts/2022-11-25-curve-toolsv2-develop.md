@@ -386,4 +386,5 @@ Error: rpc[ListCopysetInfo] is fail, the error is: rpc error: code = Unimplement
 ```
 
 ## 我的curve contributor 证书！
-![curve](/_posts/assets/curve-contributor.jpeg)
+
+![curve](./_posts/assets/curve-contributor.jpeg)
