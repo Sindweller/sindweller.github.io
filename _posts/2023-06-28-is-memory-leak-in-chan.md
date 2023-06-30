@@ -49,7 +49,7 @@ func main() {
 # pprof
 
 ```shell
-sindweller@xindeweiladeMacBook-Pro clouditeraworks % go tool pprof -http=:6888 p
+sindweller@xindeweiladeMacBook-Pro myworks % go tool pprof -http=:6888 p
 prof.___go_build_AAaaaa.goroutine.001.pb.gz
 Serving web UI on http://localhost:6888
 Failed to execute dot. Is Graphviz installed?
