@@ -58,7 +58,6 @@ RUN unzip v${VERSION}.zip && mv yapi-${VERSION} vendors
 RUN cd /yapi/vendors && npm install --production --registry https://registry.npm.taobao.org
 
 FROM node:12-alpine
-MAINTAINER clouditera@clouditera.com
 ENV TZ="Asia/Shanghai"
 WORKDIR /yapi/vendors
 COPY --from=builder /yapi/vendors /yapi/vendors
