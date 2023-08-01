@@ -1,6 +1,6 @@
 ---
 layout: default
-title: 2023/07/25 yapi docker部署过程
+title: 2023/07/25 yapi docker部署过程与mongo持久化挂载问题
 author: sindweller <sindweller5530@gmail.com>
 tags: [工具]
 ---
@@ -20,8 +20,16 @@ tags: [工具]
 把mongodb的docker 跑起来, --auth 表示需要密码才能访问
 
 ```shell
-docker run -d --name mongo -p 27017:27017 -v mongo_data:/data mongo:4.2 --auth
+docker run -d --name mongodb -p 27017:27017 -v /usr/local/mongo_data/db:/data/db -v /usr/local/mongo_data/configdb:/data/configdb mongo:4.2 --auth
 ```
+
+
+> 注意 原文中启动mongo的容器是这样的
+> ```shell
+> docker run -d --name mongo -p 27017:27017 -v mongo_data:/data mongo:4.2 --auth
+> ```  
+> 但是这并不能让data中的文件持久化到宿主机上，原因见后节分析。
+
 
 这个mongo:4.2就是镜像名+tag，也可以直接写mongo，就是拉取最新latest。
 
@@ -145,3 +153,128 @@ log: mongodb load success...
 ```
 
 然后访问3000即可。
+
+## 持久化mongo数据
+
+### 以下操作不能同步/data/db内的文件到宿主机
+
+挂载卷
+
+```shell
+-> # docker volume inspect mongo_data
+[
+    {
+        "CreatedAt": "2023-07-25T17:36:05+08:00",
+        "Driver": "local",
+        "Labels": null,
+        "Mountpoint": "/var/lib/docker/volumes/mongo_data/_data",
+        "Name": "mongo_data",
+        "Options": null,
+        "Scope": "local"
+    }
+]
+```
+
+可以发现这个用的宿主机路径为/var/lib/docker/volumes/mongo_data/_data
+
+切换到路径上，可以看到确实有两个跟mongo的/data相同的文件夹
+
+```shell
+root@cloud-virtual-machine [11:30:46 AM] [/var/lib/docker/volumes/mongo_data/_data]
+-> # pwd
+/var/lib/docker/volumes/mongo_data/_data
+root@cloud-virtual-machine [11:30:47 AM] [/var/lib/docker/volumes/mongo_data/_data]
+-> # ls
+configdb/  db/
+```
+
+但是进入子目录会发现什么都没有
+
+```shell
+root@cloud-virtual-machine [11:30:48 AM] [/var/lib/docker/volumes/mongo_data/_data]
+-> # cd db
+root@cloud-virtual-machine [11:31:13 AM] [/var/lib/docker/volumes/mongo_data/_data/db]
+-> # ls -l
+total 0
+```
+
+但是挂载了该卷的容器内是有东西的
+
+```shell
+-> # docker exec -it 97f6c5df69db bash
+root@97f6c5df69db:/# cd /data/
+root@97f6c5df69db:/data# ls
+configdb  db
+root@97f6c5df69db:/data# cd db/
+root@97f6c5df69db:~# ls
+WiredTiger				collection-17--2171366465605763899.wt  collection-76--2171366465605763899.wt  index-107--2171366465605763899.wt  index-3--2171366465605763899.wt   index-50--2171366465605763899.wt  index-69--2171366465605763899.wt  index-91--2171366465605763899.wt
+WiredTiger.lock				collection-19--2171366465605763899.wt  collection-77--2171366465605763899.wt  index-12--2171366465605763899.wt	 index-30--2171366465605763899.wt  index-53--2171366465605763899.wt  index-73--2171366465605763899.wt  index-92--2171366465605763899.wt
+WiredTiger.turtle			collection-2--2171366465605763899.wt   collection-8--2171366465605763899.wt   index-13--2171366465605763899.wt	 index-31--2171366465605763899.wt  index-54--2171366465605763899.wt  index-75--2171366465605763899.wt  index-93--2171366465605763899.wt
+WiredTiger.wt				collection-4--2171366465605763899.wt   collection-88--2171366465605763899.wt  index-15--2171366465605763899.wt	 index-33--2171366465605763899.wt  index-55--2171366465605763899.wt  index-78--2171366465605763899.wt  index-96--2171366465605763899.wt
+WiredTigerLAS.wt			collection-45--2171366465605763899.wt  diagnostic.data			      index-20--2171366465605763899.wt	 index-36--2171366465605763899.wt  index-56--2171366465605763899.wt  index-79--2171366465605763899.wt  index-97--2171366465605763899.wt
+_mdb_catalog.wt				collection-46--2171366465605763899.wt  index-1--2171366465605763899.wt	      index-21--2171366465605763899.wt	 index-38--2171366465605763899.wt  index-59--2171366465605763899.wt  index-80--2171366465605763899.wt  journal
+collection-0--2171366465605763899.wt	collection-49--2171366465605763899.wt  index-10--2171366465605763899.wt       index-22--2171366465605763899.wt	 index-40--2171366465605763899.wt  index-6--2171366465605763899.wt   index-82--2171366465605763899.wt  mongod.lock
+collection-100--2171366465605763899.wt	collection-51--2171366465605763899.wt  index-101--2171366465605763899.wt      index-23--2171366465605763899.wt	 index-42--2171366465605763899.wt  index-60--2171366465605763899.wt  index-84--2171366465605763899.wt  sizeStorer.wt
+collection-103--2171366465605763899.wt	collection-52--2171366465605763899.wt  index-102--2171366465605763899.wt      index-25--2171366465605763899.wt	 index-47--2171366465605763899.wt  index-63--2171366465605763899.wt  index-85--2171366465605763899.wt  storage.bson
+collection-11--2171366465605763899.wt	collection-72--2171366465605763899.wt  index-105--2171366465605763899.wt      index-26--2171366465605763899.wt	 index-48--2171366465605763899.wt  index-64--2171366465605763899.wt  index-86--2171366465605763899.wt
+collection-16--2171366465605763899.wt	collection-74--2171366465605763899.wt  index-106--2171366465605763899.wt      index-29--2171366465605763899.wt	 index-5--2171366465605763899.wt   index-68--2171366465605763899.wt  index-9--2171366465605763899.wt
+```
+
+也就是说，挂载卷与对应容器路径内的文件并不同步。
+
+## 问题分析与解决
+
+考虑两个方向，一是权限问题，无法写入，而是挂载点冲突，导致挂载configdb和db之后，宿主机目录和docker内的目录其实是两个不相干的环境。
+
+1. 考虑是否是权限问题？
+
+```shell
+root@cloud-virtual-machine [11:38:24 AM] [/var/lib/docker/volumes/mongo_data]
+-> # ls -l
+total 4.0K
+drwxr-xr-x 4 root root 4.0K 2023-08-01 11:14 _data/
+```
+
+但是docker容器是root启动的啊。
+
+2. 考虑挂载点冲突问题
+   
+找到了一个非常类似的问题：https://forums.balena.io/t/container-volume-can-not-in-sync-with-host-os-volume/17339
+
+根据这个问题中的解决思路，去dockerhub查找一下mongo4.2的Dockerfile：
+
+https://hub.docker.com/layers/arm64v8/mongo/4.2.6/images/sha256-25821e16c7c401986caa09fba3be08b103203a1599edaba8cd34366903b4b3e6?context=explore
+
+可以看到其中有一层是这个挂载：
+
+```yaml
+VOLUME [/data/db /data/configdb]
+```
+
+跟回答问题的老哥说的比较相符：
+
+> it seems like you define /data/db and /data/configdb as volumes (https://github.com/andresvidal/rpi3-mongodb3/blob/master/Dockerfile#L28 11). This means that docker will create a new volume on run that holds the data that was specified in the Dockerfile (https://docs.docker.com/engine/reference/#volume 5). So the resin-data volume is mounted at /data and there are two new mount points at /data/db and /data/configdb.
+>
+也就是说，在Dockerfile中，已经指定了/data/db和/data/configdb作为卷（volume），docker在运行容器的时候会为此创建一个新的卷，用于存储这两个目录，因此我们设定的mongo_data卷会被挂载到data，而其下的db和configdb是两个与此有别的挂载点。
+
+表现为mongo_data中只包含/data下的configdb和db文件夹，而这两个文件夹中的内容已经被挂载到了另外的卷上，所以并不会同步到mongo_data中。
+
+综上所述，如果要挂载到本地的话，就直接指定/data/db和/data/configdb，不要指定/data。
+
+
+
+
+
+## mongodb操作
+
+mongodb数据备份 注意要指定--authenticationDatabase，否则默认的是什么SHA256的方式，会报错。
+
+```shell
+mongodump --username admin --password mypassword --authenticationDatabase admin --db mydatabase --out ./backup
+```
+
+mongo备份还原
+
+```shell
+mongorestore -u admin --password 123456 --authenticationDatabase admin --db yapi /backup1053/yapi
+```
