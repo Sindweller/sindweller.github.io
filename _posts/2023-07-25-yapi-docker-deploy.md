@@ -261,7 +261,44 @@ VOLUME [/data/db /data/configdb]
 
 综上所述，如果要挂载到本地的话，就直接指定/data/db和/data/configdb，不要指定/data。
 
+查看原mongo容器的挂载点：
 
+```shell
+ "Mounts": [
+            {
+                "Type": "volume",
+                "Name": "mongo_data",
+                "Source": "/var/lib/docker/volumes/mongo_data/_data",
+                "Destination": "/data",
+                "Driver": "local",
+                "Mode": "z",
+                "RW": true,
+                "Propagation": ""
+            },
+            {
+                "Type": "volume",
+                "Name": "438a9fc537cfcf0848c57ef695a48212660c204738ebfd9dd9f2b5c30b1880a6",
+                "Source": "/var/lib/docker/volumes/438a9fc537cfcf0848c57ef695a48212660c204738ebfd9dd9f2b5c30b1880a6/_data",
+                "Destination": "/data/configdb",
+                "Driver": "local",
+                "Mode": "",
+                "RW": true,
+                "Propagation": ""
+            },
+            {
+                "Type": "volume",
+                "Name": "1204f82b87721509bfb996e36b0d0ab6e9cd1a37fe81ec78284fa50c6f369f43",
+                "Source": "/var/lib/docker/volumes/1204f82b87721509bfb996e36b0d0ab6e9cd1a37fe81ec78284fa50c6f369f43/_data",
+                "Destination": "/data/db",
+                "Driver": "local",
+                "Mode": "",
+                "RW": true,
+                "Propagation": ""
+            }
+        ],
+```
+
+可以验证除了mongo_data外还分别挂载了/db和/configdb到两个其他的地方。
 
 
 
