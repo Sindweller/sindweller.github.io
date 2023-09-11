@@ -2,7 +2,7 @@
 layout: default
 title: 2023/09/05 k8s statefulset概念
 author: sindweller <sindweller5530@gmail.com>
-tags: [工具]
+tags: [云原生]
 ---
 
 ## 有状态服务和无状态服务的区别
