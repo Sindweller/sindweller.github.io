@@ -56,7 +56,7 @@ http.(*ServeMux).Handle (server.go:2503) net/http
 
 检查mux.m变量的值：
 
-![debug](assets/debug1.png)
+![debug](/assets/debug1.png)
 
 发现这些路由已经注册好了（此时断点打在/debug/pprof/的这行注册代码上，后面的还没有执行）。那么一定是除main函数之外已经做了这些路由的注册操作，而且在函数调用中没有找到，大概率是import包时的init操作。
 

@@ -346,4 +346,4 @@ func ChatMessages(msg string) string {
 ```
 ## 效果
 如此这般就可以让飞书机器人接收消息->调用dify或者deepseek的api获得回答->把回答发给用户了
-![在这里插入图片描述](https://i-blog.csdnimg.cn/direct/d834b3083c9e4067978494b1731af3b7.png)
+![dify&lark](/assets/dify+lark.png)

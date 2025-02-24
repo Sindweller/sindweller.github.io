@@ -13,4 +13,4 @@ tags: [工具]
 
 原因是选择了EAP，换成别的release版本就可以了
 
-![eap](assets/eap.jpeg)
+![eap](/assets/eap.jpeg)
