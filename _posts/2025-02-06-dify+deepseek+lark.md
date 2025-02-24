@@ -2,7 +2,7 @@
 layout: default
 title: 2025/02/06 飞书机器人接入Deepseek和Dify API制作问答机器人
 author: sindweller <sindweller5530@gmail.com>
-tags: [工具]
+tags: [A工具]
 ---
 
 ## 准备工作

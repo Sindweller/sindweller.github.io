@@ -2,7 +2,7 @@
 layout: default
 title: 2023/07/25 yapi docker部署过程与mongo持久化挂载问题
 author: sindweller <sindweller5530@gmail.com>
-tags: [工具]
+tags: [A工具]
 ---
 
 ## 概述
