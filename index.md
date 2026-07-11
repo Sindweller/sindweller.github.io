@@ -1,5 +1,7 @@
 # Sindweller的技术博客
 
+> 🎮 [**达米拉多战锤俱乐部 - 战火与羁绊**](warhammer/) — 哇蛤蟆旮旯game
+
 ## 标签分类
 
 {% for tag in site.tags %}
