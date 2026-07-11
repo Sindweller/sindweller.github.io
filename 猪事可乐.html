@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>猪事可乐 - 猪厂风云</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:"Microsoft YaHei","PingFang SC",sans-serif;user-select:none}
+:root{
+  --bg-dark:#0a0a12;--bg-mid:#15151f;--bg-light:#202030;
+  --gold:#c5a059;--gold-l:#e8c878;--gold-d:#8a7030;
+  --pink:#d47070;--pink-l:#e8a0a0;
+  --cream:#f0e6d2;--text:#e0d8c8;--dim:#7a7a8a;
+  --lazzhu:#5a8ab4;--haozhu:#d44848;--yuzhu:#5aaa5a;
+  --touzh:#8a6aba;--weizh:#d4a0d4;
+}
+#game{position:relative;width:100vw;height:100vh;max-width:1600px;margin:0 auto;background:var(--bg-dark);overflow:hidden;cursor:pointer}
+#bg-layer{position:absolute;inset:0;z-index:1;transition:opacity .8s ease}
+.bg-scene{position:absolute;inset:0;opacity:0;transition:opacity 1s ease}
+.bg-scene.active{opacity:1}
+.bg-office{background:linear-gradient(180deg,#0a0a1a 0%,#131328 50%,#1a1a35 100%)}
+.bg-office::before{content:'';position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(180deg,transparent,rgba(0,0,0,.6))}
+.bg-meeting{background:linear-gradient(180deg,#15151a 0%,#1a1a22 50%,#101018 100%)}
+.bg-cafeteria{background:radial-gradient(ellipse at center 60%,#2a2030 0%,#15101a 50%,#0a0a10 100%)}
+.bg-rooftop{background:linear-gradient(180deg,#1a1a14 0%,#181410 50%,#100c08 100%)}
+.bg-night{background:linear-gradient(180deg,#050510 0%,#0a0a1a 50%,#0d0d18 100%)}
+.bg-ending{background:radial-gradient(ellipse at center,#1a1525 0%,#0a0a10 70%)}
+#bg-layer::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.5) 100%);pointer-events:none;z-index:5}
+#char-layer{position:absolute;inset:0;z-index:3;pointer-events:none}
+.char-sprite{position:absolute;bottom:120px;transition:all .5s ease;opacity:0;transform:translateY(20px);filter:brightness(.5)}
+.char-sprite.active{opacity:1;transform:translateY(0);filter:brightness(1)}
+.char-sprite.left{left:3%}
+.char-sprite.center{left:50%;transform:translateX(-50%) translateY(20px)}
+.char-sprite.center.active{transform:translateX(-50%) translateY(0)}
+.char-sprite.right{right:3%}
+.char-sprite svg{width:300px;height:auto;filter:drop-shadow(0 4px 20px rgba(0,0,0,.6))}
+#dialogue-box{position:absolute;bottom:0;left:0;right:0;z-index:10;padding:20px 40px 24px;background:linear-gradient(180deg,rgba(10,10,18,.85) 0%,rgba(15,15,25,.95) 100%);border-top:2px solid var(--gold-d);min-height:180px;transform:translateY(100%);transition:transform .3s ease;cursor:default}
+#dialogue-box.show{transform:translateY(0)}
+#dialogue-box::before{content:'';position:absolute;top:-2px;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--pink),transparent)}
+#speaker-name{display:inline-block;padding:4px 20px;margin-bottom:10px;background:linear-gradient(135deg,var(--bg-mid),var(--bg-light));border:1px solid var(--gold-d);border-radius:4px;color:var(--gold-l);font-size:16px;font-weight:bold;letter-spacing:2px}
+#speaker-name.narration{border-color:var(--dim);color:var(--dim)}
+#speaker-name.lazzhu{border-color:var(--lazzhu);color:#8ab4d8}
+#speaker-name.haozhu{border-color:var(--haozhu);color:#e88888}
+#speaker-name.yuzhu{border-color:var(--yuzhu);color:#88d888}
+#speaker-name.touzh{border-color:var(--touzh);color:#b888e8}
+#speaker-name.weizh{border-color:var(--weizh);color:#e8b0e8}
+#dialogue-text{color:var(--text);font-size:17px;line-height:1.9;letter-spacing:.5px;min-height:60px;text-shadow:0 1px 2px rgba(0,0,0,.8)}
+.cursor-blink{animation:blink .6s step-end infinite;color:var(--pink-l)}
+@keyframes blink{50%{opacity:0}}
+#choices-layer{position:absolute;inset:0;z-index:15;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(5,5,10,.7);opacity:0;pointer-events:none;transition:opacity .3s}
+#choices-layer.show{opacity:1;pointer-events:auto}
+.choice-btn{min-width:420px;max-width:600px;padding:14px 28px;background:linear-gradient(135deg,rgba(20,20,30,.95),rgba(30,30,45,.95));border:1px solid var(--pink);border-radius:6px;color:var(--cream);font-size:15px;cursor:pointer;transition:all .25s ease;letter-spacing:1px;text-align:center;position:relative;overflow:hidden}
+.choice-btn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--pink);transform:scaleY(0);transition:transform .25s}
+.choice-btn:hover{background:linear-gradient(135deg,rgba(40,25,25,.95),rgba(50,30,30,.95));border-color:var(--pink-l);box-shadow:0 0 20px rgba(212,112,112,.25);transform:translateX(8px)}
+.choice-btn:hover::before{transform:scaleY(1)}
+#title-screen{position:absolute;inset:0;z-index:50;background:radial-gradient(ellipse at center,#1a1525 0%,#050510 80%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;transition:opacity .6s ease}
+#title-screen.hidden{opacity:0;pointer-events:none}
+.title-deco{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;background:radial-gradient(circle at 30% 40%,rgba(212,112,112,.06) 0%,transparent 40%),radial-gradient(circle at 70% 60%,rgba(197,160,89,.06) 0%,transparent 40%)}
+#title-main{font-size:48px;font-weight:bold;color:var(--pink-l);letter-spacing:6px;text-shadow:0 0 30px rgba(212,112,112,.4),0 2px 4px #000;text-align:center;line-height:1.3}
+#title-main small{display:block;font-size:16px;color:var(--dim);letter-spacing:4px;margin-top:8px;font-weight:normal}
+#title-sub{font-size:18px;color:var(--dim);letter-spacing:6px;border-top:1px solid var(--gold-d);border-bottom:1px solid var(--gold-d);padding:8px 40px}
+.title-btns{display:flex;flex-direction:column;gap:14px;margin-top:10px}
+.title-btn{min-width:240px;padding:12px 40px;background:transparent;border:1px solid var(--gold-d);color:var(--cream);font-size:16px;cursor:pointer;transition:all .25s;letter-spacing:4px;text-align:center}
+.title-btn:hover{background:rgba(212,112,112,.1);border-color:var(--pink-l);color:var(--pink-l);box-shadow:0 0 15px rgba(212,112,112,.2)}
+.title-btn.primary{background:linear-gradient(135deg,rgba(212,112,112,.15),rgba(197,160,89,.1));border-color:var(--pink)}
+#name-input-screen{position:absolute;inset:0;z-index:48;background:rgba(5,5,10,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .4s}
+#name-input-screen.hidden{opacity:0;pointer-events:none}
+#name-input-screen h2{color:var(--pink-l);font-size:22px;letter-spacing:4px}
+#name-input-screen p{color:var(--dim);font-size:14px}
+#player-name-input{padding:12px 20px;font-size:18px;background:var(--bg-mid);border:1px solid var(--gold-d);border-radius:4px;color:var(--cream);text-align:center;letter-spacing:2px;outline:none;width:240px}
+#player-name-input:focus{border-color:var(--pink-l);box-shadow:0 0 10px rgba(212,112,112,.2)}
+#hud{position:absolute;top:16px;right:20px;z-index:12;display:flex;flex-direction:column;gap:6px;opacity:0;transition:opacity .3s}
+#hud.show{opacity:1}
+.hud-item{display:flex;align-items:center;gap:6px;background:rgba(10,10,18,.7);padding:3px 10px;border-radius:4px;border:1px solid var(--bg-light);font-size:11px}
+.hud-label{min-width:28px;letter-spacing:1px}
+.hud-bar{width:70px;height:5px;background:var(--bg-light);border-radius:3px;overflow:hidden}
+.hud-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.hud-fill.lazzhu{background:linear-gradient(90deg,#3a5a7a,var(--lazzhu))}
+.hud-fill.haozhu{background:linear-gradient(90deg,#8a3a3a,var(--haozhu))}
+.hud-fill.yuzhu{background:linear-gradient(90deg,#3a7a3a,var(--yuzhu))}
+.hud-fill.touzh{background:linear-gradient(90deg,#5a3a7a,var(--touzh))}
+.hud-fill.weizh{background:linear-gradient(90deg,#7a3a7a,var(--weizh))}
+#affinity-popup{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:20;font-size:22px;font-weight:bold;opacity:0;transition:all .6s ease;pointer-events:none}
+#affinity-popup.show{opacity:1;transform:translate(-50%,-60%)}
+#top-bar{position:absolute;top:0;left:0;z-index:13;display:flex;gap:8px;padding:12px}
+.top-btn{width:32px;height:32px;background:rgba(10,10,18,.6);border:1px solid var(--bg-light);border-radius:4px;color:var(--dim);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.top-btn:hover{color:var(--pink-l);border-color:var(--pink)}
+#ending-screen{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;opacity:0;pointer-events:none;transition:opacity 1s ease}
+#ending-screen.show{opacity:1;pointer-events:auto}
+#ending-type{font-size:16px;color:var(--pink-l);letter-spacing:6px}
+#ending-title{font-size:32px;font-weight:bold;color:var(--cream);letter-spacing:4px;text-shadow:0 0 20px rgba(212,112,112,.3);text-align:center;max-width:700px;line-height:1.5}
+#ending-text{font-size:14px;color:var(--dim);max-width:600px;text-align:center;line-height:2;letter-spacing:1px}
+.ending-btns{display:flex;gap:16px;margin-top:20px}
+#fade-overlay{position:absolute;inset:0;z-index:35;background:#000;opacity:0;pointer-events:none;transition:opacity .6s ease}
+#fade-overlay.show{opacity:1}
+#scene-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;color:var(--pink-l);font-size:20px;letter-spacing:8px;opacity:0;transition:opacity .5s;pointer-events:none;text-align:center}
+#scene-label.show{opacity:1}
+#scene-label small{display:block;font-size:13px;color:var(--dim);letter-spacing:3px;margin-top:8px}
+@media(max-width:768px){
+  .char-sprite svg{width:200px}
+  .char-sprite{bottom:150px}
+  #dialogue-box{padding:16px 20px 20px;min-height:150px}
+  #dialogue-text{font-size:15px}
+  #title-main{font-size:32px}
+  .choice-btn{min-width:300px;font-size:14px;padding:12px 20px}
+  #ending-title{font-size:24px}
+}
+.click-advance{position:absolute;bottom:8px;right:16px;font-size:12px;color:var(--dim);animation:pulse 1.5s ease-in-out infinite;z-index:11}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:.8}}
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="bg-layer"></div>
+  <div id="char-layer">
+    <div id="char-left" class="char-sprite left"></div>
+    <div id="char-center" class="char-sprite center"></div>
+    <div id="char-right" class="char-sprite right"></div>
+  </div>
+  <div id="hud">
+    <div class="hud-item"><span style="font-size:12px">🐷</span><span class="hud-label" style="color:#8ab4d8">拉猪</span><div class="hud-bar"><div class="hud-fill lazzhu" id="bar-lazzhu" style="width:0%"></div></div></div>
+    <div class="hud-item"><span style="font-size:12px">🦔</span><span class="hud-label" style="color:#e88888">豪猪</span><div class="hud-bar"><div class="hud-fill haozhu" id="bar-haozhu" style="width:0%"></div></div></div>
+    <div class="hud-item"><span style="font-size:12px">💎</span><span class="hud-label" style="color:#88d888">玉猪</span><div class="hud-bar"><div class="hud-fill yuzhu" id="bar-yuzhu" style="width:0%"></div></div></div>
+    <div class="hud-item"><span style="font-size:12px">🍚</span><span class="hud-label" style="color:#b888e8">头猪</span><div class="hud-bar"><div class="hud-fill touzh" id="bar-touzh" style="width:0%"></div></div></div>
+    <div class="hud-item"><span style="font-size:12px">👑</span><span class="hud-label" style="color:#e8b0e8">尾猪</span><div class="hud-bar"><div class="hud-fill weizh" id="bar-weizh" style="width:0%"></div></div></div>
+  </div>
+  <div id="top-bar">
+    <button class="top-btn" id="btn-save" title="存档">💾</button>
+    <button class="top-btn" id="btn-auto" title="自动">⚡</button>
+    <button class="top-btn" id="btn-skip" title="快进">⏩</button>
+    <button class="top-btn" id="btn-menu" title="菜单">☰</button>
+  </div>
+  <div id="affinity-popup"></div>
+  <div id="scene-label"></div>
+  <div id="dialogue-box">
+    <span id="speaker-name"></span>
+    <div id="dialogue-text"></div>
+    <div class="click-advance" id="click-hint">▼ 点击继续</div>
+  </div>
+  <div id="choices-layer"></div>
+  <div id="fade-overlay"></div>
+  <div id="ending-screen">
+    <div id="ending-type"></div>
+    <div id="ending-title"></div>
+    <div id="ending-text"></div>
+    <div class="ending-btns">
+      <button class="title-btn" id="btn-restart">回到标题</button>
+    </div>
+  </div>
+  <div id="title-screen">
+    <div class="title-deco"></div>
+    <div id="title-main">猪事可乐<small>猪厂新人职场生存指南</small></div>
+    <div id="title-sub">办 公 室 风 云</div>
+    <div class="title-btns">
+      <button class="title-btn primary" id="btn-start">开始游戏</button>
+      <button class="title-btn" id="btn-continue" style="display:none">继续游戏</button>
+      <button class="title-btn" id="btn-about">关于</button>
+    </div>
+    <div id="title-tag" style="margin-top:16px;font-size:13px;color:var(--dim);letter-spacing:3px;opacity:.6">点击屏幕推进剧情 · 选择决定命运</div>
+  </div>
+  <div id="name-input-screen" class="hidden">
+    <h2>请输入你的名字</h2>
+    <p>你是猪厂新来的员工</p>
+    <input type="text" id="player-name-input" maxlength="6" placeholder="新人" value="新人">
+    <button class="title-btn primary" id="btn-confirm-name">确认</button>
+  </div>
+</div>
+<script>
+/* ===== PIG PORTRAITS ===== */
+function pigSVG(bodyColor, earColor, snoutColor, hair, accessories, expr) {
+  const eyeMouth = expr==='happy' ? `
+    <path d="M108,198 Q120,190 132,198" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M188,198 Q200,190 212,198" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M148,238 Q160,250 172,238" stroke="#c44848" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <ellipse cx="125" cy="212" rx="12" ry="6" fill="#f0a080" opacity=".25"/>
+    <ellipse cx="195" cy="212" rx="12" ry="6" fill="#f0a080" opacity=".25"/>
+  ` : expr==='angry' ? `
+    <path d="M105,192 L135,198" stroke="#333" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M185,198 L215,192" stroke="#333" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <ellipse cx="120" cy="200" rx="9" ry="7" fill="#fff"/>
+    <ellipse cx="200" cy="200" rx="9" ry="7" fill="#fff"/>
+    <circle cx="122" cy="202" r="5" fill="#4a3a2a"/>
+    <circle cx="198" cy="202" r="5" fill="#4a3a2a"/>
+    <path d="M150,240 Q160,234 170,240" stroke="#a02828" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  ` : expr==='serious' ? `
+    <path d="M108,194 L135,198" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M185,198 L212,194" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="122" cy="201" rx="8" ry="7" fill="#fff"/>
+    <ellipse cx="198" cy="201" rx="8" ry="7" fill="#fff"/>
+    <circle cx="123" cy="202" r="5" fill="#4a3a2a"/>
+    <circle cx="197" cy="202" r="5" fill="#4a3a2a"/>
+    <path d="M152,242 L168,242" stroke="#a05050" stroke-width="2" fill="none" stroke-linecap="round"/>
+  ` : `
+    <ellipse cx="122" cy="200" rx="8" ry="7" fill="#fff"/>
+    <ellipse cx="198" cy="200" rx="8" ry="7" fill="#fff"/>
+    <circle cx="123" cy="202" r="5" fill="#4a3a2a"/>
+    <circle cx="197" cy="202" r="5" fill="#4a3a2a"/>
+    <circle cx="125" cy="199" r="2" fill="#fff"/>
+    <circle cx="199" cy="199" r="2" fill="#fff"/>
+    <path d="M150,240 Q160,244 170,240" stroke="#a05050" stroke-width="2" fill="none" stroke-linecap="round"/>
+  `;
+  return `<svg viewBox="0 0 320 480" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="ps" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${bodyColor[0]}"/><stop offset="1" stop-color="${bodyColor[1]}"/></linearGradient>
+</defs>
+<!-- Body -->
+<path d="M60,480 L60,360 Q60,310 110,295 Q145,285 160,283 Q175,285 210,295 Q260,310 260,360 L260,480 Z" fill="url(#ps)"/>
+<!-- Neck -->
+<path d="M140,260 L140,290 Q160,296 180,290 L180,260 Z" fill="url(#ps)"/>
+<!-- Head -->
+<ellipse cx="160" cy="200" rx="80" ry="70" fill="url(#ps)"/>
+<!-- Pig ears -->
+<ellipse cx="90" cy="160" rx="22" ry="16" fill="${earColor}" transform="rotate(-20,90,160)"/>
+<ellipse cx="75" cy="160" rx="14" ry="10" fill="#e8b0b0" transform="rotate(-20,75,160)" opacity=".4"/>
+<ellipse cx="230" cy="160" rx="22" ry="16" fill="${earColor}" transform="rotate(20,230,160)"/>
+<ellipse cx="245" cy="160" rx="14" ry="10" fill="#e8b0b0" transform="rotate(20,245,160)" opacity=".4"/>
+<!-- Snout -->
+<ellipse cx="160" cy="228" rx="22" ry="16" fill="${snoutColor}" opacity=".4"/>
+<ellipse cx="155" cy="226" rx="4" ry="5" fill="#5a3a2a" opacity=".4"/>
+<ellipse cx="165" cy="226" rx="4" ry="5" fill="#5a3a2a" opacity=".4"/>
+<!-- Hair -->
+${hair}
+<!-- Eyes/Mouth -->
+${eyeMouth}
+<!-- Accessories -->
+${accessories}
+</svg>`;
+}
+
+function portraitLazzhu(expr){
+  return pigSVG(
+    ['#e8c8b0','#d4b098'],
+    '#c5a059',
+    '#d4a080',
+    `<path d="M92,145 Q100,100 160,88 Q220,100 228,145 L225,135 Q215,110 188,106 Q180,130 168,118 Q160,135 148,118 Q140,135 128,118 Q108,120 100,135 Z" fill="#3a3a4e"/>
+     <path d="M96,140 Q105,115 120,112" stroke="#4a4a5e" stroke-width="2" fill="none" opacity=".6"/>
+     <path d="M224,140 Q215,115 200,112" stroke="#4a4a5e" stroke-width="2" fill="none" opacity=".6"/>`,
+    `<g>
+      <rect x="108" y="185" width="34" height="24" rx="4" fill="rgba(200,220,255,.06)" stroke="#3a3a4e" stroke-width="1.5"/>
+      <rect x="178" y="185" width="34" height="24" rx="4" fill="rgba(200,220,255,.06)" stroke="#3a3a4e" stroke-width="1.5"/>
+      <line x1="142" y1="195" x2="178" y2="195" stroke="#3a3a4e" stroke-width="1.5"/>
+      <path d="M108,190 L90,186" stroke="#3a3a4e" stroke-width="1.5" fill="none"/>
+      <path d="M212,190 L230,186" stroke="#3a3a4e" stroke-width="1.5" fill="none"/>
+      <line x1="114" y1="188" x2="118" y2="202" stroke="#fff" stroke-width="1" opacity=".2"/>
+      <line x1="184" y1="188" x2="188" y2="202" stroke="#fff" stroke-width="1" opacity=".2"/>
+     </g>
+     <!-- Tie -->
+     <path d="M155,283 L160,330 L165,283 Z" fill="#3a5a7a"/>
+     <path d="M153,283 L160,290 L167,283 Z" fill="#4a6a8a"/>`,
+    expr
+  );
+}
+
+function portraitHaozhu(expr){
+  return pigSVG(
+    ['#e8c8b0','#d4b098'],
+    '#c44848',
+    '#d4a080',
+    `<path d="M86,148 Q90,95 160,82 Q230,95 234,148 L230,130 Q220,105 190,100 Q182,128 170,115 Q160,132 148,115 Q138,132 126,115 Q105,118 95,132 Z" fill="#3a2a2a"/>
+     <!-- Spiky hair -->
+     <path d="M90,130 L80,100 L100,120 L95,85 L115,115 L120,75 L140,110 L148,68 L160,105 L172,68 L180,110 L200,75 L205,115 L225,85 L220,120 L240,100 L230,130" fill="#2a1a1a"/>
+     <!-- Leather jacket collar -->
+     <path d="M110,295 Q135,285 160,283 Q185,285 210,295 L200,320 L160,310 L120,320 Z" fill="#2a2a2a"/>`,
+    `<circle cx="92" cy="148" r="3" fill="#c5a059"/>
+     <circle cx="97" cy="142" r="2" fill="#c5a059"/>`,
+    expr==='angry' ? expr : expr
+  );
+}
+
+function portraitYuzhu(expr){
+  return pigSVG(
+    ['#e8d0c0','#d4b8a8'],
+    '#5aaa5a',
+    '#d4a880',
+    `<path d="M94,148 Q98,105 160,92 Q222,105 226,148 L223,138 Q215,115 190,110 Q182,133 170,122 Q160,138 148,122 Q138,133 126,110 Q108,118 100,135 Z" fill="#2a3a2a"/>
+     <path d="M98,140 Q105,118 118,115" stroke="#3a4a3a" stroke-width="2" fill="none" opacity=".5"/>
+     <path d="M222,140 Q215,118 202,115" stroke="#3a4a3a" stroke-width="2" fill="none" opacity=".5"/>`,
+    `<g>
+      <!-- Glasses -->
+      <rect x="108" y="185" width="34" height="24" rx="4" fill="rgba(200,255,200,.04)" stroke="#3a5a3a" stroke-width="1.5"/>
+      <rect x="178" y="185" width="34" height="24" rx="4" fill="rgba(200,255,200,.04)" stroke="#3a5a3a" stroke-width="1.5"/>
+      <line x1="142" y1="195" x2="178" y2="195" stroke="#3a5a3a" stroke-width="1.5"/>
+      <path d="M108,190 L92,186" stroke="#3a5a3a" stroke-width="1.5" fill="none"/>
+      <path d="M212,190 L228,186" stroke="#3a5a3a" stroke-width="1.5" fill="none"/>
+      <!-- Bow tie -->
+      <path d="M150,290 L160,300 L150,310 Z" fill="#3a8a3a"/>
+      <path d="M170,290 L160,300 L170,310 Z" fill="#3a8a3a"/>
+      <circle cx="160" cy="300" r="3" fill="#2a6a2a"/>
+    </g>`,
+    expr
+  );
+}
+
+function portraitTouzh(expr){
+  const bowl = `<g>
+    <!-- Bowl on head -->
+    <path d="M108,175 Q108,130 160,122 Q212,130 212,175 L212,185 Q212,200 160,205 Q108,200 108,185 Z" fill="#6a5a3a" stroke="#8a7a5a" stroke-width="2"/>
+    <ellipse cx="160" cy="175" rx="52" ry="18" fill="#7a6a4a" stroke="#8a7a5a" stroke-width="1.5"/>
+    <!-- 兔饭 text -->
+    <text x="160" y="170" text-anchor="middle" font-size="14" fill="#e8d8a0" font-weight="bold">兔饭</text>
+    <!-- Dazed eyes below bowl -->
+    <circle cx="140" cy="215" r="5" fill="#4a3a3a"/>
+    <circle cx="180" cy="215" r="5" fill="#4a3a3a"/>
+    <circle cx="141" cy="214" r="1.5" fill="#fff"/>
+    <circle cx="181" cy="214" r="1.5" fill="#fff"/>
+    <path d="M150,228 Q160,232 170,228" stroke="#a08080" stroke-width="1.5" fill="none"/>
+  </g>`;
+  // Override - head bowl hides the pig head
+  return `<svg viewBox="0 0 320 480" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="ts" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8d0c0"/><stop offset="1" stop-color="#d4b8a8"/></linearGradient>
+</defs>
+<path d="M60,480 L60,360 Q60,310 110,295 Q145,285 160,283 Q175,285 210,295 Q260,310 260,360 L260,480 Z" fill="url(#ts)"/>
+<path d="M140,260 L140,290 Q160,296 180,290 L180,260 Z" fill="url(#ts)"/>
+<ellipse cx="160" cy="210" rx="75" ry="60" fill="url(#ts)"/>
+${bowl}
+<!-- pig ears poking out -->
+<ellipse cx="105" cy="180" rx="18" ry="12" fill="#d4a898" transform="rotate(-15,105,180)"/>
+<ellipse cx="215" cy="180" rx="18" ry="12" fill="#d4a898" transform="rotate(15,215,180)"/>
+<!-- Small snout below bowl -->
+<ellipse cx="160" cy="235" rx="18" ry="12" fill="#d4a880" opacity=".4"/>
+<ellipse cx="156" cy="234" rx="3" ry="4" fill="#5a3a2a" opacity=".3"/>
+<ellipse cx="164" cy="234" rx="3" ry="4" fill="#5a3a2a" opacity=".3"/>
+</svg>`;
+}
+
+function portraitWeizh(expr){
+  const smug = expr==='smug';
+  return pigSVG(
+    ['#f0d8d0','#e0c0b8'],
+    '#d4a0d4',
+    '#d4a080',
+    `<path d="M90,148 Q94,100 160,88 Q226,100 230,148 L227,136 Q218,108 190,104 Q182,130 170,118 Q160,136 148,118 Q138,130 126,104 Q105,112 96,128 Z" fill="#3a2a3a"/>
+     <!-- Trendy hair streak -->
+     <path d="M120,90 Q130,75 140,88" stroke="#d4a0d4" stroke-width="4" fill="none" opacity=".7"/>
+     <path d="M180,88 Q190,75 200,90" stroke="#d4a0d4" stroke-width="4" fill="none" opacity=".7"/>`,
+    `<g>
+      <!-- Sunglasses -->
+      <path d="M100,190 L120,188 L126,198 L104,200 Z" fill="#1a1a2e" opacity=".85"/>
+      <path d="M126,198 L134,198 L140,188 L160,188 L166,198 L174,198 L180,188 L200,188 L214,190 L204,200 L176,202 L170,202 L164,202 L156,202 L150,202 L144,202 L134,202 L120,202 Z" fill="#1a1a2e" opacity=".85"/>
+      <path d="M100,190 L120,188" stroke="#d4a0d4" stroke-width="1.5" fill="none"/>
+      <path d="M214,190 L220,188" stroke="#d4a0d4" stroke-width="1.5" fill="none"/>
+      <!-- Smug grin -->
+      <path d="M145,242 Q160,255 175,242 Q168,248 160,249 Q152,248 145,242" fill="#c44848" opacity=".5"/>
+      <!-- Crown -->
+      <path d="M135,80 L145,65 L155,78 L165,60 L175,78 L185,65 L195,80 Z" fill="#c5a059" stroke="#8a7030" stroke-width="1"/>
+      <circle cx="145" cy="75" r="2" fill="#e8c878"/>
+      <circle cx="165" cy="70" r="2" fill="#e8c878"/>
+      <circle cx="185" cy="75" r="2" fill="#e8c878"/>
+      <!-- Cape hint -->
+      <path d="M80,310 Q70,380 65,480" stroke="#3a2a4a" stroke-width="3" fill="none" opacity=".5"/>
+      <path d="M240,310 Q250,380 255,480" stroke="#3a2a4a" stroke-width="3" fill="none" opacity=".5"/>
+    </g>`,
+    expr==='smug' ? 'happy' : expr
+  );
+}
+
+/* ===== GAME STATE ===== */
+const State = {
+  scene:'title', player:'新人', lazzhu:0, haozhu:0, yuzhu:0, touzh:0, weizh:0,
+  route:null, typing:false, currentText:'', textIndex:0, typeTimer:null,
+  autoMode:false, skipMode:false
+};
+
+const $ = id => document.getElementById(id);
+
+/* ===== SCENE DATA ===== */
+const Scenes = {
+/* PROLOGUE */
+p1:{bg:'office',label:'序幕',labelSub:'入职第一天',
+  text:'周一早晨，你站在一栋写字楼下。\n门牌上挂着一块闪闪发亮的牌子——"猪事可乐科技有限公司"。\nHR说这是一家氛围极好的公司，"来了就不想走"的那种。\n你深吸一口气，推开了玻璃门。'},
+p2:{bg:'office',
+  text:'叮——电梯门打开。\n一股混合着咖啡、打印纸和……某种奇怪零食的气味扑面而来。\n前台的背景墙上画着一只巨大的卡通猪头，下面写着："今天也要猪事可乐！"'},
+p3:{bg:'office',
+  text:'"哟，新人？"\n一个沉稳的声音从背后传来。\n你回头，看见一个戴眼镜、穿着整洁衬衫的男人朝你走来，胸前别着工牌——"拉猪 · 稳定性负责人"。\n他看起来是整个办公室里最正常的人。'},
+p4:{char:'lazzhu',expr:'normal',speaker:'lazzhu',
+  text:'"欢迎来到猪厂。我是拉猪，负责系统稳定性。"\n他推了推眼镜，语气平稳。\n"简单来说，就是保证咱们的服务器不会因为某些人的骚操作而炸掉。"\n他说"某些人"的时候，目光若有若无地飘向某个方向。'},
+p5:{char:'lazzhu',expr:'normal',speaker:'lazzhu',
+  text:'"我先带你认识一下大家——"\n"嗷——！！！新来的——！！"\n一声怒吼打断了他。\n一个头发像刺猬一样炸开的家伙从工位上弹射起步，三步并作两步冲到你面前。'},
+p6:{char:'haozhu',expr:'angry',speaker:'haozhu',charPos:'right',
+  text:'"你就是新来的？我叫豪猪！负责——算了不重要！"\n他上下打量你，眼神像在评估一件商品。\n"我看你骨骼清奇，要不要跟我学做菜……啊不是，学搞事！"\n拉猪在旁边清了清嗓子。'},
+p7:{char:'haozhu',expr:'angry',speaker:'haozhu',charPos:'right',char2:'lazzhu',expr2:'serious',charPos2:'left',
+  text:'"豪猪，你别吓着人家。"\n"我才没有！我这是热情！热情你懂吗！"\n"你上个月吓跑了三个实习生。"\n"那、那是他们心理素质不行！"'},
+p8:{char:'lazzhu',expr:'normal',speaker:'lazzhu',
+  text:'"总之，这位是豪猪——我们的……嗯，气氛组。"\n他停顿了一下，似乎在斟酌用词。\n"他的工位在角落里，如果你听到奇怪的声音，不用管，正常现象。"'},
+p9:{bg:'office',
+  text:'介绍到一半，一个戴着金丝眼镜、面带微笑的年轻人走了过来。\n他从西装内袋掏出一张名片递给你——上面印着"玉猪 · CFO（首席财务官/团建管理员）"。\n"欢迎加入。今年团建预算还有富余，你有什么好提议吗？"'},
+p10:{char:'yuzhu',expr:'normal',speaker:'yuzhu',
+  text:'"我是玉猪，管钱和团建的。"\n他笑得很专业——那种让你觉得他下一秒就要推销保险的笑容。\n"这个季度的团建经费我批了，你想去泡温泉还是剧本杀？"\n"前提是人均不能超过两百。"'},
+p11:{char:'lazzhu',expr:'normal',speaker:'lazzhu',char2:'yuzhu',expr2:'normal',charPos2:'right',
+  text:'"玉猪，别一上来就谈钱。"\n"谈钱怎么了？团建是正事。"\n"你上回团建带大家去参观养猪场，这事儿还没过去。"\n"……那是一次有教育意义的团建！"'},
+p12:{bg:'office',
+  text:'突然，你注意到角落里有一个奇怪的身影。\n那个人头上顶着一个……碗？\n碗上还歪歪扭扭写着两个字——"兔饭"。\n他端着碗，目光呆滞，嘴里念念有词。'},
+p13:{char:'touzh',expr:'normal',speaker:'touzh',
+  text:'"兔……饭……好……吃……"\n他机械地转过头来看你。\n"你……要……来……一……口……吗……"\n你注意到他端碗的姿势非常虔诚，像是在进行某种神圣的仪式。'},
+p14:{char:'yuzhu',expr:'normal',speaker:'yuzhu',char2:'touzh',expr2:'normal',charPos2:'right',
+  text:'"那是头猪——别担心，他就那样。"\n玉猪拍了拍你的肩膀，压低声音。\n"他每天中午都会端着那个碗在公司里走一圈，我们也不知道里面是什么。"\n"反正没人敢吃。"'},
+p15:{bg:'office',
+  text:'就在这时，办公室忽然安静了下来。\n所有人的目光不约而同地投向门口。\n一个身影走了进来——\n皮衣、墨镜、气场全开。每一步都像是在走秀。\n身后仿佛自带BGM。'},
+p16:{char:'weizh',expr:'smug',speaker:'weizh',
+  text:'"都看着我干什么？继续工作。"\n他摘下墨镜，露出一双带着笑意的眼睛。\n然后径直走向你。\n"你就是新来的？不错，这身搭配——有品位。"\n你低头看了看自己的优衣库基础款……'},
+p17:{char:'weizh',expr:'smug',speaker:'weizh',charPos:'right',char2:'lazzhu',expr2:'serious',charPos2:'left',
+  text:'"尾猪，你别把人带偏了。"拉猪无奈地说。\n"我这叫审美引领，不叫带偏。"尾猪优雅地耸了耸肩。\n"对了新人——在这个办公室里，有不懂的可以问任何人。"\n"但最终的答案，只有我知道。"\n他意味深长地笑了笑，转身离开。'},
+p18:{speaker:'narration',
+  text:'第一天上班的体验比你想象的……奇怪得多。\n拉猪靠谱但话里有话，豪猪热情得吓人，玉猪满脑子都是预算，头猪像个被操控的机器人，尾猪则神秘得像幕后BOSS。\n你坐在自己的工位上，环顾四周。\n——猪厂的日子，看来不会无聊了。'},
+/* ROUTE SELECT */
+c1:{bg:'office',label:'第一章',labelSub:'选择你的搭档',
+  text:'第二天，你来到公司。\n今天是新人培训的第一天，但培训内容……似乎是由你自己决定的。\n你决定去找谁？'},
+c1_choice:{choices:[
+  {text:'去找拉猪，了解业务和系统稳定性',next:'h1',route:'lazzhu',hint:'稳重可靠'},
+  {text:'去找豪猪，他好像知道很多八卦',next:'z1',route:'haozhu',hint:'刺激有趣'},
+  {text:'去找玉猪，聊聊团建和报销的事',next:'y1',route:'yuzhu',hint:'财务自由'},
+  {text:'去问问头猪，他碗里到底是什么',next:'t1',route:'touzh',hint:'神秘诡异'},
+  {text:'去找尾猪，他好像知道一切',next:'w1',route:'weizh',hint:'真相之路'}
+]},
+/* ===== LAZZHU ROUTE ===== */
+h1:{bg:'office',label:'拉猪线',labelSub:'稳中求进',
+  text:'你走到拉猪的工位前。\n他正盯着三块显示器，手指在键盘上飞速敲击。\n屏幕上的代码像瀑布一样滚动。'},
+h2:{char:'lazzhu',expr:'normal',speaker:'lazzhu',
+  text:'"来得正好。"\n他没有抬头，但似乎早就知道你会来。\n"我刚写了一个监控脚本，你来帮我看看逻辑有没有漏洞。"\n这是你第一次接到真正的任务——虽然是审核任务。'},
+h3:{char:'lazzhu',expr:'smile',speaker:'lazzhu',
+  text:'"不错，你发现了一个边界条件的问题。"\n看完你的反馈后，他难得地笑了笑。\n"看来HR这回没招错人。"\n"来，我跟你讲讲我们系统的整体架构。"'},
+h4:{speaker:'narration',
+  text:'拉猪花了两个小时给你讲系统架构。\n他的讲解清晰、有条理，每一个模块都讲得深入浅出。\n你发现他是那种——平时话不多，但一讲到技术就眼里有光的人。'},
+h5:{char:'lazzhu',expr:'smile',speaker:'lazzhu',
+  text:'"——所以，整个系统的核心就是这三台数据库。"\n他指了指屏幕上的架构图。\n"只要它们不炸，我们就能准时下班。"\n"而我的工作就是——保证它们不炸。"'},
+h6:{char:'lazzhu',expr:'normal',speaker:'lazzhu',
+  text:'"好了，理论讲完了。"\n他合上笔记本，站起身来。\n"去吃饭吧。今天我请客——欢迎你加入猪厂。"'},
+h6_choice:{choices:[
+  {text:'"那我就不客气了！正好请教你更多问题。"',next:'h7',affinity:{lazzhu:2}},
+  {text:'"谢谢！不过下次我请。"',next:'h7b',affinity:{lazzhu:1}},
+  {text:'偷偷看手机，没注意到他说什么',next:'h7c',affinity:{lazzhu:-1}}
+]},
+h7:{char:'lazzhu',expr:'smile',speaker:'lazzhu',next:'h8',
+  text:'"好学的态度不错。"\n他点了点头，眼角带着一丝赞许。\n"边走边聊吧——你知道咱们公司附近最好吃的是什么吗？"\n"公司楼下的猪脚饭。招牌上写着『吃了猪事可乐』。"'},
+h7b:{char:'lazzhu',expr:'normal',speaker:'lazzhu',next:'h8',
+  text:'"行。下次你请。"\n他没有多说什么，但你注意到他的嘴角微微上扬。'},
+h7c:{speaker:'narration',next:'h8',
+  text:'拉猪看你心不在焉，没再说什么。\n他收起钱包，自己去了食堂。\n你隐约觉得自己错过了一个重要的机会。'},
+h8:{speaker:'narration',
+  text:'午餐时间，食堂里热闹非凡。\n你看到豪猪在跟食堂阿姨讨价还价，玉猪在角落里用笔记本记着什么，头猪依然端着兔饭碗游荡。\n尾猪坐在窗边最显眼的位置，像在拍美食杂志封面。'},
+h9:{char:'lazzhu',expr:'normal',speaker:'lazzhu',
+  text:'"你看这公司……每个人都有自己的角色。"\n他夹起一块猪脚，语气平静。\n"看似混乱，但其实有一种微妙的平衡。"\n"就像系统——只要核心稳定，外围再怎么折腾也无所谓。"'},
+h10:{char:'lazzhu',expr:'smile',speaker:'lazzhu',
+  text:'"而我相信，你也会在这里找到自己的位置。"\n他举起茶杯。\n"欢迎正式加入猪事可乐——以茶代酒。干杯。"'},
+h11:{speaker:'narration',
+  text:'那一刻，你觉得自己被接纳了。\n不是因为你的能力有多强，而是因为有人愿意教你。\n拉猪就是那种——话不多，但值得信赖的前辈。'},
+h12:{bg:'night',text:'下午的时光在代码和会议中匆匆流逝。\n下班时你发现拉猪还在工位上，对着屏幕皱眉。'},
+h13:{char:'lazzhu',expr:'serious',speaker:'lazzhu',
+  text:'"有个线上问题……"\n他揉了揉太阳穴。\n"不算严重，但需要盯着。你先走吧。"\n他说"你先走"的样子，让你想起了那个关于战锤的故事里——\n那个留到深夜、独自守护系统的人。'},
+h13_choice:{choices:[
+  {text:'"我陪你一起盯，正好学学怎么处理线上问题。"',next:'h14',affinity:{lazzhu:2}},
+  {text:'"那你自己注意休息。"',next:'h14b',affinity:{lazzhu:1}},
+  {text:'"行，那我先走了！"快速溜走',next:'h14c',affinity:{lazzhu:-1}}
+]},
+h14:{speaker:'narration',
+  text:'你和拉猪一起盯到晚上九点。\n问题解决了。\n他靠在椅背上，难得地露出了轻松的表情。\n"你小子……挺能熬的。"\n"以后的夜班，有人陪了。"\n明明是句玩笑话，但你听出了认可。'},
+h15:{char:'lazzhu',expr:'smile',speaker:'lazzhu',
+  text:'"走吧，我送你到地铁站。"\n夜色中，你们并肩走过公司门口那条街。\n路灯把影子拉得很长。\n"明天见。"他说。\n"好。"你答。\n→ 前往结局判定'},
+h14b:{speaker:'narration',
+  text:'你收拾东西离开时，回头看了一眼。\n拉猪的背影在显示器的蓝光里显得有些孤单。\n你想了想，还是走了。\n——但你知道，如果你想融入这里，下次应该留下。\n→ 前往结局判定'},
+h14c:{speaker:'narration',
+  text:'你溜得很快。\n第二天你发现拉猪对你的态度明显冷淡了一些。\n他似乎觉得——你并不能成为他真正信赖的人。\n→ 前往结局判定'},
+
+/* ===== HAOZHU ROUTE ===== */
+z1:{bg:'office',label:'豪猪线',labelSub:'搞事之王',
+  text:'你走向豪猪的工位——与其说是工位，不如说是一个被各种零食包装和手办包围的据点。\n豪猪正翘着腿打游戏，看到你来，一把摘下耳机。'},
+z2:{char:'haozhu',expr:'happy',speaker:'haozhu',
+  text:'"哦！你来找我！我就知道你有眼光！"\n他跳起来，椅子向后滑出两米。\n"来来来，我带你见识一下猪厂真正的企业文化！"'},
+z3:{speaker:'narration',
+  text:'豪猪所谓的"企业文化"包括但不限于：\n1. 带你去茶水间偷零食\n2. 教你如何在开会时摸鱼不被发现\n3. 给你看他在公司群里收藏的各种表情包\n"我跟你说，这公司表面上看起来正经，其实——"'},
+z4:{char:'haozhu',expr:'happy',speaker:'haozhu',
+  text:'"其实大家都挺不正经的！"\n他打开手机给你看一张照片——拉猪在年会上戴着猪头面具跳舞。\n"看到没！这可是独家秘藏！"\n你忍不住笑了出来。'},
+z5:{char:'haozhu',expr:'happy',speaker:'haozhu',
+  text:'"不过说真的——"\n他突然收起嬉皮笑脸，难得正经了一秒。\n"这公司虽然乱，但人都不坏。\n"尤其是拉猪……他虽然老管着我，但其实是个好人。"'},
+z6:{char:'haozhu',expr:'normal',speaker:'haozhu',
+  text:'"我跟你讲这些干啥……走走走，带你去楼下便利店！"\n他拉着你的胳膊往外冲。\n"我请你吃烤肠！咱们边吃边聊！"'},
+z6_choice:{choices:[
+  {text:'高兴地跟他一起去，边走边聊',next:'z7',affinity:{haozhu:2}},
+  {text:'"等等，我先回个消息……"',next:'z7b',affinity:{haozhu:1}},
+  {text:'"我不太吃路边摊……"',next:'z7c',affinity:{haozhu:-1}}
+]},
+z7:{char:'haozhu',expr:'happy',speaker:'haozhu',next:'z8',
+  text:'"爽快！我就喜欢你这样的人！"\n他重重拍了拍你的背，差点把你拍出内伤。\n"你比那些扭扭捏捏的新人强多了！"'},
+z7b:{char:'haozhu',expr:'normal',speaker:'haozhu',next:'z8',
+  text:'"行行行，你回你回。"\n他站在一边等你，用脚打着拍子。\n"好了没？走走走！烤肠要凉了！"\n——烤肠需要凉吗？'},
+z7c:{char:'haozhu',expr:'normal',speaker:'haozhu',next:'z8',
+  text:'"呃……好吧。那我给你带一杯奶茶上来。"\n他看起来有点失落，但很快就恢复了活力。\n"你喝什么？三分糖？全糖？——我建议全糖，人生已经够苦了！"'},
+z8:{speaker:'narration',
+  text:'便利店的烤肠机前，豪猪一边给烤肠刷酱一边跟你聊天。\n你发现他虽然看起来咋咋呼呼的，但其实很会照顾人。\n"你吃辣吗？多放点辣椒好吃！"'},
+z9:{char:'haozhu',expr:'normal',speaker:'haozhu',
+  text:'"其实我来公司之前，也跟你想的一样——上班嘛，混日子。"\n他咬了一口烤肠，说话含糊不清。\n"但是待久了发现……这里的人挺好的。虽然个个都不正常。"\n"但正是不正常的人才有趣啊。"'},
+z10:{char:'haozhu',expr:'happy',speaker:'haozhu',
+  text:'"所以你也别紧张！放开点！"\n他把第二根烤肠塞到你手里。\n"在猪厂，最重要的不是工作能力——是你能不能接住大家的梗！"\n"我觉得你——可以的！"'},
+z11:{speaker:'narration',
+  text:'你们在便利店门口聊了很久。\n从公司八卦聊到人生理想，从游戏聊到美食。\n你发现豪猪其实是个很有趣的人——只要你忽略他偶尔的"嘉豪行为"。'},
+z12:{bg:'night',text:'下班时间到了。豪猪收拾东西准备走人——他的包鼓得像要出门旅行。\n"你咋回去？我骑小电驴，要不要送你一程？"'},
+z12_choice:{choices:[
+  {text:'"好啊！正好体验一下你的车技！"',next:'z13',affinity:{haozhu:2}},
+  {text:'"不用了，我坐地铁就行。"',next:'z13b',affinity:{haozhu:1}},
+  {text:'"你的车……能载人吗？合法吗？"',next:'z13c',affinity:{haozhu:-1}}
+]},
+z13:{speaker:'narration',
+  text:'豪猪的小电驴在晚高峰的车流中穿行。\n他一边骑车一边回头跟你说话（危险动作请勿模仿）。\n"下周公司有团建！你一定要来啊！"\n"玉猪说要搞什么——『团队协作能力提升工作坊』。"\n"听着就无聊——但我有办法让它变得有趣！"'},
+z14:{char:'haozhu',expr:'happy',speaker:'haozhu',
+  text:'"到了！"\n他一个帅气的甩尾停在路口。\n"明天见！记得来找我玩！"\n他冲你挥了挥手，然后骑着小电驴消失在车流中。\n后座还绑着一个晃晃悠悠的猪头气球。'},
+z15:{speaker:'narration',
+  text:'你站在原地，看着那个猪头气球越来越远。\n忍不住笑了出来。\n——猪厂的日子，好像真的挺有趣的。\n→ 前往结局判定'},
+z13b:{speaker:'narration',
+  text:'"好吧，那我先撤了！"\n豪猪跨上小电驴，一拧油门冲了出去。\n你看到他的猪头气球在风中飘扬。\n下次也许该坐他的车——你心想。\n→ 前往结局判定'},
+z13c:{speaker:'narration',
+  text:'"啧，你怎么跟拉猪一样啰嗦。"\n豪猪翻了个白眼，一溜烟跑了。\n你看到他的后尾灯消失在转角。\n也许你的话让他觉得你有点扫兴。\n→ 前往结局判定'},
+
+/* ===== YUZHU ROUTE ===== */
+y1:{bg:'office',label:'玉猪线',labelSub:'精打细算',
+  text:'你走向玉猪的工位。\n他的桌上整整齐齐地摆着三台显示器，屏幕上全是Excel表格。\n边上一个精致的笔筒，里面插满了各种颜色的笔。'},
+y2:{char:'yuzhu',expr:'normal',speaker:'yuzhu',
+  text:'"找我有事？"\n他抬起头，推了推金丝眼镜。\n"如果是报销的话，填这张表——如果是团建建议的话，填那张表——"\n"如果是借钱的话——门在那边。"'},
+y3:{char:'yuzhu',expr:'smile',speaker:'yuzhu',
+  text:'"开玩笑的。"\n他笑了笑，拉开旁边的椅子。\n"坐吧。你是新人，我正好要跟你聊聊团建的事。"\n"毕竟——每个新人都有一票团建决定权。"'},
+y4:{speaker:'narration',
+  text:'玉猪的团建理念是：花最少的钱，办最快乐的事。\n他打开一个名为"团建方案库（2024-2025版）"的Excel文件。\n里面密密麻麻地列了三十多种方案，每一个都有详细的预算分析。'},
+y5:{char:'yuzhu',expr:'normal',speaker:'yuzhu',
+  text:'"你看——方案A：郊区露营，人均180，含烧烤和篝火晚会。"\n"方案B：密室逃脱+火锅，人均195，但需要凑满8人。"\n"方案C：公司会议室看团建电影——免费。"\n他推了推眼镜。\n"我个人推荐方案C。"'},
+y5_choice:{choices:[
+  {text:'"露营听起来不错啊！亲近自然！"',next:'y6',affinity:{yuzhu:1}},
+  {text:'"密室逃脱吧！我擅长解谜！"',next:'y6b',affinity:{yuzhu:2}},
+  {text:'"……会议室看电影也太惨了吧。"',next:'y6c',affinity:{yuzhu:-1}}
+]},
+y6:{char:'yuzhu',expr:'normal',speaker:'yuzhu',next:'y7',
+  text:'"露营……也行。"\n他在Excel里做了一下计算。\n"不过租帐篷和睡袋的费用我得再压压价。你有认识的户外用品店吗？"'},
+y6b:{char:'yuzhu',expr:'smile',speaker:'yuzhu',next:'y7',
+  text:'"密室逃脱？好眼光。"\n他眼睛一亮，在方案B上打了个勾。\n"我刚好认识那家店的老板——能拿到员工价。"'},
+y6c:{char:'yuzhu',expr:'normal',speaker:'yuzhu',next:'y7',
+  text:'"确实惨，所以一般没人选。"\n他面不改色地关掉了方案C。\n"没关系，预算足够，我们可以考虑别的。"'},
+y7:{char:'yuzhu',expr:'smile',speaker:'yuzhu',
+  text:'"其实我管钱不是为了抠门。"\n他突然认真起来。\n"而是因为——我想让每一分钱都花得值得。"\n"团建也好，下午茶也好——让大家真正开心，才是目的。"'},
+y8:{speaker:'narration',
+  text:'你发现玉猪其实并不抠。\n他只是把每一笔账都算得清清楚楚，然后确保所有人都能享受到最好的体验。\n这种精细化管理的能力——确实值得学习。'},
+y9:{char:'yuzhu',expr:'normal',speaker:'yuzhu',
+  text:'"既然你加入了团建策划组——"他递给你一张表格。\n"来，帮我把下个季度的团建预算重算一遍。"\n"这也是新人培训的一部分。"\n你接过表格，发现上面全是密密麻麻的公式。'},
+y10:{speaker:'narration',
+  text:'你花了一整个下午和玉猪一起算预算。\n他教你用各种Excel技巧——vlookup、数据透视表、条件格式。\n你发现管钱这件事，比想象中有意思。'},
+y11:{char:'yuzhu',expr:'smile',speaker:'yuzhu',
+  text:'"不错，你算的跟我的结果只差五块钱。"\n他看着你的表格，满意地点了点头。\n"那五块钱的偏差——是给我的奶茶补贴。"\n你愣了一下，然后笑了。'},
+y12:{bg:'night',text:'下班后，玉猪难得地合上了笔记本电脑。\n"今天辛苦了。我请你喝奶茶——用我的奶茶补贴。"\n他眨了眨眼睛。'},
+y12_choice:{choices:[
+  {text:'"好！我去买！你喝什么？"',next:'y13',affinity:{yuzhu:2}},
+  {text:'"我请你吧，谢谢你教我这么多。"',next:'y13b',affinity:{yuzhu:1}},
+  {text:'"不了，我不喝奶茶。"',next:'y13c',affinity:{yuzhu:-1}}
+]},
+y13:{speaker:'narraton',
+  text:'奶茶店里，玉猪跟你聊了很多。\n"其实我以前也跟你一样——什么都不会，战战兢兢的。"\n"是拉猪带我入门的。"\n"后来我发现——我擅长的是管钱和管人。"\n"每个人都有自己的位置。"'},
+y14:{char:'yuzhu',expr:'smile',speaker:'yuzhu',
+  text:'"而你——我觉得你适合团建组。"\n他举起奶茶杯。\n"欢迎加入猪事可乐团建委员会——目前委员共两人。"\n"你和我。"\n你笑着和他碰了杯。'},
+y15:{speaker:'narration',
+  text:'走出奶茶店时，天已经黑了。\n玉猪在门口跟你道别，手里还拿着没算完的账本。\n"明天见。别忘了把方案B的预算细化一下。"\n你点了点头。\n——猪厂的财务之光，也许就是这样的温度。\n→ 前往结局判定'},
+y13b:{speaker:'narration',
+  text:'"那我不客气了。"\n他笑了笑，点了一杯最贵的。\n"开个玩笑——我要四季春茶，少糖去冰。"\n你们在奶茶店度过了愉快的半小时。\n→ 前往结局判定'},
+y13c:{speaker:'narration',
+  text:'"好吧，那我也不喝了。"\n他收起钱包。\n"省钱也好。"\n但你觉得他有点失望。\n→ 前往结局判定'},
+
+/* ===== TOUZH ROUTE ===== */
+t1:{bg:'office',label:'头猪线',labelSub:'碗中谜团',
+  text:'你走向那个头顶兔饭碗的身影。\n头猪坐在工位上，碗端正地放在头中央，一动不动。\n偶尔发出一声低沉的叹息，像某种神秘的咒语。'},
+t2:{char:'touzh',expr:'normal',speaker:'touzh',
+  text:'"你……来……了……"\n他没有转头，但你知道他在跟你说话。\n"我……等……你……很……久……了……"\n他的声音像从很远的地方传来。'},
+t3:{char:'touzh',expr:'normal',speaker:'touzh',
+  text:'"你……想……知……道……碗……里……的……秘……密……吗……"\n他缓缓转过头来——\n碗上的"兔饭"两个字正好对着你。\n"我……也……不……知……道……"\n"但……尾……猪……说……要……每……天……端……着……"\n"所……以……我……就……端……着……"'},
+t3_choice:{choices:[
+  {text:'"你为什么要听尾猪的？"',next:'t4',affinity:{touzh:1}},
+  {text:'"我能看看碗里是什么吗？"',next:'t4b',affinity:{touzh:2}},
+  {text:'"……打扰了。"准备转身离开',next:'t4c',affinity:{touzh:-1}}
+]},
+t4:{char:'touzh',expr:'normal',speaker:'touzh',next:'t5',
+  text:'"因……为……尾……猪……知……道……一……切……"\n他低声说。\n"他……说……只……要……我……端……着……碗……"\n"公……司……就……不……会……倒……闭……"\n"我……觉……得……他……说……得……对……"'},
+t4b:{char:'touzh',expr:'normal',speaker:'touzh',next:'t5',
+  text:'"你……确……定……？"\n他缓缓低头，试图把碗拿下来——但碗纹丝不动。\n"拿……不……下……来……了……"\n"已……经……长……在……头……上……了……"\n你一时不知道该不该相信他。'},
+t4c:{speaker:'narration',next:'t5',
+  text:'"别……走……"\n他忽然伸手抓住你的手腕。力道不大，但你被吓住了。\n"你……是……第……一……个……主……动……找……我……说……话……的……人……"\n"我……还……没……说……完……呢……"'},
+t5:{speaker:'narration',
+  text:'你决定暂时相信他——或者说，你被他的神秘感吸引了。\n他带你来到公司天台。\n视野开阔，微风习习——而他头上的兔饭碗在阳光下泛着诡异的光泽。'},
+t6:{char:'touzh',expr:'normal',speaker:'touzh',
+  text:'"你……知……道……为……什……么……公……司……叫……猪……事……可……乐……吗……"\n他望着远方。\n"因……为……有……一……头……猪……"\n"在……操……控……一……切……"\n"那……头……猪……就……是……尾……猪……"'},
+t7:{char:'touzh',expr:'normal',speaker:'touzh',
+  text:'"尾……猪……不……是……普……通……人……"\n"他……来……公……司……的……第……一……天……就……跟……我……说……"\n"『你——帮我端碗。公司就不会倒。』"\n"我……问……为……什……么……"\n"他……说……『因为我是尾猪』……"\n"这……个……理……由……我……无……法……反……驳……"'},
+t8:{speaker:'narration',
+  text:'你听得一头雾水，但隐约觉得——头猪说的可能是真的。\n这家公司的确有一种奇怪的氛围。\n每个人都有自己的角色，而这些角色……似乎都是尾猪安排的。'},
+t9:{char:'touzh',expr:'normal',speaker:'touzh',
+  text:'"你……觉……得……我……是……疯……子……吗……"\n他忽然转头看你。\n碗沿碰了碰你的额头。\n"没……关……系……\n"大……家……都……这……么……觉……得……"'},
+t9_choice:{choices:[
+  {text:'"不，我觉得你说的是真的。"',next:'t10',affinity:{touzh:2}},
+  {text:'"我……我觉得还需要再观察一下。"',next:'t10b',affinity:{touzh:1}},
+  {text:'"嗯……确实有一点。"',next:'t10c',affinity:{touzh:-1}}
+]},
+t10:{char:'touzh',expr:'normal',speaker:'touzh',next:'t11',
+  text:'"你……是……第……一……个……相……信……我……的……人……"\n他的声音忽然不颤抖了——虽然还是很慢。\n"谢……谢……你……"\n"头……猪……很……感……动……"'},
+t10b:{char:'touzh',expr:'normal',speaker:'touzh',next:'t11',
+  text:'"没……关……系……"\n他点了点头。\n"这……本……来……就……很……难……让……人……相……信……"\n"连……我……自……己……都……不……太……信……"'},
+t10c:{char:'touzh',expr:'normal',speaker:'touzh',next:'t11',
+  text:'"嗯……你……说……得……对……"\n他低下头。\n"我……确……实……有……点……疯……"\n"但……那……个……碗……真……的……拿……不……下……来……了……"'},
+t11:{speaker:'narration',
+  text:'你们在天台上待了一整个下午。\n头猪说话很慢，但他讲的故事越来越有意思。\n他说尾猪其实是公司的创始人之一，但从不对外公开。\n"尾猪在幕后操控一切——包括拉猪的领带颜色。"'},
+t12:{char:'touzh',expr:'normal',speaker:'touzh',
+  text:'"我……告……诉……你……这……些……"\n"是……因……为……我……觉……得……你……可……以……成……为……自……己……人……"\n"我……们……猪……群……需……要……新……血……液……"'},
+t13:{bg:'night',text:'夕阳西下，天台的影子拉得很长。\n头猪头上的碗在夕阳中泛出金色的光。\n"该……回……去……了……"\n"尾……猪……说……下……班……前……要……在……工……位……上……端……坐……三……分……钟……"'},
+t13_choice:{choices:[
+  {text:'"我陪你一起坐。"',next:'t14',affinity:{touzh:2}},
+  {text:'"好，明天见。"',next:'t14b',affinity:{touzh:1}},
+  {text:'飞快跑回工位，不想被人看到跟他在一起',next:'t14c',affinity:{touzh:-1}}
+]},
+t14:{speaker:'narration',
+  text:'你和头猪并排坐在工位上，他头上顶着碗，你正襟危坐。\n三分钟里，你们一言不发。\n但你感受到了一种奇妙的默契。\n——仿佛你真的成为了什么神秘组织的一员。'},
+t15:{speaker:'narration',
+  text:'下班时，头猪在你经过时轻轻说了一句——\n"明……天……的……兔……饭……我……给……你……留……一……口……"\n你没来得及拒绝，他就飘走了。\n碗在灯光下闪闪发亮。\n——你似乎走进了一个比想象中更深的谜团。\n→ 前往结局判定'},
+t14b:{speaker:'narration',
+  text:'你回到工位收拾东西。\n路过时看到头猪真的端坐了整整三分钟，一动不动。\n你开始觉得——他说的那些话，可能真的都是真的。\n→ 前往结局判定'},
+t14c:{speaker:'narration',
+  text:'你快步离开的样子被豪猪看到了。\n"你刚跟头猪在一起？你疯啦？"\n你没有回答。\n但你知道——头猪一定注意到了你的疏远。\n→ 前往结局判定'},
+
+/* ===== WEIZH ROUTE ===== */
+w1:{bg:'office',label:'尾猪线',labelSub:'幕后之主',
+  text:'你走向尾猪的办公室——说是办公室，更像一个时尚展厅。\n落地窗、白色沙发、墙上挂着艺术画。\n尾猪正翘着腿看手机，看到你来了，微微一笑。'},
+w2:{char:'weizh',expr:'smug',speaker:'weizh',
+  text:'"你终于来了。"\n他放下手机，做了个"请坐"的手势。\n"我算过——你会在入职第二天来找我。"\n"比平均晚了0.3天，但还在可接受范围内。"'},
+w3:{char:'weizh',expr:'smug',speaker:'weizh',
+  text:'"你一定有很多疑问——这家公司到底是什么？"\n"为什么门牌上画着猪？为什么头猪头上顶着碗？"\n"为什么豪猪每天都很暴躁？为什么玉猪总在算账？"\n"还有——拉猪为什么甘愿在这里当个稳定性负责人？"'},
+w4:{char:'weizh',expr:'smug',speaker:'weizh',
+  text:'"因为——这家公司是我创立的。"\n他靠在沙发上，双手交叉。\n"表面上，我只是一名普通员工。实际上——"\n"我是这个猪群的操纵者。"\n"拉猪负责稳定，豪猪负责活力，玉猪负责资源，头猪负责……吉祥物。"'},
+w5:{char:'weizh',expr:'smug',speaker:'weizh',
+  text:'"而你——新人——我需要你成为第六头猪。"\n他直视你的眼睛。\n"猪厂需要新鲜血液。而你，拥有成为猪的潜质。"\n"要不要跟我干？"'},
+w5_choice:{choices:[
+  {text:'"好！我愿意！"（毫不犹豫）',next:'w6',affinity:{weizh:2}},
+  {text:'"我需要再想想……"',next:'w6b',affinity:{weizh:1}},
+  {text:'"这听起来像某种传销组织。"',next:'w6c',affinity:{weizh:-1}}
+]},
+w6:{char:'weizh',expr:'smug',speaker:'weizh',next:'w7',
+  text:'"好！我就喜欢有魄力的人！"\n他站起来，向你伸出手。\n"欢迎加入猪群核心圈——你的工牌明天会多一颗星星。"'},
+w6b:{char:'weizh',expr:'normal',speaker:'weizh',next:'w7',
+  text:'"当然，这么大的决定需要时间。"\n他重新坐下，语气依然轻松。\n"但记住——机会是留给有准备的人的。"\n"而我已经准备好了。"'},
+w6c:{char:'weizh',expr:'normal',speaker:'weizh',next:'w7',
+  text:'"哈哈——有趣。"\n他笑了一声，但没有生气。\n"你的直率很珍贵。不过——"\n"这个公司确实是我说了算，这一点不是传销，是事实。"'},
+w7:{char:'weizh',expr:'smug',speaker:'weizh',
+  text:'"来——我给你看看猪厂的真正实力。"\n他打开一个神秘的网页。\n上面实时显示着整个公司的运作数据——\n每个人的工作效率、情绪指数、甚至咖啡消耗量。'},
+w8:{speaker:'narration',
+  text:'你震惊地看着屏幕。\n尾猪竟然在监控一切——每个人每天喝了几杯咖啡、在茶水间待了多久、甚至上厕所的频率都一目了然。\n"这就是数据的力量。"尾猪悠然地说。"有了数据，你就能掌控一切。"'},
+w9:{char:'weizh',expr:'smug',speaker:'weizh',
+  text:'"但数据只是工具。"\n他关掉页面，转向你。\n"真正重要的是——你知道什么时候该用这些数据。"\n"比如——我知道你今天会来找我，所以提前让前台多准备了一杯你喜欢的拿铁。"\n他指了指桌上那杯还冒着热气的咖啡。'},
+w10:{char:'weizh',expr:'normal',speaker:'weizh',
+  text:'"我创立猪事可乐的初衷——不是赚钱。"\n他难得地认真起来。\n"而是证明一件事：一群奇怪的人，也可以组成最棒的团队。"\n"只要有一个——懂得如何把他们拼在一起的人。"'},
+w11:{char:'weizh',expr:'smug',speaker:'weizh',
+  text:'"而那个人，就是我。"\n他端起咖啡，向你举杯。\n"所以——你准备好成为这块拼图的一部分了吗？"'},
+w11_choice:{choices:[
+  {text:'"我准备好了。请多指教——老大。"',next:'w12',affinity:{weizh:2}},
+  {text:'"我……我会努力的。"',next:'w12b',affinity:{weizh:1}},
+  {text:'"我还是觉得你像个幕后黑手。"',next:'w12c',affinity:{weizh:-1}}
+]},
+w12:{char:'weizh',expr:'smug',speaker:'weizh',next:'w13',
+  text:'"很好。"\n他满意地点了点头。\n"从今天起，你就是我的直系下属了。"\n"顺便说一句——豪猪和拉猪都不知道公司的真正架构。"\n"这是我们之间的秘密。"'},
+w12b:{char:'weizh',expr:'smile',speaker:'weizh',next:'w13',
+  text:'"不用太紧张。"\n他拍了拍你的肩膀。\n"在这个公司——只要你够认真，就没人会为难你。"\n"当然，有我在，更没人敢为难你。"'},
+w12c:{char:'weizh',expr:'smug',speaker:'weizh',next:'w13',
+  text:'"幕后的黑手，也可以是一双温暖的手。"\n他笑了笑，推给你一杯咖啡。\n"尝尝。你的人生需要多一点咖啡因——和真相。"'},
+w13:{speaker:'narration',
+  text:'尾猪跟你聊了很多——关于公司的历史、关于每个人的故事、关于他为什么要选择你。\n他是那种——你以为他在装逼，但他说的一切都是真的。\n这种感觉既让人安心，又让人后背发凉。'},
+w14:{bg:'night',text:'当你离开尾猪的办公室时，天已经黑了。\n走廊里，你遇到了正准备下班的拉猪。'},
+w15:{char:'lazzhu',expr:'serious',speaker:'lazzhu',
+  text:'"你……刚从尾猪办公室出来？"\n他的表情有些复杂。\n"……他跟你说了多少？"\n你还没来得及回答，他又补了一句：\n"算了。不管他说了什么——记住，别让他把你变成另一个他。"\n他拍了拍你的肩膀，转身走了。\n你站在原地，若有所思。\n→ 前往结局判定'},
+
+/* ===== ENDINGS ===== */
+ending_lazzhu_good:{bg:'ending',label:'结局',labelSub:'拉猪线·Good Ending',type:'GOOD ENDING',title:'稳定之光',
+  text:'几个月后，你成了拉猪最信任的搭档。\n每次线上出问题时，你们都会并肩作战到深夜。\n他的桌上摆着两个工位牌——一个是他的，一个是你的。\n\n"你成长得比我预想的快。"有一天他难得地给了你一句夸奖。\n"这台服务器——以后也交给你了。"\n你接过他递来的密钥，手心发热。\n在猪事可乐，稳定不是一个人的事——\n而是两个人背靠背的信任。'},
+ending_lazzhu_normal:{bg:'ending',label:'结局',labelSub:'拉猪线·Normal Ending',type:'NORMAL ENDING',title:'可靠同事',
+  text:'你成了拉猪的得力助手——虽然不算最亲近的那个。\n你学会了如何应对线上故障，也学会了如何在混乱中保持冷静。\n偶尔加班到深夜时，他会给你点一份外卖。\n\n"干得不错。"他的夸奖依然简短，但你知道——\n在拉猪的语言体系里，"不错"就是最高的评价了。'},
+ending_haozhu_good:{bg:'ending',label:'结局',labelSub:'豪猪线·Good Ending',type:'GOOD ENDING',title:'搞事搭子',
+  text:'你和豪猪成了公司最出名的"搞事二人组"。\n年会上你们合作表演了一个小品，笑翻全场。\n拉猪看完后面无表情地说"明年别报了"——但你没错过他嘴角的抽动。\n\n"我就说你行吧！"豪猪用力拍着你的背。"以后咱们就是猪厂双子星！"\n你笑着揉了揉肩膀。\n有些友情，始于一根烤肠——\n但不止于一根烤肠。'},
+ending_haozhu_normal:{bg:'ending',label:'结局',labelSub:'豪猪线·Normal Ending',type:'NORMAL ENDING',title:'欢乐同事',
+  text:'你和豪猪成了关系不错的同事。\n午休时他偶尔会拉你去便利店，给你讲最新的公司八卦。\n他是那种——虽然不靠谱，但从不让朋友失望的人。\n\n"下次团建咱俩一组！"他冲你眨眨眼。\n你笑着答应了。'},
+ending_yuzhu_good:{bg:'ending',label:'结局',labelSub:'玉猪线·Good Ending',type:'GOOD ENDING',title:'精算搭档',
+  text:'你和玉猪成功策划了那一季度的团建——密室逃脱+火锅，人均刚好195。\n所有人都玩得很开心，连拉猪都难得地笑了两次（虽然他说是辣火锅辣的）。\n\n"没有超预算，也没有人投诉。"玉猪在总结会上推了推眼镜。"完美的团建。"\n然后他在Excel的备注栏里写下了一行字：\n"感谢我的搭档——新一代的CFO预备役。"\n你看到了那行字。\n——原来被玉猪认可，比涨薪还让人开心。'},
+ending_yuzhu_normal:{bg:'ending',label:'结局',labelSub:'玉猪线·Normal Ending',type:'NORMAL ENDING',title:'预算助手',
+  text:'你加入了玉猪的团建委员会，成为了他的固定助手。\n你学会了用Excel做预算，学会了跟商家砍价，学会了用最少的钱办最多的事。\n玉猪说你"有成为优秀财务的潜质"。\n——虽然你还不太确定这是夸你还是骂你。'},
+ending_touzh_good:{bg:'ending',label:'结局',labelSub:'头猪线·Good Ending',type:'GOOD ENDING',title:'碗中知己',
+  text:'你成了公司里唯一一个能跟头猪正常交流的人。\n你们每天中午都在天台碰面，他说话越来越快，碗好像也变轻了。\n有一天，碗终于掉了下来——里面空空如也。\n\n头猪看着空碗，忽然笑了——那是你第一次见他笑得这么正常。\n"原来碗里从来什么都没有。"\n"那为什么……"\n"因为尾猪说——有时候相信一件事，比真相更重要。"\n你把碗拿起来，戴在了自己头上。\n"现在轮到我了。"\n两个顶着碗的人，在天台上笑出了声。'},
+ending_touzh_normal:{bg:'ending',label:'结局',labelSub:'头猪线·Normal Ending',type:'NORMAL ENDING',title:'理解者',
+  text:'你成了公司里为数不多不躲着头猪走的人。\n偶尔你会跟他一起在天台上吹风，听他慢悠悠地讲那些奇怪的故事。\n他头上的碗依然在。\n但你觉得——那不是什么诅咒。\n那是他独特的勋章。'},
+ending_weizh_good:{bg:'ending',label:'结局',labelSub:'尾猪线·Good Ending',type:'GOOD ENDING',title:'第六头猪',
+  text:'你正式成为了猪群的第六头猪。\n你的工牌上多了一颗金色的星星。\n拉猪看到后叹了口气，什么也没说——但他拍了拍你的肩膀。\n豪猪则兴奋地嚷嚷着"我就知道你是个狠人！"\n\n尾猪在他的办公室里开了一瓶香槟。\n"欢迎加入管理层。"他和你碰杯。\n"猪事可乐的故事——才刚刚开始。"\n你看着窗外的城市。\n你知道——你不是在为公司工作。\n你是在为一个猪群工作。\n而作为第六头猪，你终于找到了自己的位置。'},
+ending_weizh_normal:{bg:'ending',label:'结局',labelSub:'尾猪线·Normal Ending',type:'NORMAL ENDING',title:'知情人',
+  text:'你虽然没有正式加入尾猪的"核心圈"，但你成了公司里少数知道真相的人之一。\n尾猪待你如常，只是眼神里多了一丝"你早晚会想明白"的笃定。\n你知道公司的秘密，但你选择了站在一旁观察。\n——有时候，知情人比参与者看得更清楚。'},
+ending_bad:{bg:'ending',label:'结局',labelSub:'Bad Ending',type:'BAD ENDING',title:'来去匆匆',
+  text:'你没有真正融入猪事可乐。\n不是因为大家不欢迎你——而是你始终没有踏出那一步。\n你不再去找任何人，每天准时上下班，把自己当成一个过客。\n\n一个月后，你提了离职。\nHR问你原因，你只说了一句：\n"不太适合。"\n走出写字楼时，你回头看了一眼那个猪头标志。\n你忽然觉得——\n也许再勇敢一点，结局就会不一样。'}
+};
+
+/* ===== CHARS ===== */
+const Chars = {
+  lazzhu:{name:'拉猪',port:portraitLazzhu},
+  haozhu:{name:'豪猪',port:portraitHaozhu},
+  yuzhu:{name:'玉猪',port:portraitYuzhu},
+  touzh:{name:'头猪',port:portraitTouzh},
+  weizh:{name:'尾猪',port:portraitWeizh},
+  narration:{name:'',cls:'narration'}
+};
+
+/* ===== ENGINE ===== */
+let currentSceneId = null;
+function setBg(name){
+  const layer=$('bg-layer');layer.innerHTML='';
+  const div=document.createElement('div');
+  div.className='bg-scene bg-'+name+' active';layer.appendChild(div);
+}
+function setChar(pos, charKey, expr){
+  const el=$('char-'+pos);
+  if(!charKey){el.classList.remove('active');setTimeout(()=>{if(!el.classList.contains('active'))el.innerHTML='';},500);return;}
+  el.innerHTML=Chars[charKey].port(expr||'normal');
+  requestAnimationFrame(()=>el.classList.add('active'));
+}
+function setSpeaker(charKey){
+  const el=$('speaker-name');
+  if(charKey==='narration'||!charKey){el.textContent='';el.className='narration';return;}
+  el.textContent=Chars[charKey].name;el.className=charKey;
+}
+function showSceneLabel(label,sub){
+  if(!label)return;
+  const el=$('scene-label');
+  el.innerHTML=label+(sub?'<small>'+sub+'</small>':'');
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2200);
+}
+function typewriter(text,cb){
+  State.currentText=text;State.textIndex=0;State.typing=true;
+  $('dialogue-text').innerHTML='';
+  clearInterval(State.typeTimer);
+  let i=0;
+  State.typeTimer=setInterval(()=>{
+    if(i<text.length){
+      const ch=text[i];
+      if(ch==='\n')$('dialogue-text').innerHTML+='<br>';
+      else $('dialogue-text').innerHTML+=ch;
+      i++;
+    } else {
+      clearInterval(State.typeTimer);State.typing=false;
+      $('dialogue-text').innerHTML+='<span class="cursor-blink">▼</span>';
+      if(cb)cb();
+    }
+  },28);
+}
+function skipTypewriter(){
+  if(State.typing){
+    clearInterval(State.typeTimer);State.typing=false;
+    $('dialogue-text').innerHTML=State.currentText.replace(/\n/g,'<br>')+'<span class="cursor-blink">▼</span>';
+    return true;
+  }
+  return false;
+}
+function updateHUD(){
+  $('bar-lazzhu').style.width=Math.min(100,State.lazzhu*10)+'%';
+  $('bar-haozhu').style.width=Math.min(100,State.haozhu*10)+'%';
+  $('bar-yuzhu').style.width=Math.min(100,State.yuzhu*10)+'%';
+  $('bar-touzh').style.width=Math.min(100,State.touzh*10)+'%';
+  $('bar-weizh').style.width=Math.min(100,State.weizh*10)+'%';
+}
+function showAffinityPopup(char,val){
+  const el=$('affinity-popup');
+  const emojis={lazzhu:'🐷',haozhu:'🦔',yuzhu:'💎',touzh:'🍚',weizh:'👑'};
+  const colors={lazzhu:'#8ab4d8',haozhu:'#e88888',yuzhu:'#88d888',touzh:'#b888e8',weizh:'#e8b0e8'};
+  const sign=val>0?'+':'';
+  el.innerHTML=emojis[char]+' '+sign+val;
+  el.style.color=val>0?colors[char]:'#666';
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),1200);
+}
+function renderScene(id){
+  const sc=Scenes[id];
+  if(!sc)return;
+  currentSceneId=id;State.scene=id;
+  if(sc.choices){showChoices(sc.choices);return;}
+  if(sc.type){showEnding(sc);return;}
+  if(sc.bg)setBg(sc.bg);
+  if(sc.label||sc.labelSub)showSceneLabel(sc.label,sc.labelSub);
+  setChar('left',null);setChar('center',null);setChar('right',null);
+  if(sc.char){const pos=sc.charPos||'center';setChar(pos,sc.char,sc.expr);}
+  if(sc.char2){setChar(sc.charPos2||'right',sc.char2,sc.expr2);}
+  setSpeaker(sc.speaker);
+  $('dialogue-box').classList.add('show');
+  setTimeout(()=>{
+    let txt=(sc.text||'').replace(/{name}/g,State.player);
+    typewriter(txt,()=>{if(State.autoMode)setTimeout(advance,2000);});
+  },300);
+}
+function showChoices(choices){
+  $('dialogue-box').classList.remove('show');
+  const layer=$('choices-layer');layer.innerHTML='';
+  choices.forEach((c,i)=>{
+    const btn=document.createElement('div');
+    btn.className='choice-btn';
+    btn.innerHTML=c.text+(c.hint?'<br><span style="font-size:12px;color:var(--dim);margin-top:4px;display:block">'+c.hint+'</span>':'');
+    btn.onclick=(e)=>{e.stopPropagation();makeChoice(c);};
+    layer.appendChild(btn);
+  });
+  setTimeout(()=>layer.classList.add('show'),200);
+}
+function makeChoice(choice){
+  $('choices-layer').classList.remove('show');
+  setTimeout(()=>$('choices-layer').innerHTML='',300);
+  if(choice.affinity){
+    for(const[k,v]of Object.entries(choice.affinity)){
+      State[k]+=v;showAffinityPopup(k,v);
+    }
+    updateHUD();
+  }
+  if(choice.route)State.route=choice.route;
+  setTimeout(()=>renderScene(choice.next),400);
+}
+function getNextSceneId(id){
+  const sc=Scenes[id];
+  if(!sc)return null;
+  if(sc.choices)return null;
+  if(sc.type)return null;
+  if(sc.next)return sc.next;
+  const keys=Object.keys(Scenes);
+  const idx=keys.indexOf(id);
+  if(idx<keys.length-1)return keys[idx+1];
+  return null;
+}
+function advance(){
+  if($('choices-layer').classList.contains('show'))return;
+  if($('title-screen').classList.contains('hidden')===false)return;
+  if($('name-input-screen').classList.contains('hidden')===false)return;
+  if($('ending-screen').classList.contains('show'))return;
+  if($('fade-overlay').classList.contains('show'))return;
+  if(skipTypewriter())return;
+  const endings={h15:'lazzhu',h14b:'lazzhu',h14c:'lazzhu',z15:'haozhu',z13b:'haozhu',z13c:'haozhu',y15:'yuzhu',y13b:'yuzhu',y13c:'yuzhu',t15:'touzh',t14b:'touzh',t14c:'touzh',w15:'weizh'};
+  if(endings[currentSceneId]){checkEnding(endings[currentSceneId]);return;}
+  const next=getNextSceneId(currentSceneId);
+  if(next){$('fade-overlay').classList.add('show');setTimeout(()=>{renderScene(next);$('fade-overlay').classList.remove('show');},400);}
+}
+function checkEnding(route){
+  $('fade-overlay').classList.add('show');
+  setTimeout(()=>{
+    const ends={lazzhu:{g:'ending_lazzhu_good',n:'ending_lazzhu_normal',b:'ending_bad'},haozhu:{g:'ending_haozhu_good',n:'ending_haozhu_normal',b:'ending_bad'},yuzhu:{g:'ending_yuzhu_good',n:'ending_yuzhu_normal',b:'ending_bad'},touzh:{g:'ending_touzh_good',n:'ending_touzh_normal',b:'ending_bad'},weizh:{g:'ending_weizh_good',n:'ending_weizh_normal',b:'ending_bad'}};
+    const map={lazzhu:State.lazzhu,haozhu:State.haozhu,yuzhu:State.yuzhu,touzh:State.touzh,weizh:State.weizh};
+    const score=map[route]||0;
+    const e=ends[route];
+    let ending=e.b;
+    if(score>=5)ending=e.g;
+    else if(score>=2)ending=e.n;
+    renderScene(ending);
+    $('fade-overlay').classList.remove('show');
+  },600);
+}
+function showEnding(sc){
+  $('dialogue-box').classList.remove('show');
+  setChar('left',null);setChar('center',null);setChar('right',null);
+  if(sc.bg)setBg(sc.bg);
+  if(sc.label)showSceneLabel(sc.label,sc.labelSub);
+  $('hud').classList.remove('show');
+  $('ending-type').textContent=sc.type;
+  $('ending-title').textContent=sc.title;
+  $('ending-text').innerHTML=sc.text.replace(/\n/g,'<br>');
+  setTimeout(()=>{$('ending-screen').classList.add('show');},1500);
+}
+function saveGame(){localStorage.setItem('zhushi_save',JSON.stringify({scene:currentSceneId,player:State.player,lazzhu:State.lazzhu,haozhu:State.haozhu,yuzhu:State.yuzhu,touzh:State.touzh,weizh:State.weizh,route:State.route}));}
+function loadGame(){const r=localStorage.getItem('zhushi_save');return r?JSON.parse(r):null;}
+function startNewGame(){
+  State.lazzhu=0;State.haozhu=0;State.yuzhu=0;State.touzh=0;State.weizh=0;State.route=null;
+  $('hud').classList.add('show');updateHUD();$('title-screen').classList.add('hidden');renderScene('p1');
+}
+function continueGame(){
+  const d=loadGame();if(!d)return;
+  State.player=d.player||'新人';State.lazzhu=d.lazzhu||0;State.haozhu=d.haozhu||0;State.yuzhu=d.yuzhu||0;State.touzh=d.touzh||0;State.weizh=d.weizh||0;State.route=d.route||null;
+  $('hud').classList.add('show');updateHUD();$('title-screen').classList.add('hidden');$('name-input-screen').classList.add('hidden');renderScene(d.scene);
+}
+/* Events */
+$('game').addEventListener('click',(e)=>{
+  if(e.target.closest('button')||e.target.closest('.choice-btn'))return;
+  if($('choices-layer').classList.contains('show'))return;
+  if($('ending-screen').classList.contains('show'))return;
+  advance();
+});
+$('btn-start').addEventListener('click',()=>{$('title-screen').classList.add('hidden');$('name-input-screen').classList.remove('hidden');$('player-name-input').focus();});
+$('btn-confirm-name').addEventListener('click',()=>{const n=$('player-name-input').value.trim()||'新人';State.player=n;$('name-input-screen').classList.add('hidden');startNewGame();});
+$('player-name-input').addEventListener('keydown',(e)=>{if(e.key==='Enter')$('btn-confirm-name').click();});
+$('btn-continue').addEventListener('click',continueGame);
+$('btn-about').addEventListener('click',()=>{alert('《猪事可乐 - 猪厂风云》\n\n一款关于职场、友情与选择的文字冒险游戏。\n\n你作为猪事可乐科技有限公司的新员工，\n在与五位性格迥异的同事相处中做出选择，\n每一个决定都将影响你的职场命运。\n\n可攻略角色：\n🐷 拉猪 — 稳定性负责人，可靠资深\n🦔 豪猪 — 气氛组担当，暴躁但热心\n💎 玉猪 — CFO/团建管理员，精打细算\n🍚 头猪 — 神秘端碗人，受尾猪操控\n👑 尾猪 — 幕后操纵者，时尚潮流引领者\n\n点击屏幕推进剧情，选择影响好感度与结局。');});
+$('btn-restart').addEventListener('click',()=>{$('ending-screen').classList.remove('show');$('title-screen').classList.remove('hidden');$('dialogue-box').classList.remove('show');setChar('left',null);setChar('center',null);setChar('right',null);State.lazzhu=0;State.haozhu=0;State.yuzhu=0;State.touzh=0;State.weizh=0;State.route=null;updateHUD();$('hud').classList.remove('show');});
+$('btn-save').addEventListener('click',(e)=>{
+  e.stopPropagation();
+  if(currentSceneId&&Scenes[currentSceneId]&&!Scenes[currentSceneId].type&&!Scenes[currentSceneId].choices){
+    saveGame();const btn=$('btn-save');const orig=btn.textContent;btn.textContent='✓';setTimeout(()=>btn.textContent=orig,1000);
+  }
+});
+$('btn-auto').addEventListener('click',(e)=>{e.stopPropagation();State.autoMode=!State.autoMode;const btn=$('btn-auto');btn.style.color=State.autoMode?'var(--pink-l)':'';btn.style.borderColor=State.autoMode?'var(--pink)':'';});
+$('btn-skip').addEventListener('click',(e)=>{
+  e.stopPropagation();State.skipMode=!State.skipMode;const btn=$('btn-skip');
+  btn.style.color=State.skipMode?'var(--pink-l)':'';btn.style.borderColor=State.skipMode?'var(--pink)':'';
+  if(State.skipMode){skipTypewriter();const si=setInterval(()=>{if(!State.skipMode){clearInterval(si);return;}if($('choices-layer').classList.contains('show')||$('ending-screen').classList.contains('show')){clearInterval(si);State.skipMode=false;btn.style.color='';btn.style.borderColor='';return;}skipTypewriter();advance();},100);}
+});
+$('btn-menu').addEventListener('click',(e)=>{
+  e.stopPropagation();
+  if(confirm('返回标题画面？\n（进度会自动保存）')){
+    saveGame();$('ending-screen').classList.remove('show');$('dialogue-box').classList.remove('show');$('choices-layer').classList.remove('show');$('choices-layer').innerHTML='';setChar('left',null);setChar('center',null);setChar('right',null);$('hud').classList.remove('show');$('title-screen').classList.remove('hidden');setBg('office');
+    if(loadGame())$('btn-continue').style.display='';
+  }
+});
+/* Auto-save */
+const origRender=renderScene;
+renderScene=function(id){origRender(id);if(id&&Scenes[id]&&!Scenes[id].type&&!Scenes[id].choices){setTimeout(()=>{try{saveGame();}catch(e){}},500);}};
+/* Init */
+setBg('office');
+if(loadGame()){$('btn-continue').style.display='';}
+</script>
+</body>
+</html>
