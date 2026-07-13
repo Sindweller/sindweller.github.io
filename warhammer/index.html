@@ -489,6 +489,20 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:"Mi
   animation:pulse 1.5s ease-in-out infinite;z-index:11
 }
 @keyframes pulse{0%,100%{opacity:.3}50%{opacity:.8}}
+/* ===== VERSION BANNER ===== */
+#version-banner{
+  position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+  z-index:51;display:flex;align-items:center;gap:8px;
+  background:rgba(10,10,18,.85);border:1px solid var(--gold-d);
+  border-radius:6px;padding:6px 18px;max-width:520px;
+  font-size:12px;color:var(--dim);letter-spacing:.5px;
+  backdrop-filter:blur(4px)
+}
+.version-dot{
+  width:8px;height:8px;background:var(--gold-l);border-radius:50%;
+  animation:dotPulse 2s ease-in-out infinite;flex-shrink:0
+}
+@keyframes dotPulse{0%,100%{opacity:.4}50%{opacity:1}}
 </style>
 </head>
 <body>
@@ -538,7 +552,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:"Mi
     <button class="top-btn" id="btn-auto" title="自动">⚡</button>
     <button class="top-btn" id="btn-skip" title="跳到下个选项">⏭</button>
     <button class="top-btn skip-btn" id="btn-skip-branch" title="快进到分支">⚡ 分支</button>
-    <button class="top-btn" id="btn-shop" title="模型商城">🛒</button>
+    <button class="top-btn" id="btn-shop" title="模型商城" style="width:auto;padding:0 12px;font-size:13px;letter-spacing:1px">🛒 购物</button>
     <button class="top-btn" id="btn-menu" title="菜单">☰</button>
   </div>
 
@@ -583,6 +597,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:"Mi
       <button class="title-btn" id="btn-about">关于</button>
     </div>
     <div id="title-tag" style="margin-top:20px">点击屏幕推进剧情 · 选择影响结局</div>
+    <div id="version-banner">
+      <span class="version-dot"></span>
+      <span>v2.2 更新：新增色孽线（青嶙）、SS线（比耶鱼）· 随机事件系统（周师傅/忽悠/谭老师/药师傅/Alex）· 模型商城</span>
+    </div>
   </div>
 
   <!-- Shop overlay -->
@@ -641,7 +659,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:"Mi
         </div>
         <div id="qrcode-tip">
           <div>请微信扫描左侧二维码找海底</div>
-          <div style="font-size:12px;color:var(--dim);margin-top:4px">或搜索微信号：<strong style="color:var(--gold-l);letter-spacing:1px">damiradu_haidi</strong></div>
+          <div style="font-size:12px;color:var(--dim);margin-top:4px">或搜索微信号：<strong style="color:var(--gold-l);letter-spacing:1px">??????充值后解锁</strong></div>
         </div>
       </div>
     </div>
@@ -1882,7 +1900,7 @@ z_end:{
 
 /* ===== ZHOU ROUTE - EXPANDED ===== */
 z30:{
-  speaker:'narration', text:'某天训练结束，周师傅拧上保温杯的盖子，犹豫了一下。\n"今天……有空吗？"\n他推了推眼镜，不看你的眼睛。\n"俱乐部旁边有家面馆，开了十几年了。我每次训练完都去。如果你不急的话……"\n他清了清嗓子。\n"就是随便吃个面。不是什么大事。"'
+  speaker:'narration', text:'某天训练结束，周师傅拧上保温杯的盖子，犹豫了一下。\n"今天……有空吗？"\n他推了推眼镜，不看你的眼睛。\n"俱乐部旁边有家悠航，开了十几年了。我每次训练完都去。如果你不急的话……"\n他清了清嗓子。\n"就是随便吃点。不是什么大事。"'
 },
 z30_choice:{
   speaker:null,
@@ -1902,14 +1920,14 @@ z31b:{
 },
 z31c:{
   char:'zhou', expr:'normal', speaker:'zhou', next:'z32',
-  text:'周师傅的笑容淡了一点。\n"……哦，好。改天。"\n他点了点头，没有追问。\n之后他一个人去了面馆。你后来听说他坐在角落里吃完了面，走之前跟老板多聊了几句。'
+  text:'周师傅的笑容淡了一点。\n"……哦，好。改天。"\n他点了点头，没有追问。\n之后他一个人去了悠航。你后来听说他坐在角落里吃完了，走之前跟老板多聊了几句。'
 },
 z32:{
-  speaker:'narration', text:'面馆很小，只有五张桌子。老板认识周师傅，一进门就喊"老周来了！老样子？"\n周师傅点头，又指了指你："今天加一碗。加蛋。"\n老板笑着说"哟，带朋友来了？难得啊。"\n周师傅没接话，但耳朵红了一下。'
+  speaker:'narration', text:'悠航很小，只有五张桌子。老板认识周师傅，一进门就喊"老周来了！老样子？"\n周师傅点头，又指了指你："今天加一份。加蛋。"\n老板笑着说"哟，带朋友来了？难得啊。"\n周师傅没接话，但耳朵红了一下。'
 },
 z33:{
   char:'zhou', expr:'normal', speaker:'zhou',
-  text:'面端上来之后，周师傅安静地吃了两口。\n然后放下筷子，看着面碗上的蒸汽发呆。\n"说起来……我已经很久没跟人一起吃饭了。"\n他语气很淡，像在说天气。\n"一个人吃饭一个人训练一个人回家。打了五年战锤，认识的人不少，但能一起吃碗面的——"\n他停了一下，拿起筷子。\n"算了。不说这个。面要凉了。"'
+  text:'端上来之后，周师傅安静地吃了两口。\n然后放下筷子，看着上面的蒸汽发呆。\n"说起来……我已经很久没跟人一起吃饭了。"\n他语气很淡，像在说天气。\n"一个人吃饭一个人训练一个人回家。打了五年战锤，认识的人不少，但能一起出来坐坐的——"\n他停了一下，拿起筷子。\n"算了。不说这个。要凉了。"'
 },
 z33_choice:{
   speaker:null,
@@ -1921,7 +1939,7 @@ z33_choice:{
 },
 z34a:{
   char:'zhou', expr:'shy', speaker:'zhou', next:'z35',
-  text:'周师傅的筷子停在了半空。\n他看着碗里的面，沉默了好几秒。\n"……你这人，说话怎么这么直。"\n他声音有点闷。\n"那我可当真了啊。"\n然后低头吃面，吃得很快，像是为了掩饰什么。\n但你看到他嘴角翘着。'
+  text:'周师傅的筷子停在了半空。\n他看着碗里，沉默了好几秒。\n"……你这人，说话怎么这么直。"\n他声音有点闷。\n"那我可当真了啊。"\n然后低头吃，吃得很快，像是为了掩饰什么。\n但你看到他嘴角翘着。'
 },
 z34b:{
   char:'zhou', expr:'normal', speaker:'zhou', next:'z35',
@@ -1932,7 +1950,7 @@ z34c:{
   text:'周师傅低头看着碗里多出来的牛肉，愣住了。\n"你……"\n他张了张嘴，什么也没说出来。\n然后低下头，声音几乎听不见。\n"……谢谢。"\n他把那块牛肉最后吃了，吃得很慢。\n之后一直没说话，但你注意到他嘴角一直翘着。'
 },
 z35:{
-  speaker:'narration', next:'z18', text:'吃完面出来，天已经完全黑了。\n周师傅走在你旁边，保温杯安静地挂在手上。路灯把你们的影子拉得很长，在地面上交叠又分开。\n"今天……谢谢你陪我。"\n他在路口停下，难得地直视了你的眼睛。\n"明天见。"\n他转身走了几步，又回过头来。\n"对了——以后吃面不用我约。你想去就直接跟我说就行。"\n说完快步走了，像怕你回答一样。'
+  speaker:'narration', next:'z18', text:'出来之后，天已经完全黑了。\n周师傅走在你旁边，保温杯安静地挂在手上。路灯把你们的影子拉得很长，在地面上交叠又分开。\n"今天……谢谢你陪我。"\n他在路口停下，难得地直视了你的眼睛。\n"明天见。"\n他转身走了几步，又回过头来。\n"对了——以后出来不用我约。你想去就直接跟我说就行。"\n说完快步走了，像怕你回答一样。'
 },
 /* z18~z_end, z30~z35 保留为不可达的存档兼容素材，不进入结局判定 */
 
@@ -2855,7 +2873,7 @@ function advance(){
   }
 
   // Random encounter: return to original scene
-  if(curSc && (curSc.zhou || curSc.huyou) && State.randomReturnTo){
+  if(curSc && State.randomReturnTo){
     const returnTo = State.randomReturnTo;
     State.randomReturnTo = null;
     $('fade-overlay').classList.add('show');
