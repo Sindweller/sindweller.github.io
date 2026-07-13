@@ -339,6 +339,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:"Mi
 .hud-fill.haidi{background:linear-gradient(90deg,#3a5a7a,var(--haidi))}
 .hud-fill.duorou{background:linear-gradient(90deg,#8a5a3a,var(--duorou))}
 .hud-fill.ligong{background:linear-gradient(90deg,#5a4a7a,#a090c8)}
+.hud-fill.shalaxi{background:linear-gradient(90deg,#5a1a6a,#d040ff)}
+.hud-fill.ss{background:linear-gradient(90deg,#3a6a5a,#80b8a0)}
 .hud-heart{font-size:14px}
 /* affinity popup */
 #affinity-popup{
@@ -359,6 +361,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:"Mi
   transition:all .2s
 }
 .top-btn:hover{color:var(--gold-l);border-color:var(--gold-d)}
+.top-btn.skip-btn{
+  width:auto;padding:0 14px;font-size:13px;letter-spacing:1px;
+  background:linear-gradient(135deg,rgba(197,160,89,.2),rgba(160,40,40,.12));
+  border-color:var(--gold-d);color:var(--gold);
+  animation:skipPulse 2s ease-in-out infinite
+}
+.top-btn.skip-btn:hover{
+  background:linear-gradient(135deg,rgba(197,160,89,.35),rgba(160,40,40,.2));
+  border-color:var(--gold-l);color:var(--gold-l);
+  box-shadow:0 0 16px rgba(197,160,89,.3)
+}
+@keyframes skipPulse{0%,100%{box-shadow:0 0 4px rgba(197,160,89,.1)}50%{box-shadow:0 0 12px rgba(197,160,89,.25)}}
 /* ===== ENDING SCREEN ===== */
 #ending-screen{
   position:absolute;inset:0;z-index:40;
@@ -391,6 +405,74 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:"Mi
 }
 #scene-label.show{opacity:1}
 #scene-label small{display:block;font-size:13px;color:var(--dim);letter-spacing:3px;margin-top:8px}
+/* ===== SHOP ===== */
+#shop-overlay{
+  position:absolute;inset:0;z-index:42;background:rgba(5,5,10,.85);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .3s
+}
+#shop-overlay.show{opacity:1;pointer-events:auto}
+#shop-panel{
+  width:520px;max-width:90vw;max-height:85vh;overflow-y:auto;
+  background:linear-gradient(135deg,#1a1a28,#12121e);
+  border:1px solid var(--gold-d);border-radius:10px;
+  box-shadow:0 0 60px rgba(197,160,89,.15),inset 0 0 40px rgba(0,0,0,.3)
+}
+#shop-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 24px;border-bottom:1px solid rgba(197,160,89,.2)
+}
+#shop-title{color:var(--gold-l);font-size:18px;letter-spacing:2px}
+#shop-close{
+  color:var(--dim);cursor:pointer;font-size:22px;padding:0 4px;transition:color .2s
+}
+#shop-close:hover{color:var(--gold-l)}
+#shop-subtitle{
+  padding:10px 24px 4px;color:var(--dim);font-size:13px;letter-spacing:1px
+}
+#shop-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 24px
+}
+.shop-item{
+  background:rgba(30,30,45,.6);border:1px solid var(--bg-light);border-radius:6px;
+  padding:14px 12px;cursor:pointer;transition:all .25s;text-align:center
+}
+.shop-item:hover{
+  background:rgba(40,35,20,.8);border-color:var(--gold-d);
+  box-shadow:0 0 16px rgba(197,160,89,.2);transform:translateY(-2px)
+}
+.shop-item-icon{font-size:28px;margin-bottom:6px}
+.shop-item-name{color:var(--cream);font-size:14px;letter-spacing:1px;margin-bottom:4px}
+.shop-item-price{color:var(--gold);font-size:16px;font-weight:bold}
+#shop-footer{padding:10px 24px 18px;color:var(--dim);font-size:12px;text-align:center;letter-spacing:1px}
+/* ===== QR CODE MODAL ===== */
+#qrcode-modal{
+  position:absolute;inset:0;z-index:45;background:rgba(5,5,10,.8);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .3s
+}
+#qrcode-modal.show{opacity:1;pointer-events:auto}
+#qrcode-panel{
+  position:relative;width:400px;max-width:85vw;
+  background:linear-gradient(135deg,#1a1a28,#12121e);
+  border:1px solid var(--gold);border-radius:10px;padding:32px;
+  text-align:center;box-shadow:0 0 60px rgba(197,160,89,.2)
+}
+#qrcode-close{
+  position:absolute;top:12px;right:16px;color:var(--dim);cursor:pointer;font-size:22px;transition:color .2s
+}
+#qrcode-close:hover{color:var(--gold-l)}
+#qrcode-title{color:var(--gold-l);font-size:20px;letter-spacing:2px;margin-bottom:4px}
+#qrcode-product{color:var(--dim);font-size:14px;margin-bottom:20px}
+#qrcode-body{display:flex;gap:20px;align-items:center;justify-content:center}
+#qrcode-area{
+  width:140px;height:140px;background:var(--bg-mid);
+  border:1px solid var(--gold-d);border-radius:6px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:48px;color:var(--gold-l);letter-spacing:1px;
+  flex-shrink:0
+}
+#qrcode-tip{color:var(--cream);font-size:14px;text-align:left;line-height:1.8}
 /* ===== RESPONSIVE ===== */
 @media(max-width:768px){
   .char-sprite svg{width:240px}
@@ -438,6 +520,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:"Mi
       <span class="hud-label" style="color:#b8a0d8">李工</span>
       <div class="hud-bar"><div class="hud-fill ligong" id="bar-ligong" style="width:0%"></div></div>
     </div>
+    <div class="hud-item">
+      <span class="hud-heart">💜</span>
+      <span class="hud-label" style="color:#c080e0">青嶙</span>
+      <div class="hud-bar"><div class="hud-fill shalaxi" id="bar-shalaxi" style="width:0%"></div></div>
+    </div>
+    <div class="hud-item">
+      <span class="hud-heart">🐟</span>
+      <span class="hud-label" style="color:#80b8a0">SS</span>
+      <div class="hud-bar"><div class="hud-fill ss" id="bar-ss" style="width:0%"></div></div>
+    </div>
   </div>
 
   <!-- Top bar -->
@@ -445,6 +537,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:"Mi
     <button class="top-btn" id="btn-save" title="存档">💾</button>
     <button class="top-btn" id="btn-auto" title="自动">⚡</button>
     <button class="top-btn" id="btn-skip" title="跳到下个选项">⏭</button>
+    <button class="top-btn skip-btn" id="btn-skip-branch" title="快进到分支">⚡ 分支</button>
+    <button class="top-btn" id="btn-shop" title="模型商城">🛒</button>
     <button class="top-btn" id="btn-menu" title="菜单">☰</button>
   </div>
 
@@ -489,6 +583,68 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:"Mi
       <button class="title-btn" id="btn-about">关于</button>
     </div>
     <div id="title-tag" style="margin-top:20px">点击屏幕推进剧情 · 选择影响结局</div>
+  </div>
+
+  <!-- Shop overlay -->
+  <div id="shop-overlay">
+    <div id="shop-panel">
+      <div id="shop-header">
+        <span id="shop-title">🛒 达米拉多模型商城</span>
+        <span id="shop-close">✕</span>
+      </div>
+      <div id="shop-subtitle">海底负责统一订货，选择你想要的商品吧</div>
+      <div id="shop-grid">
+        <div class="shop-item" data-product="星际战士战团包">
+          <div class="shop-item-icon">⚔️</div>
+          <div class="shop-item-name">星际战士战团包</div>
+          <div class="shop-item-price">¥380</div>
+        </div>
+        <div class="shop-item" data-product="兽人暴徒小队">
+          <div class="shop-item-icon">💚</div>
+          <div class="shop-item-name">兽人暴徒小队</div>
+          <div class="shop-item-price">¥320</div>
+        </div>
+        <div class="shop-item" data-product="涂装工具豪华套">
+          <div class="shop-item-icon">🎨</div>
+          <div class="shop-item-name">涂装工具豪华套</div>
+          <div class="shop-item-price">¥260</div>
+        </div>
+        <div class="shop-item" data-product="骰子塔+骰子组">
+          <div class="shop-item-icon">🎲</div>
+          <div class="shop-item-name">骰子塔 + 骰子组</div>
+          <div class="shop-item-price">¥160</div>
+        </div>
+        <div class="shop-item" data-product="星球废墟地形包">
+          <div class="shop-item-icon">🏚️</div>
+          <div class="shop-item-name">星球废墟地形包</div>
+          <div class="shop-item-price">¥450</div>
+        </div>
+        <div class="shop-item" data-product="血碗兽人球队">
+          <div class="shop-item-icon">🏈</div>
+          <div class="shop-item-name">血碗兽人球队</div>
+          <div class="shop-item-price">¥360</div>
+        </div>
+      </div>
+      <div id="shop-footer">模型均为正版 · 下单后微信联系海底 · 到店自提</div>
+    </div>
+  </div>
+
+  <!-- QR code modal -->
+  <div id="qrcode-modal">
+    <div id="qrcode-panel">
+      <div id="qrcode-close">✕</div>
+      <div id="qrcode-title">📋 下单成功</div>
+      <div id="qrcode-product"></div>
+      <div id="qrcode-body">
+        <div id="qrcode-area">
+          <img id="qrcode-img" src="./请微信找海底.png" alt="微信二维码" style="width:140px;height:140px;border-radius:4px;object-fit:contain">
+        </div>
+        <div id="qrcode-tip">
+          <div>请微信扫描左侧二维码找海底</div>
+          <div style="font-size:12px;color:var(--dim);margin-top:4px">或搜索微信号：<strong style="color:var(--gold-l);letter-spacing:1px">damiradu_haidi</strong></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Name input -->
@@ -850,6 +1006,127 @@ ${mouthPath}
 }
 
 /* ========================================
+   CHARACTER PORTRAITS — 色孽新角 青嶙 (Slaneesh Cultist)
+======================================== */
+function portraitShalaxi(expr){
+  const alluring = expr==='alluring';
+  const amused = expr==='amused';
+  const intense = expr==='intense';
+  const browPath = intense
+    ?'<path d="M116,170 L150,180" stroke="#1a0a2a" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M170,180 L204,170" stroke="#1a0a2a" stroke-width="3.5" fill="none" stroke-linecap="round"/>'
+    : alluring
+    ?'<path d="M118,174 Q135,166 148,174" stroke="#1a0a2a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M172,174 Q185,166 202,174" stroke="#1a0a2a" stroke-width="3" fill="none" stroke-linecap="round"/>'
+    :'<path d="M118,172 Q135,168 148,172" stroke="#1a0a2a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M172,172 Q185,168 202,172" stroke="#1a0a2a" stroke-width="3" fill="none" stroke-linecap="round"/>';
+  const eyeShape = amused
+    ?'<path d="M124,194 Q135,186 146,194 Q135,200 124,194" fill="#1a0a3a"/><path d="M174,194 Q185,186 196,194 Q185,200 174,194" fill="#1a0a3a"/><circle cx="135" cy="194" r="4" fill="#d040ff"/><circle cx="185" cy="194" r="4" fill="#d040ff"/><circle cx="137" cy="192" r="1.8" fill="#fff"/><circle cx="187" cy="192" r="1.8" fill="#fff"/>'
+    : intense
+    ?'<ellipse cx="135" cy="196" rx="10" ry="7" fill="#fff"/><ellipse cx="185" cy="196" rx="10" ry="7" fill="#fff"/><circle cx="137" cy="197" r="6" fill="#8020c0"/><circle cx="183" cy="197" r="6" fill="#8020c0"/><circle cx="138" cy="194" r="2.5" fill="#fff"/><circle cx="184" cy="194" r="2.5" fill="#fff"/>'
+    :'<ellipse cx="135" cy="197" rx="9" ry="7" fill="#fff"/><ellipse cx="185" cy="197" rx="9" ry="7" fill="#fff"/><circle cx="136" cy="197" r="5" fill="#a050e0"/><circle cx="184" cy="197" r="5" fill="#a050e0"/><circle cx="137" cy="194" r="2" fill="#fff"/><circle cx="185" cy="194" r="2" fill="#fff"/>';
+  const mouthPath = amused
+    ?'<path d="M140,242 Q160,258 180,242" stroke="#c060a0" stroke-width="2.5" fill="none" stroke-linecap="round"/>'
+    : intense
+    ?'<path d="M146,246 Q160,252 174,246" stroke="#c060a0" stroke-width="2.5" fill="none" stroke-linecap="round"/>'
+    :'<path d="M148,248 Q160,250 172,248" stroke="#c060a0" stroke-width="2" fill="none" stroke-linecap="round"/>';
+  return `<svg viewBox="0 0 320 480" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="ss1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8c0d0"/><stop offset="1" stop-color="#d0a0b8"/></linearGradient>
+<linearGradient id="sh1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8020a0"/><stop offset=".5" stop-color="#c040d0"/><stop offset="1" stop-color="#5a1060"/></linearGradient>
+<linearGradient id="sc1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a0a3a"/><stop offset="1" stop-color="#15051a"/></linearGradient>
+</defs>
+<!-- Robed body -->
+<path d="M40,480 L40,370 Q40,320 88,305 Q130,295 160,292 Q190,295 232,305 Q280,320 280,370 L280,480 Z" fill="url(#sc1)"/>
+<path d="M160,302 L160,480 M120,340 L120,480 M200,340 L200,480" stroke="#3a1a4a" stroke-width="1" opacity=".4"/>
+<!-- Collar -->
+<path d="M88,305 Q130,295 160,292 Q190,295 232,305 L220,330 L160,318 L100,330 Z" fill="#3a1a4a"/>
+<!-- Neck -->
+<path d="M142,265 L142,305 Q160,312 178,305 L178,265 Z" fill="url(#ss1)"/>
+<!-- Hair back (flowing tendrils) -->
+<path d="M78,190 Q70,95 160,80 Q250,95 242,190 L240,285 L218,270 Q214,210 160,198 Q106,210 102,270 L80,285 Z" fill="url(#sh1)"/>
+<!-- Face (ethereal) -->
+<path d="M104,158 Q104,100 160,90 Q216,100 216,158 L216,222 Q216,265 160,272 Q104,265 104,222 Z" fill="url(#ss1)"/>
+<path d="M116,232 Q160,270 204,232 L204,260 Q160,272 116,260 Z" fill="#c090a0" opacity=".2"/>
+<!-- Ears (slightly pointed) -->
+<path d="M102,186 Q96,180 98,192 Q100,202 104,196" fill="url(#ss1)"/>
+<path d="M218,186 Q224,180 222,192 Q220,202 216,196" fill="url(#ss1)"/>
+<!-- Jewel earrings -->
+<circle cx="100" cy="202" r="3" fill="#d040ff"/>
+<circle cx="220" cy="202" r="3" fill="#d040ff"/>
+<line x1="100" y1="205" x2="100" y2="220" stroke="#d040ff" stroke-width="1.5"/>
+<line x1="220" y1="205" x2="220" y2="220" stroke="#d040ff" stroke-width="1.5"/>
+<!-- Hair front -->
+<path d="M88,158 Q85,85 160,76 Q235,85 232,158 L226,128 Q215,105 190,102 Q182,126 170,112 Q160,128 148,112 Q138,126 125,102 Q105,108 94,138 Z" fill="url(#sh1)"/>
+<path d="M92,135 Q85,195 90,250" stroke="#6a1a8a" stroke-width="3" fill="none" opacity=".5"/>
+<path d="M228,135 Q235,195 230,250" stroke="#6a1a8a" stroke-width="3" fill="none" opacity=".5"/>
+<!-- Eyebrows -->
+${browPath}
+<!-- Eyes -->
+${eyeShape}
+<!-- Eyeshadow -->
+<ellipse cx="135" cy="188" rx="15" ry="7" fill="#7a2a9a" opacity=".2"/>
+<ellipse cx="185" cy="188" rx="15" ry="7" fill="#7a2a9a" opacity=".2"/>
+<!-- Nose -->
+<path d="M158,210 Q155,222 159,226 Q163,222 162,226" stroke="#c0889a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+<!-- Mouth -->
+${mouthPath}
+<!-- Choker with slaanesh rune -->
+<path d="M140,265 L160,272 L180,265" stroke="#c040d0" stroke-width="3" fill="none"/>
+<path d="M156,272 L160,278 L164,272" stroke="#fff" stroke-width="1.5" fill="none" opacity=".6"/>
+<circle cx="160" cy="272" r="3" fill="#d040ff"/>
+</svg>`;
+}
+
+/* ========================================
+   CHARACTER PORTRAITS — SS 比耶鱼
+======================================== */
+function portraitSS(expr){
+  const smile = expr==='smile';
+  const tilt = expr==='tilt';
+  const shrug = expr==='shrug';
+  const mouthPath = smile
+    ?'<path d="M150,248 Q160,252 170,248" stroke="#6a8a7a" stroke-width="2" fill="none" stroke-linecap="round"/>'
+    : tilt
+    ?'<path d="M152,250 L168,248" stroke="#6a8a7a" stroke-width="2" fill="none" stroke-linecap="round"/>'
+    :'<path d="M150,250 Q160,248 170,250" stroke="#6a8a7a" stroke-width="2" fill="none" stroke-linecap="round"/>';
+  return `<svg viewBox="0 0 320 480" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="ssk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a3a3a"/><stop offset="1" stop-color="#1a2a2a"/></linearGradient>
+<linearGradient id="ssf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b0d0c0"/><stop offset="1" stop-color="#8ab0a0"/></linearGradient>
+<linearGradient id="ssh" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4a6a5a"/><stop offset="1" stop-color="#2a4a3a"/></linearGradient>
+</defs>
+<!-- Hooded cloak -->
+<path d="M45,480 L45,360 Q45,315 90,300 Q130,288 160,286 Q190,288 230,300 Q275,315 275,360 L275,480 Z" fill="url(#ssk)"/>
+<path d="M160,295 L160,480 M120,330 L120,480 M200,330 L200,480" stroke="#3a4a4a" stroke-width="1" opacity=".3"/>
+<!-- Hood up over head -->
+<path d="M75,200 Q70,95 160,78 Q250,95 245,200 L243,270 L223,255 Q218,200 160,190 Q102,200 97,255 L77,270 Z" fill="url(#ssh)"/>
+<!-- Hood opening (face zone) -->
+<path d="M90,150 Q88,95 160,82 Q232,95 230,150 L226,130 Q215,108 192,105 Q182,130 170,116 Q160,132 148,116 Q138,130 125,105 Q105,112 94,138 Z" fill="url(#ssh)"/>
+<!-- Face -->
+<path d="M108,155 Q108,100 160,90 Q212,100 212,155 L212,218 Q212,260 160,266 Q108,260 108,218 Z" fill="url(#ssf)"/>
+<path d="M120,228 Q160,264 200,228 L200,255 Q160,266 120,255 Z" fill="#8aa898" opacity=".25"/>
+<!-- Ears slight point -->
+<ellipse cx="106" cy="185" rx="6" ry="12" fill="url(#ssf)"/>
+<ellipse cx="214" cy="185" rx="6" ry="12" fill="url(#ssf)"/>
+<!-- Eyes — deep, unreadable -->
+<ellipse cx="135" cy="196" rx="8" ry="5" fill="#fff"/><ellipse cx="185" cy="196" rx="8" ry="5" fill="#fff"/>
+<circle cx="135" cy="196" r="3.5" fill="#3a5a4a"/><circle cx="185" cy="196" r="3.5" fill="#3a5a4a"/>
+<circle cx="136" cy="194" r="1.5" fill="#fff"/><circle cx="186" cy="194" r="1.5" fill="#fff"/>
+<!-- Eyebrows (slight lift) -->
+<path d="M120,178 Q135,174 148,178" stroke="#3a4a3a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M172,178 Q185,174 200,178" stroke="#3a4a3a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<!-- Nose -->
+<path d="M158,210 Q155,222 159,226 Q163,222 162,226" stroke="#7a9a8a" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+<!-- Mouth -->
+${mouthPath}
+<!-- 比耶手 (peace sign raised near chin, visible) -->
+<g transform="translate(76,280) rotate(-10)">
+<path d="M0,0 L0,-28" stroke="#b0d0c0" stroke-width="7" stroke-linecap="round" fill="none"/>
+<path d="M0,-28 L-6,-40" stroke="#b0d0c0" stroke-width="4" stroke-linecap="round" fill="none"/>
+<path d="M0,-28 L6,-38" stroke="#b0d0c0" stroke-width="4" stroke-linecap="round" fill="none"/>
+</g>
+</svg>`;
+}
+
+/* ========================================
    GAME STATE
 ======================================== */
 const State = {
@@ -858,6 +1135,7 @@ const State = {
   haidi:0,
   duorou:0,
   ligong:0,
+  shalaxi:0,
   route:null,
   history:[],
   autoMode:false,
@@ -865,7 +1143,9 @@ const State = {
   typing:false,
   currentText:'',
   textIndex:0,
-  typeTimer:null
+  typeTimer:null,
+  ss:0,
+  randomEncountered:{zhou:false, huyou:false, tan:false, yao:false, alex:false}
 };
 
 /* ========================================
@@ -925,6 +1205,13 @@ p11:{
   char:'haidi', expr:'smile', speaker:'haidi',
   text:'"今天先随便看看，感受一下氛围。"\n他靠在展示墙旁，双臂抱胸。\n"如果感兴趣，下次来的时候可以深入体验。涂装、对战、血碗，都可以试试——总有一款适合你。"'
 },
+p11b:{
+  speaker:'narration', text:'你正四处打量着俱乐部，忽然注意到展示墙最角落有一个不太一样的模型。\n它被单独放在一个小展架上，四周点缀着紫色的丝绒布。\n走近了才看清——那是一个姿态扭曲的星际战士，身上长满了水晶状的增生，铠甲被改造成了奇怪的曲线。\n标记上写着："私人藏品——请勿触碰。隶属于 XX 俱乐部。"\n你盯着它看了一会儿，总觉得那个模型在对你低语。'
+},
+p11c:{
+  char:'haidi', expr:'normal', speaker:'haidi',
+  text:'"那个？"\n海底不知什么时候走到了你身后。\n语气平淡，但比刚才冷了一点。\n"那是之前一个常客留下的。人不来了，东西没带走。"\n他顿了一下。\n"……建议你少看那个。不是什么正经阵营。"'
+},
 p12:{
   char:'duorou', expr:'happy', speaker:'duorou', charPos:'right',
   text:'"对对对！我可以教你涂装！"\n多肉举了举手里的画笔。\n"或者你去找海底学对战也行——不过他教人打对战可凶了，上次有个新人被他打哭过，嘿嘿！"'
@@ -951,7 +1238,9 @@ c1_choice:{
   choices:[
     {text:'走向对战区，找人学习40K对战', next:'h1', route:'haidi', hint:'战术与谋略'},
     {text:'走向涂装区，找多肉学涂装', next:'d1', route:'duorou', hint:'色彩与创造'},
-    {text:'走向角落，看看那个穿连帽衫的男生在干什么', next:'l1', route:'ligong', hint:'耐心与成长'}
+    {text:'走向角落，看看那个穿连帽衫的男生在干什么', next:'l1', route:'ligong', hint:'耐心与成长'},
+    {text:'再次走向展示墙，盯着那个诡异的模型', next:'s1', route:'slaneesh', hint:'低语与诱惑'},
+    {text:'走向血碗桌，看到一个人影在独自摆弄小飞机模型', next:'ss1', route:'ss', hint:'神秘与反常'}
   ]
 },
 
@@ -1112,7 +1401,7 @@ h25:{
 },
 h26:{
   char:'haidi', expr:'smile', speaker:'haidi',
-  text:'"你输了。"\n他收起最后倒下的模型，语气淡淡的。\n"但你撑到了第六回合。上次你第四回合就崩了。"\n"部署有进步。但你的临场应变还是太慢——第三回合你犹豫了，如果当机立断，结果可能不一样。"\n他抬头看你，目光比平时柔和了一点。\n"……不差。"'
+  text:'"你输了。"\n他收起最后倒下的模型，语气淡淡的。\n"但你撑到了第五回合。上次你第四回合就崩了。"\n"部署有进步。但你的临场应变还是太慢——第三回合你犹豫了，如果当机立断，结果可能不一样。"\n他抬头看你，目光比平时柔和了一点。\n"……不差。"'
 },
 h27:{
   speaker:'narration', text:'这时，俱乐部门被推开了。\n一个戴着棒球帽的男人走进来，身后还跟着一个朋友。\n"海底！在不在？上次输给你不服，今天再打一局！"\n海底的表情瞬间变了——不是平时教你时的认真，是另一种东西。像猎手看到了猎物。\n"来了。"\n他转头看了你一眼。\n"你坐这儿看。学着点。"'
@@ -1393,8 +1682,60 @@ d35:{
   speaker:'narration', next:'d15', text:'你接过那个小人，翻来覆去看了很久。\n每一个细节都藏着心意——小人脚边有一支歪歪扭扭的画笔，跟你第一天涂装时用的那支一模一样。小人旁边还放着一杯奶茶，杯子上写着很小的字："谢谢你来了。"\n你抬起头，多肉已经转过身去假装收拾颜料了。但他的马尾辫在轻轻晃——因为他在偷笑。\n比赛还有一周。你想，也许这个作品会是你做过最好的。'
 },
 
-/* 周师傅和忽悠的相关剧情保留为不可达的状态（作为随机事件的素材）
-   在第一章初始选择和h_break中已移除他们的入口 */
+/* 周师傅和忽悠的高完整度剧情作为随机事件触发
+   在序章推进中随机出现，不改变好感度，不锁定路线 */
+
+/* ===== RANDOM ENCOUNTERS ===== */
+re_zhou1:{
+  bg:'table',
+  zhou:true,
+  text:'正当你四处张望的时候，一个端保温杯的男人经过你身边，停下来笑了笑。\n"新来的？我叫老周，大家叫我周师傅——其实我什么师傅都不是，就是来得多了点。"\n他朝你举了举保温杯。\n"刚来不用着急，慢慢熟悉就好。战锤这个东西啊，越玩越有意思。"\n说完他悠悠地走回对战区，留给你一个温和的印象。'
+},
+re_zhou2:{
+  bg:'table',
+  zhou:true,
+  text:'你在展示墙边驻足，身后传来一个温和的声音。\n"这个涂装很不错吧？"周师傅不知什么时候站到了你旁边，手里的保温杯冒着热气。\n"作者是个老玩家，去年比赛拿过奖。你要是感兴趣，以后也可以试试参加比赛。"\n他抿了一口茶。\n"俱乐部虽然没有正式教练，但大家都愿意互相教。有什么不懂的，问谁都行。"'
+},
+re_huyou1:{
+  bg:'bloodbowl',
+  huyou:true,
+  text:'角落的血碗桌那边突然爆发出一阵震天的吼声——\n"哈哈哈哈！暴击！看到没有！"\n你转头看去，一个壮硕的男人正拍着桌子大笑，身上的红色球衣印着"77"号。\n对面的玩家苦笑着收模型，他拍了拍对方的肩（差点把人拍趴下）。\n他似乎注意到了你的目光，冲你咧嘴一笑，竖起大拇指。\n你没过去搭话，但他的热情确实感染了你。'
+},
+re_huyou2:{
+  bg:'interior',
+  huyou:true,
+  text:'俱乐部里忽然响起一阵惊呼。你抬头看去——血碗桌那边，一个穿红色球衣的壮汉正单手把一个被撞飞的模型接住，然后大笑着放回桌上。\n"别紧张！模型没坏！我手快！"\n他注意到周围的目光，挠了挠后脑勺。\n"呃……不好意思，太激动了。大家继续，继续。"\n你忍不住笑了一下——这个人还挺有意思的。'
+},
+re_tan1:{
+  bg:'table',
+  tan:true,
+  text:'对战区那边，一个人正弯腰调整桌面的地形，动作十分娴熟。他抬头看到你在看，冲你点了点头。\n"新人？我叫谭老师——其实不是什么老师，就是玩得久了点。"\n他指了指桌上的两支军队。"HH和40K我都打，11版规则也熟。有空可以切磋切磋。"\n说完他继续低头摆地形，留给你一个淡定的背影。'
+},
+re_tan2:{
+  bg:'table',
+  tan:true,
+  text:'你经过对战区时，听到一个人在跟旁边的人讲解规则——"11版的突击阶段跟10版不一样了，这里要注意……"\n他讲得很流畅，显然是老玩家。注意到你路过，他停下来冲你笑了笑。\n"新来的？你好，我是谭老师。有不懂的规则可以问我。"\n说完又转头继续讲，语气耐心而专业。'
+},
+re_yao1:{
+  bg:'interior',
+  yao:true,
+  text:'俱乐部门被推开，一个穿着笔挺西装、提着公文包的男人走了进来。\n"抱歉来晚了，刚开完会。"\n他把公文包往角落一放，脱下西装外套搭在椅背上，动作利落得像在法庭上完成一次质证。\n然后他从包里掏出——一排涂装精美的基因窃取者模型。\n你看到他往桌上顺手画了一幅小猪佩奇，线条简洁流畅，相当传神。\n旁边的人笑着说"药师傅今天心情不错啊"，他也笑了笑没否认。'
+},
+re_yao2:{
+  bg:'table',
+  yao:true,
+  text:'你注意到角落里有一桌气氛不太一样——一个穿衬衫的男人正在跟对面的人打40K，桌上清一色基因窃取者。\n他的出牌方式非常精密，每一步都像是在推演法律条文。\n中场休息时，他放下骰子，随手在记分纸的空白处画了一只小猪佩奇，旁边写了个"准备辩护"。\n对面的人苦笑："药师傅，你能不能别每次画这个打击我士气……"\n他耸耸肩："艺术需要分享。"'
+},
+re_alex1:{
+  bg:'table',
+  alex:true,
+  text:'一阵引擎轰鸣般的骰子声从某张桌子传过来。\n你走过去看了一眼——一个玩家正指挥一排禁军摩托模型在桌面上推进，旁边还摆着一台小飞机的模型。阵型铺得极大，几乎覆盖了半个桌面。\n对面的人盯着桌面沉默了很久，然后叹了口气开始收模型。\n"又被你打拉了……"\n"Alex"挠了挠头，有点不好意思地说："下次我换点弱的？"\n旁边有人补了一句："你上次也说换弱的，结果上了九版最强组合。"'
+},
+re_alex2:{
+  bg:'table',
+  alex:true,
+  text:'你看到一个人在两张桌之间来回转悠——先在一桌打了一局杀戮小队，又跑到另一桌开始排禁军摩托的阵型。\n他注意到你的目光，咧嘴一笑。\n"玩得杂，见笑了。最近在练禁军6摩托加小飞机，挺上头的。"\n旁边有人小声说："他上次用这组合把对面打拉了，对手三天没来俱乐部。"\n他赶紧摆手："那次是意外！真的是意外！……虽然确实挺爽的。"'
+},
 
 z1:{
   bg:'table', label:'周师傅线', labelSub:'观战与指导',
@@ -2056,7 +2397,184 @@ hz37:{
   speaker:'narration', next:'hz18', text:'从那天起，你发现忽悠对你的态度发生了微妙的变化。\n他打球的时候还是那么凶，吼声还是那么大，拍桌子的力度还是能震飞骰子。\n但间隙的时候——递水的时候、帮你调整模型位置的时候、并肩走出俱乐部的时候——他的动作会忽然慢下来，力道会轻下来，声音也会低下来。\n像是那团火，学会了在你的面前，收起灼人的温度。'
 },
 
+/* ===== SLANEESH ROUTE — 色孽升魔线 ===== */
+s1:{
+  bg:'painting', label:'色孽线', labelSub:'低语与诱惑',
+  text:'你鬼使神差地走回了展示墙。\n那个紫色的模型还在那里——在射灯下泛着奇异的光泽。\n你盯着它看了很久，总觉得它在动。不是真的动——像是视角被拉进了一个不属于你的空间。'
+},
+s2:{
+  speaker:'narration', text:'"你对这个感兴趣？"\n一个声音在你身后响起——不是你听过的任何人的声音。\n你回头，看到了一个人。\n他靠在墙边，穿着深紫色的大衣，长发披散在肩上。\n他的眼睛在昏暗的俱乐部光线下泛着一种说不出的紫色。\n你没看到他是什么时候站在那里的。'
+},
+s3:{
+  char:'shalaxi', expr:'alluring', speaker:'shalaxi', charPos:'center',
+  text:'"我叫青嶙。不是俱乐部的正式成员——只是偶尔会来。"\n他微微歪了歪头，目光落在你身上，像是在打量一件有趣的东西。\n"你喜欢那个模型？眼光不错。那是色孽的印记——"完美"的追求。"\n他的声音很轻，但每一个字都清晰地钻进你的耳朵里。'
+},
+s4:{
+  char:'shalaxi', expr:'amused', speaker:'shalaxi',
+  text:'"你知道吗——战锤的本质不是胜利，不是策略，不是涂装。"\n他往前走了一步，带起一阵若有若无的香气。\n"是欲望。是那个"我想要更多"的声音。更强的军队、更完美的涂装、更痛快的胜利——还有那些你不敢说出口的渴望。"\n他笑了——那个笑容让你后背发凉，但又移不开眼睛。'
+},
+s5:{
+  char:'shalaxi', expr:'alluring', speaker:'shalaxi',
+  text:'"别紧张。我又不是要拉你入教。"\n他退后半步，举起双手做了一个投降的姿势，但眼神里全是挑衅。\n"我只是觉得——你有那个潜力。那个'不满足'的潜力。"\n"大部分人来俱乐部是为了找点乐子。你不是。你想要更多——只是还不知道自己想要什么。"'
+},
+s5_choice:{
+  speaker:null,
+  choices:[
+    {text:'"你……说得对。我想要更多。"（认同）', next:'s6', affinity:{shalaxi:2}},
+    {text:'"你怎么知道我想要什么？少自作聪明。"（拒绝）', next:'s6b', affinity:{shalaxi:0}},
+    {text:'盯着他的眼睛，沉默不语。', next:'s6c', affinity:{shalaxi:1}}
+  ]
+},
+s6:{
+  char:'shalaxi', expr:'amused', speaker:'shalaxi', next:'s7',
+  text:'青嶙的笑容加深了——不是开心，是一种看到猎物上钩的愉悦。\n"当然。我看人很准。"\n他从大衣口袋里掏出一个小盒子——紫色的，上面印着一个你从没见过的符号。\n"这是一个小玩意儿。不是模型——是……纪念品。"\n他把盒子放在你旁边的展示架边缘。\n"如果你想要更多……下次来的时候，告诉我。"\n他转身走了——脚步无声无息。'
+},
+s6b:{
+  char:'shalaxi', expr:'alluring', speaker:'shalaxi', next:'s7',
+  text:'青嶙的笑容没有消失——但眼神冷了一点。\n"是吗。"\n他没有反驳你，甚至还轻轻笑了一声。\n"那是我看错了。抱歉。"\n他转身走了两步，又停下来。\n"不过——那个小盒子，我会留在展示架那里。如果你想再看一眼的话……"\n他没说完就走了。\n你发现心跳得厉害。'
+},
+s6c:{
+  char:'shalaxi', expr:'amused', speaker:'shalaxi', next:'s7',
+  text:'你们对视了很久。\n久到俱乐部的喧嚣像是被隔在了一层玻璃外面。\n青嶙先笑了——不是之前那种试探的笑，是一种更真实的、带着一点欣赏的笑。\n"……不错。你比我想象的有意思。"\n他从大衣口袋里掏出一个紫色的小盒子，放在展示架边缘。\n"拿着它。或者不拿。都是你的选择。我很好奇——你会怎么做。"'
+},
+s7:{
+  speaker:'narration', text:'青嶙走了之后，你站在原地。\n盒子里是一枚吊坠——紫色的晶体，被做成了星状的形状。\n你把它攥在手里。\n冰冷。但握久了，开始发烫。\n那天晚上你回到家，躺在床上翻来覆去睡不着。\n你脑子里全是那个模型——和那个人的眼神。'
+},
+s8:{
+  bg:'painting', text:'几天后你又去了俱乐部。\n你告诉自己是去学涂装的，但你的目光一直在搜寻那个紫色的人影。\n青嶙不在。\n你坐在涂装区心不在焉地画了一个下午，画完发现——你把那个紫色吊坠的形状画在了模型上。'
+},
+s9:{
+  speaker:'narration', text:'就在你盯着那个标记发呆的时候——\n"你在找我？"\n青嶙不知什么时候已经坐在了你旁边。\n你甚至没有听到椅子拉动的声音。'
+},
+s10:{
+  char:'shalaxi', expr:'amused', speaker:'shalaxi',
+  text:'"你已经开始了。"\n他指了指你涂的标记。\n"你甚至没注意到你在画它。这就是欲望——当你开始想它的时候，它已经在控制你了。"\n他靠在椅背上，交叉双手。\n"要不要……了解更多？真正的更多。"'
+},
+s10_choice:{
+  speaker:null,
+  choices:[
+    {text:'"好。教我。"（投入）', next:'s11', affinity:{shalaxi:2}},
+    {text:'"我还没准备好……"（犹豫）', next:'s11b', affinity:{shalaxi:0}},
+    {text:'"你到底是什么人？"（直面）', next:'s11c', affinity:{shalaxi:1}}
+  ]
+},
+s11:{
+  char:'shalaxi', expr:'intense', speaker:'shalaxi', next:'s12',
+  text:'青嶙的笑容变成了另一种东西——认真、专注、像一台精密的仪器正在校准。\n"好。但你得知道——这不是普通的对战技巧，也不是涂装心得。"\n"色孽之道，是关于极致。超越极限——不管是力量的极限、美的极限，还是你对自己的认知的极限。"\n"会付出代价的。"\n他看着你，目光没有一丝闪躲。\n"你准备好了吗？"'
+},
+s11b:{
+  char:'shalaxi', expr:'alluring', speaker:'shalaxi', next:'s12',
+  text:'青嶙的表情没有变化——但他微微歪了歪头，像是看到了什么有趣的东西。\n"还没准备好？嗯……也对。这不是能轻易踏上的路。"\n他站起来，拍了拍大衣上不存在的灰尘。\n"那等你准备好的时候——我会在的。"\n他走了两步，回头看你一眼。\n"别让我等太久。欲望不会等人。"'
+},
+s11c:{
+  char:'shalaxi', expr:'amused', speaker:'shalaxi', next:'s12',
+  text:'青嶙的眼神闪了一下——像是被冒犯到了，又像是更兴奋了。\n"我是什么人？"\n他低头笑了一声。\n"我是给选择的人。不是替你做选择的人。"\n"你是想问——我是不是危险？"\n他直视你的眼睛。\n"当然是。但危险的东西才值得追求。你不也是因为这个才找上我的吗？"'
+},
+s12:{
+  speaker:'narration', text:'之后的日子，青嶙开始"指导"你。\n不是海底那种严谨的战术教学，也不是多肉那种热情的涂装指导。\n青嶙的方式不一样——他不会告诉你该怎么做。\n他会问你："你想要什么？"然后让你自己去找到达答案的路。\n你开始变了。你对战的时候更狠了——以前你会犹豫的射击，现在毫不犹豫地扣下扳机。\n你涂装的时候更大胆了——色彩越来越艳丽，曲线越来越张扬。\n俱乐部里的人开始注意到你的变化。'
+},
+s13:{
+  char:'shalaxi', expr:'alluring', speaker:'shalaxi',
+  text:'"看到效果了？"\n青嶙站在你身后，看着你刚涂完的一个模型——紫色的铠甲，布满水晶状的增生。\n和展示墙上那个模型越来越像了。\n"你在靠近那个形态。"\n他的声音低沉而满意。\n"继续。不要停。一旦停下——你就会失去它。"'
+},
+s14:{
+  speaker:'narration', endingCheck:'slaneesh', text:'那天晚上你回到家，把吊坠挂在床头。\n紫色晶体在黑暗中发出微弱的荧光。\n你躺在床上盯着它，脑子里却什么也没想。\n不——你在想。你在想那一场对战中你毫无犹豫地射出的那一枪。\n你在想那个紫色的模型。\n你在想在青嶙的注视下涂装时，指尖发麻的感觉。\n你已经不太确定——是你在玩这个游戏，\n还是这个游戏……在玩你了。\n→ 前往结局判定'
+},
+
+/* ===== SS ROUTE — 比耶鱼 ===== */
+ss1:{
+  bg:'bloodbowl', label:'SS线', labelSub:'比耶鱼',
+  text:'你走向那张铺着橙色绒布的血碗桌。\n一个戴着兜帽的人正低头摆弄一架小飞机模型，指尖在机翼上轻轻敲击，节奏忽快忽慢。\n桌上散落着一些模型——一架小飞机、几个巢都风格的废墟地形、还有一两支血碗球队。\n旁边放着一张写满数字的纸条，看不清是什么。'
+},
+ss2:{
+  speaker:'narration', text:'你走近了，兜帽下面露出一张看不透表情的脸。\n他没有抬头，只是把那个小飞机模型往前推了两厘米，然后忽然开口：\n"你觉得巢都的第四层——从下往上数的第四层，是离天堂更近，还是离地狱更近？"\n说完他抬起头看了你一眼，眼神像一片深水。\n你不知道他是在开玩笑还是认真的。'
+},
+ss3:{
+  char:'ss', expr:'normal', speaker:'ss', charPos:'center',
+  text:'"坐。"\n他用下巴指了指对面的椅子，然后低头继续摆弄那架小飞机。\n"我叫SS。S和S。不是缩写，就是SS。"\n"血碗我打，40K我也打。巢都……也打。"\n他把小飞机拿起来，对着灯光眯着眼看了看，又放下。\n"你今天来俱乐部是来打球的，还是来被人打的？"\n他说这话的时候嘴角似乎笑了一下——但你又觉得可能没笑。'
+},
+ss4:{
+  speaker:'narration', text:'你和SS打了一局血碗。\n不，准确地说——你和SS"打了"一局血碗。\n他的打法非常奇怪：前两个回合几乎不动，像是在观察什么。然后第三回合他突然发动了一波进攻，精准得不像话——然后第四回合他又停下来了，开始整理桌面上的废墟地形。\n你完全看不懂他在做什么。\n但你赢了。\n他看起来一点也不在乎。'
+},
+ss5:{
+  char:'ss', expr:'tilt', speaker:'ss',
+  text:'"嗯。你赢了。"\n他靠在椅背上，兜帽的阴影遮住了大半张脸。\n"赢了的感觉怎么样？"\n他问得很随意，像是在问今天天气怎么样。\n"你是觉得高兴？还是觉得"这就赢了？"——还是说，你其实在复盘的时候已经发现自己只是运气好？"\n他说完静静地看着你，像是在等一个他早就知道答案的问题。'
+},
+ss5_choice:{
+  speaker:null,
+  choices:[
+    {text:'"赢就是赢，管他运气好不好。"（自信）', next:'ss6', affinity:{ss:1}},
+    {text:'"我确实运气好……你的打法我看不懂。"（坦诚）', next:'ss6b', affinity:{ss:2}},
+    {text:'"你话好多。还打不打？"（不耐烦）', next:'ss6c', affinity:{ss:-1}}
+  ]
+},
+ss6:{
+  char:'ss', expr:'shrug', speaker:'ss', next:'ss7',
+  text:'SS沉默了两秒。\n"……嗯。也是。"\n他拿起小飞机在手里转了转。\n"我赢的时候也这么想。"\n他不说话了。\n但你觉得他似乎对你的答案还算满意——又或者他根本不在乎。\n很难说。'
+},
+ss6b:{
+  char:'ss', expr:'smile', speaker:'ss', next:'ss7',
+  text:'SS安静了一瞬——然后你看到他的嘴角微微上翘了一下。很轻，但你确定看到了。\n"看不懂就对了。"\n他把小飞机放回桌上，指尖在机翼上轻轻一弹。\n"下次来，我教你一种打法。不是40K也不是血碗——是我自己玩的。"\n他站起来，拉了拉兜帽的边缘。\n"……不过你得先请我喝点什么。楼下便利店，可乐冰沙。"\n说完他走了，没等你回答。'
+},
+ss6c:{
+  char:'ss', expr:'shrug', speaker:'ss', next:'ss7',
+  text:'SS耸了耸肩。\n"不打了。"\n他开始收模型，动作不紧不慢。\n"但你刚才那步弃子突袭确实不错——虽然你大概没意识到那是弃子。"\n他把最后一架小飞机收进盒子，站起来。\n"下次来如果我在，可以再打一局。"\n说完他走了，没回头。\n你没搞懂他是在夸你还是在损你。'
+},
+ss7:{
+  speaker:'narration', text:'之后你又来了几次俱乐部。\nSS不是每次都在。他在的时候，也不一定坐在血碗桌边——有时候在小飞机旁边，有时候在写满了数字的纸前面发呆。\n你试着跟他搭话。他的回答总是简短而奇怪。\n"你喜欢血碗还是40K？"——"都喜欢。又都不喜欢。"\n"你今天在算什么东西？"——"在算如果骰子有记忆，它会不会记得自己掷过的每一面。"\n你越来越搞不懂他。\n但奇怪的是，你开始想搞懂他。'
+},
+ss7_choice:{
+  speaker:null,
+  choices:[
+    {text:'买了草莓牛奶放在他桌上。', next:'ss8', affinity:{ss:2}},
+    {text:'"你今天说话比上次正常了。"（调侃）', next:'ss8b', affinity:{ss:0}},
+    {text:'假装没看见他，自己打自己的。', next:'ss8c', affinity:{ss:-1}}
+  ]
+},
+ss8:{
+  char:'ss', expr:'smile', speaker:'ss', next:'ss9',
+  text:'SS看到桌上的草莓牛奶，顿了一下。\n他拿起来看了看日期，拧开喝了一口。\n"……你还真买了。"\n他低头盯着牛奶盒子上的字看了好几秒。\n"我以为你只是客气一下。"\n他说话的声音比平时低了一些。\n然后他把牛奶放在小飞机旁边——两个东西并排放着，像是某种仪式。\n他什么也没说，但之后他跟你说话的时候，兜帽稍微拉下来了一点。\n你能看到他的眼睛了。'
+},
+ss8b:{
+  char:'ss', expr:'tilt', speaker:'ss', next:'ss9',
+  text:'SS歪了歪头。\n"我上次说话不正常吗？"\n他想了想。\n"哦，你是说骰子记忆那段。那很正常。是我最正常的一段话。"\n他又想了想。\n"不过你提醒我了——我今天应该少说点话。"\n然后他真的不说话了。\n你花了半个小时才从他嘴里问出"再来一局"三个字。'
+},
+ss8c:{
+  char:'ss', expr:'shrug', speaker:'ss', next:'ss9',
+  text:'SS看了你一眼，没有说话。\n之后他一直低头摆弄那架小飞机的机翼，好像在调整什么——但那架飞机看起来已经修好了很久。\n你专心打自己的局。但偶尔你能感觉到他的目光从兜帽下面投过来——很短，像是不小心看到的一样。'
+},
+ss9:{
+  speaker:'narration', text:'那天你在俱乐部待到很晚。\nSS已经走了。但他的桌上留了一张纸条。\n纸条上画了一条鱼——很简单，几笔就画完了——鱼鳍比了一个耶。\n下面写了一行字：\n"' + "你猜我今天为什么留下来。" + '"\n你没有答案。\n但你把纸条折好放进了口袋。'
+},
+ss10:{
+  speaker:'narration', endingCheck:'ss', text:'之后的日子，你开始习惯了SS的存在。\n他不常来，但来的时候总是坐在同一个位置。\n桌上的东西换来换去——有时候是小飞机，有时候是巢都废墟，有时候只是一瓶草莓牛奶。\n你们打的局不多。但他教了你一种完全不一样的打法——他叫它"鱼式"，不按任何规则书的套路走，全靠直觉。\n你有时候赢了，有时候输了。他不评价。\n但每次你走的时候，他会轻轻抬一下手指——像是挥别，又像是举起比耶的鱼鳍。\n你始终没有搞懂他。\n但你忽然觉得，可能搞懂他并不是最好的结果。\n→ 前往结局判定'
+},
+
 /* ===== ENDINGS ===== */
+ending_haidi_good:{
+  bg:'ending', label:'结局', labelSub:'Haidī Route - Good Ending',
+  type:'GOOD ENDING', title:'海底的秘密', text:'自那以后，你成了达米拉多最常来的玩家之一。\n海底不再只是你的教练——他变成了你的朋友，你的对手，你愿意在下班后多待两小时的人。\n\n某个深秋的夜晚，俱乐部只剩你们两个人。\n他完成了最后一个模型的涂装，忽然说："你知道吗，我以前从没想过会有人陪我待到这么晚。"\n你笑了笑没回答，只是看着窗外城市的灯光。\n\n海底并非深不可测。只要你愿意潜下去。\n\n—— 战火与羁绊·海底线·完 ——'
+},
+ending_haidi_normal:{
+  bg:'ending', label:'结局', labelSub:'Haidī Route - Normal Ending',
+  type:'NORMAL ENDING', title:'表面的波澜', text:'你跟海底学了很长时间的对战。\n技术进步了不少，但你们之间始终隔着一层什么。他教你是认真的，聊天是礼貌的，但你总觉得他藏着很多话没说。\n\n某天你离开俱乐部的时候，看到海底一个人站在柜台后面，望着窗外发呆。\n你想问他怎么了——但最终没有开口。\n\n有些人像海面，看起来平静，却不知道下面有多深。\n而你还没有潜下去的勇气。\n\n—— 战火与羁绊·海底线·完 ——'
+},
+ending_duorou_good:{
+  bg:'ending', label:'结局', labelSub:'Duorou Route - Good Ending',
+  type:'GOOD ENDING', title:'永不褪色', text:'比赛那天，你们的作品拿了第二名。\n多肉捧着奖牌，笑得比第一名的还灿烂。\n"下次一定是第一！"他说。\n\n回去的路上，他忽然把奖牌挂在了你脖子上。\n"给你。没有你，我连参赛都不敢想。"\n你没推辞。因为你知道，他说的不只是比赛。\n\n从那以后，涂装区的固定位置有了两个并排的座位。\n颜料的气味、画笔的沙沙声、偶尔碰到的肩膀——都在告诉你：有些颜色，真的永远不会褪。\n\n—— 战火与羁绊·多肉线·完 ——'
+},
+ending_duorou_normal:{
+  bg:'ending', label:'结局', labelSub:'Duorou Route - Normal Ending',
+  type:'NORMAL ENDING', title:'淡淡的色彩', text:'你和多肉一起参加了涂装比赛，但没有拿到名次。\n多肉说没关系，下次再努力。\n\n你们还是会在俱乐部一起涂装，他还是会跟你分享新学的技巧。\n但比赛中那种一起为一个目标拼命的感觉——后来再也没有了。\n\n某天你去俱乐部的时候，多肉正在教另一个新人涂装。\n他教得很认真，笑得很灿烂。\n你在旁边看了一会儿，没有走过去。\n\n有些距离，不是靠近就能消除的。\n\n—— 战火与羁绊·多肉线·完 ——'
+},
+ending_ligong_good:{
+  bg:'ending', label:'结局', labelSub:'Ligong Route - Good Ending',
+  type:'GOOD ENDING', title:'第二十四场', text:'那天之后，李工的笔记本上多了一页新的记录——"第二十四场：胜利"。\n他在这页纸的旁边画了一个小小的笑脸。\n\n后来他赢的局越来越多——十局里能赢三四局了。\n但他再也没有把笔记本收起来过。他把它放在桌上最显眼的位置，翻开的那一页永远是第一次赢的那局复盘。\n\n你没有问他为什么。\n因为你也知道——那不只是关于战锤。\n是因为那天有人愿意坐下来，陪一个输了十九场的人，打第二十场。\n\n后来每次你到俱乐部，都会发现桌上有一杯温热的奶茶。\n杯子上写着你的名字，旁边压着一张纸条："今天想打几局？——李工"\n\n—— 战火与羁绊·李工线·完 ——'
+},
+ending_ligong_normal:{
+  bg:'ending', label:'结局', labelSub:'Ligong Route - Normal Ending',
+  type:'NORMAL ENDING', title:'一小步', text:'李工开始慢慢能赢几局了。\n他不再那么紧张，说话也不会一直结巴了。\n\n但你们之间始终保持着不远不近的距离。\n他偶尔会给你带奶茶——原味的。有时候放了糖，有时候忘了。\n你们一起打了很多局，赢了就笑，输了就复盘。\n\n某天你发现他的笔记本最后一页写着：\n"认识了一个人。打了很多局。很开心。"\n\n你没有问那个人是谁。\n但你每次去俱乐部的时候，都会看到他在那个角落等你。\n\n—— 战火与羁绊·李工线·完 ——'
+},
 ending_bad:{
   bg:'ending', label:'结局', labelSub:'Bad Ending',
   type:'BAD ENDING', title:'擦肩而过', text:'你渐渐不再去俱乐部了。\n不是因为不喜欢战锤——只是总觉得格格不入。\n偶尔路过那扇门，能听见里面的欢笑声和骰子声。\n你知道那里有一群热爱战锤的人，但你始终没有再推门进去。\n\n有些缘分，需要一个推力才能开始。\n而你，差了那一步。'
@@ -2068,6 +2586,18 @@ ending_bad_quiet:{
 ending_bad_duo:{
   bg:'ending', label:'结局', labelSub:'Bad Ending',
   type:'BAD ENDING', title:'褪色', text:'比赛那天，你和多肉的作品没能通过初选。\n多肉没有说什么，只是笑了笑。\n\n但之后他不再约你一起涂装了。不是生气——只是你们的频率对不上了。\n\n"下次有空再来涂装区坐坐啊！"他在门口挥手，语气和第一天认识你时一模一样。\n你忽然意识到——你又变回了一个普通的会员。\n有些颜色，涂上了就洗不掉。但有些，时间久了，会自然褪去。'
+},
+ending_slaneesh:{
+  bg:'ending', label:'结局', labelSub:'Slaneesh Route - Ascension Ending',
+  type:'??? ENDING', title:'升魔', text:'你已经很久没有在白天去俱乐部了。\n俱乐部的门你照常推——但你知道，你去的不是为了那些绿色桌子上的塑料小人。\n你是去找青嶙的。\n\n他不总是在。但当你需要他的时候——当你涂装到凌晨三点、感觉自己还能再涂一层的时候——他就会出现。\n"快到了。"他说。\n你没问他什么快到了。\n\n你桌角的那个模型已经彻底变了——紫色的晶体从铠甲缝隙里长出来，覆盖了原来的所有颜色。\n你看着它的时候，觉得它在看你。\n\n有一天你照镜子，发现自己的瞳孔里映着一丝紫色。\n你没有害怕。\n\n你只是觉得——还不够。想要更多。\n永远。更多。\n\n—— 战火与羁绊·色孽升魔线·完 ——'
+},
+ending_ss_good:{
+  bg:'ending', label:'结局', labelSub:'SS Route - Good Ending',
+  type:'GOOD ENDING', title:'比耶鱼', text:'你后来和SS打了不知道多少局。\n他依然神秘莫测，依然会说奇怪的话。\n但他也开始在你不来的时候——在桌上留一张小纸条。\n有时候是画，从来不多写一个字的评价，从来不问你看了没有，你也不说你看了。\n你学会了"鱼式"打法的精髓——不是按规则走，是按直觉走。\n\n某天他照例坐在血碗桌边。桌上放着一架小飞机——机身上用马克笔画了一个小小的比耶。\n你坐下来，他看着你。\n"你知道我为什么叫SS吗？不是缩写。"\n你没回答。\n他沉默了片刻，忽然说："是悄悄话首字母的缩写。但我不会告诉你那两个字是什么。"\n然后他低头开始摆模型，兜帽下露出一截扬起的嘴角。\n有些人的秘密，也许不是用来解开的——是用来陪在身边的。\n\n—— 战火与羁绊·SS线·完 ——'
+},
+ending_ss_normal:{
+  bg:'ending', label:'结局', labelSub:'SS Route - Normal Ending',
+  type:'NORMAL ENDING', title:'鱼鳍的方向', text:'你和SS断断续续打了不少局。\n你始终没有搞懂他——他的打法、他的喜好、他那张写着数字的纸条到底什么意思。\n但他每次来的时候，你会注意到他不坐别的桌子。\n你不再问他问题了。你也学会了在他旁边安静地摆自己的模型。\n\n有一天你到俱乐部的时候，发现他已经走了。\n桌上留了一张纸条——只有一条鱼的轮廓，没有比耶。\n你把它翻过来，背面写着："下次来带两瓶草莓牛奶。"\n\n你去了便利店。\n\n—— 战火与羁绊·SS线·完 ——'
 }
 };
 
@@ -2079,6 +2609,8 @@ const Chars = {
   duorou:{name:'多肉', port:portraitDuorou},
   zhou:{name:'周师傅', port:portraitZhou},
   ligong:{name:'李工', port:portraitLigong},
+  shalaxi:{name:'青嶙', port:portraitShalaxi},
+  ss:{name:'SS', port:portraitSS},
   huyou:{name:'忽悠', port:portraitHuyou},
   narration:{name:'', cls:'narration'}
 };
@@ -2262,8 +2794,8 @@ function makeChoice(choice){
 
 function showAffinityPopup(char, val){
   const el = $('affinity-popup');
-  const icons = {haidi:'💙',duorou:'🧡',ligong:'💜'};
-  const colors = {haidi:'#8ab4d8',duorou:'#e8a888',ligong:'#b8a0d8'};
+  const icons = {haidi:'💙',duorou:'🧡',ligong:'💜',shalaxi:'💜',ss:'🐟'};
+  const colors = {haidi:'#8ab4d8',duorou:'#e8a888',ligong:'#b8a0d8',shalaxi:'#c080e0',ss:'#80b8a0'};
   const name = icons[char] || '💕';
   const sign = val>0?'+':'';
   el.innerHTML = name + ' ' + sign + val;
@@ -2276,6 +2808,8 @@ function updateHUD(){
   $('bar-haidi').style.width = Math.min(100, State.haidi*10) + '%';
   $('bar-duorou').style.width = Math.min(100, State.duorou*10) + '%';
   $('bar-ligong').style.width = Math.min(100, State.ligong*10) + '%';
+  $('bar-shalaxi').style.width = Math.min(100, State.shalaxi*10) + '%';
+  $('bar-ss').style.width = Math.min(100, State.ss*10) + '%';
 }
 
 // Get next scene id
@@ -2314,9 +2848,26 @@ function advance(){
     return;
   }
 
+  // Random encounter: return to original scene
+  if(curSc && (curSc.zhou || curSc.huyou) && State.randomReturnTo){
+    const returnTo = State.randomReturnTo;
+    State.randomReturnTo = null;
+    $('fade-overlay').classList.add('show');
+    setTimeout(()=>{
+      renderScene(returnTo);
+      $('fade-overlay').classList.remove('show');
+    }, 400);
+    return;
+  }
+
   // Get next scene
   const next = getNextSceneId(currentSceneId);
   if(next){
+    // Random encounter check: only in prologue, bg-narrative scenes, 15% chance
+    const curSc = Scenes[currentSceneId];
+    if(triggerRandomEncounter(next)){
+      return;
+    }
     // Fade transition
     $('fade-overlay').classList.add('show');
     setTimeout(()=>{
@@ -2324,6 +2875,49 @@ function advance(){
       $('fade-overlay').classList.remove('show');
     }, 400);
   }
+}
+
+// Random encounters during prologue
+function triggerRandomEncounter(originalNext){
+  // Only during prologue, before route selection
+  if(State.route !== null) return false;
+  // Only when advancing past a scene that has a bg (narrative scene, not choice/ending)
+  const curSc = Scenes[currentSceneId];
+  if(!curSc || !curSc.bg) return false;
+  // Don't trigger from a random encounter itself or SS route scenes (avoid chain)
+  if(curSc.zhou || curSc.huyou || curSc.tan || curSc.yao || curSc.alex) return false;
+  // 15% chance
+  if(Math.random() > 0.15) return false;
+
+  // Pick an unencountered character
+  const pool = [];
+  if(!State.randomEncountered.zhou) pool.push('zhou');
+  if(!State.randomEncountered.huyou) pool.push('huyou');
+  if(!State.randomEncountered.tan) pool.push('tan');
+  if(!State.randomEncountered.yao) pool.push('yao');
+  if(!State.randomEncountered.alex) pool.push('alex');
+  if(pool.length === 0) return false;
+
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  const scenes = {
+    zhou:['re_zhou1','re_zhou2'],
+    huyou:['re_huyou1','re_huyou2'],
+    tan:['re_tan1','re_tan2'],
+    yao:['re_yao1','re_yao2'],
+    alex:['re_alex1','re_alex2']
+  };
+  const ids = scenes[pick];
+  const reId = ids[Math.floor(Math.random() * ids.length)];
+
+  State.randomEncountered[pick] = true;
+  State.randomReturnTo = originalNext;
+
+  $('fade-overlay').classList.add('show');
+  setTimeout(()=>{
+    renderScene(reId);
+    $('fade-overlay').classList.remove('show');
+  }, 400);
+  return true;
 }
 
 function checkEnding(route){
@@ -2342,6 +2936,13 @@ function checkEnding(route){
       if(State.ligong >= 5) ending = 'ending_ligong_good';
       else if(State.ligong >= 2) ending = 'ending_ligong_normal';
       else ending = 'ending_bad_quiet';
+    } else if(route==='slaneesh'){
+      if(State.shalaxi >= 2) ending = 'ending_slaneesh';
+      else ending = 'ending_bad';
+    } else if(route==='ss'){
+      if(State.ss >= 3) ending = 'ending_ss_good';
+      else if(State.ss >= 1) ending = 'ending_ss_normal';
+      else ending = 'ending_bad';
     } else {
       ending = 'ending_bad';
     }
@@ -2378,6 +2979,8 @@ function saveGame(){
     haidi: State.haidi,
     duorou: State.duorou,
     ligong: State.ligong,
+    shalaxi: State.shalaxi,
+    ss: State.ss,
     route: State.route
   };
   localStorage.setItem('warhammer_save', JSON.stringify(data));
@@ -2393,7 +2996,11 @@ function startNewGame(){
   State.haidi = 0;
   State.duorou = 0;
   State.ligong = 0;
+  State.shalaxi = 0;
+  State.ss = 0;
   State.route = null;
+  State.randomEncountered = {zhou:false, huyou:false, tan:false, yao:false, alex:false};
+  State.randomReturnTo = null;
   $('hud').classList.add('show');
   updateHUD();
   $('title-screen').classList.add('hidden');
@@ -2407,6 +3014,8 @@ function continueGame(){
   State.haidi = data.haidi || 0;
   State.duorou = data.duorou || 0;
   State.ligong = data.ligong || 0;
+  State.shalaxi = data.shalaxi || 0;
+  State.ss = data.ss || 0;
   State.route = data.route || null;
   $('hud').classList.add('show');
   updateHUD();
@@ -2446,7 +3055,7 @@ $('player-name-input').addEventListener('keydown', (e)=>{
 $('btn-continue').addEventListener('click', continueGame);
 
 $('btn-about').addEventListener('click', ()=>{
-  alert('《达米拉多战锤俱乐部 - 战火与羁绊》\n\n一个关于战锤、友情与选择的文字冒险游戏。\n\n你将扮演一位新加入达米拉多战锤俱乐部的玩家，\n在与俱乐部成员的互动中做出选择，\n你的每一个决定都将影响最终的结局。\n\n可攻略角色：\n💙 海底 — 俱乐部负责人，冷静沉稳\n🧡 多肉 — 涂装高手，活泼开朗\n💜 李工 — 新玩家，社恐但真诚\n\n周师傅和忽悠会作为随机事件出现在剧情中，但并非可攻略对象。\n\n点击屏幕推进剧情，选择影响好感度与结局。');
+  alert('《达米拉多战锤俱乐部 - 战火与羁绊》\n\n一个关于战锤、友情与选择的文字冒险游戏。\n\n你将扮演一位新加入达米拉多战锤俱乐部的玩家，\n在与俱乐部成员的互动中做出选择，\n你的每一个决定都将影响最终的结局。\n\n可攻略角色：\n💙 海底 — 俱乐部负责人，冷静沉稳\n🧡 多肉 — 涂装高手，活泼开朗\n💜 李工 — 新玩家，社恐但真诚\n💜 青嶙 — 神秘常客，色孽的引诱\n🐟 SS — 比耶鱼，爱好血碗/小飞机/巢都，神秘莫测\n\n周师傅、忽悠、谭老师、药师傅、Alex 会作为随机事件出现在剧情中。\n\n点击屏幕推进剧情，选择影响好感度与结局。\n\n⚠ 色孽线包含黑暗主题内容。\n⚠ SS线好感度获取极难，需要耐心。');
 });
 
 $('btn-restart').addEventListener('click', ()=>{
@@ -2459,7 +3068,11 @@ $('btn-restart').addEventListener('click', ()=>{
   State.haidi = 0;
   State.duorou = 0;
   State.ligong = 0;
+  State.shalaxi = 0;
+  State.ss = 0;
   State.route = null;
+  State.randomEncountered = {zhou:false, huyou:false, tan:false, yao:false, alex:false};
+  State.randomReturnTo = null;
   updateHUD();
   $('hud').classList.remove('show');
 });
@@ -2486,6 +3099,11 @@ $('btn-auto').addEventListener('click', (e)=>{
 $('btn-skip').addEventListener('click', (e)=>{
   e.stopPropagation();
   skipToNextChoice();
+});
+
+$('btn-skip-branch').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  skipToNextBranch();
 });
 
 // Skip instantly to the next choice/ending scene
@@ -2539,6 +3157,99 @@ function skipToNextChoice(){
       $('fade-overlay').classList.remove('show');
     }, 300);
   }
+}
+
+// Skip to the next route-branching choice (scenes with route-setting choices)
+function skipToNextBranch(){
+  if($('choices-layer').classList.contains('show')) return;
+  if($('title-screen').classList.contains('hidden')===false) return;
+  if($('name-input-screen').classList.contains('hidden')===false) return;
+  if($('ending-screen').classList.contains('show')) return;
+  if($('fade-overlay').classList.contains('show')) return;
+
+  skipTypewriter();
+
+  let curId = currentSceneId;
+  let steps = 0;
+  const maxSteps = 200;
+
+  while(steps < maxSteps){
+    const sc = Scenes[curId];
+    if(!sc) break;
+    if(sc.endingCheck) break;
+    if(sc.type) break;
+    if(sc.choices && sc.choices.some(c => c.route)){
+      break; // found a route-branching choice
+    }
+    let nextId = null;
+    if(sc.next){
+      nextId = sc.next;
+    } else {
+      const keys = Object.keys(Scenes);
+      const idx = keys.indexOf(curId);
+      if(idx >= 0 && idx < keys.length - 1){
+        nextId = keys[idx+1];
+      }
+    }
+    if(!nextId) break;
+    curId = nextId;
+    steps++;
+  }
+
+  if(steps > 0 && curId !== currentSceneId){
+    $('fade-overlay').classList.add('show');
+    setTimeout(()=>{
+      renderScene(curId);
+      $('fade-overlay').classList.remove('show');
+    }, 300);
+  }
+}
+
+/* ======== SHOP ======== */
+$('btn-shop').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  $('shop-overlay').classList.add('show');
+});
+
+$('shop-close').addEventListener('click', ()=>{
+  $('shop-overlay').classList.remove('show');
+});
+
+$('shop-overlay').addEventListener('click', (e)=>{
+  if(e.target === $('shop-overlay')){
+    $('shop-overlay').classList.remove('show');
+  }
+});
+
+document.querySelectorAll('.shop-item').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    const product = el.getAttribute('data-product');
+    showQRCode(product);
+  });
+});
+
+$('qrcode-close').addEventListener('click', ()=>{
+  $('qrcode-modal').classList.remove('show');
+  $('shop-overlay').classList.remove('show');
+});
+
+$('qrcode-modal').addEventListener('click', (e)=>{
+  if(e.target === $('qrcode-modal')){
+    $('qrcode-modal').classList.remove('show');
+    $('shop-overlay').classList.remove('show');
+  }
+});
+
+function showQRCode(product){
+  $('shop-overlay').classList.remove('show');
+  const img = $('qrcode-img');
+  img.style.display = 'block';
+  img.src = './请微信找海底.png';
+  $('qrcode-product').textContent = '已下单：' + product;
+  setTimeout(()=>{
+    $('qrcode-product').textContent = '已下单：' + product;
+    $('qrcode-modal').classList.add('show');
+  }, 300);
 }
 
 $('btn-menu').addEventListener('click', (e)=>{
