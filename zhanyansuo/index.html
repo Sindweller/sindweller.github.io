@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>战棋研究所 - 未卜之音</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:"Microsoft YaHei","PingFang SC",sans-serif;user-select:none}
+:root{
+  --bg-dark:#0a0a12;--bg-mid:#13131f;--bg-light:#1e1e30;
+  --gold:#c5a059;--gold-l:#e8c878;--gold-d:#8a7030;
+  --red:#a02828;--red-l:#d44848;
+  --cream:#f0e6d2;--text:#e0d8c8;--dim:#7a7a8a;
+  --gui:#5a8a5a;--shui:#4a7aaa;--guo:#d4a040;
+}
+#game{position:relative;width:100vw;height:100vh;max-width:1600px;margin:0 auto;background:var(--bg-dark);overflow:hidden;cursor:pointer}
+#bg-layer{position:absolute;inset:0;z-index:1;transition:opacity .8s ease}
+.bg-scene{position:absolute;inset:0;opacity:0;transition:opacity 1s ease}
+.bg-scene.active{opacity:1}
+.bg-exterior{background:linear-gradient(180deg,#0a0a1a 0%,#131328 50%,#1a1a35 100%)}
+.bg-exterior::before{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:360px;height:420px;background:linear-gradient(180deg,#1a1a2e,#0d0d1a);border-radius:8px 8px 0 0;box-shadow:0 0 60px rgba(197,160,89,.15)}
+.bg-exterior::after{content:'战棋研究所';position:absolute;bottom:280px;left:50%;transform:translateX(-50%);width:260px;height:50px;background:var(--bg-mid);border:2px solid var(--gold-d);border-radius:4px;color:var(--gold-d);font-size:14px;text-align:center;line-height:50px;letter-spacing:3px}
+.bg-interior{background:linear-gradient(180deg,#15151a 0%,#1a1a22 50%,#101018 100%)}
+.bg-interior::before{content:'';position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(180deg,transparent,rgba(0,0,0,.6))}
+.bg-table{background:radial-gradient(ellipse at center 60%,#1a2030 0%,#10101a 50%,#0a0a10 100%)}
+.bg-table::before{content:'';position:absolute;left:50%;top:55%;transform:translate(-50%,-50%);width:70%;height:50%;background:linear-gradient(180deg,#2a3a40,#1a2a30);border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+.bg-painting{background:linear-gradient(180deg,#1a1a14 0%,#141810 50%,#0c1008 100%)}
+.bg-studio{background:linear-gradient(180deg,#1a1520 0%,#14101a 50%,#0a0810 100%)}
+.bg-night{background:linear-gradient(180deg,#050510 0%,#0a0a1a 50%,#0d0d18 100%)}
+.bg-ending{background:radial-gradient(ellipse at center,#151a25 0%,#0a0a10 70%)}
+#bg-layer::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.5) 100%);pointer-events:none;z-index:5}
+#char-layer{position:absolute;inset:0;z-index:3;pointer-events:none}
+.char-sprite{position:absolute;bottom:130px;transition:all .5s ease;opacity:0;transform:translateY(20px);filter:brightness(.5)}
+.char-sprite.active{opacity:1;transform:translateY(0);filter:brightness(1)}
+.char-sprite.left{left:5%}
+.char-sprite.center{left:50%;transform:translateX(-50%) translateY(20px)}
+.char-sprite.center.active{transform:translateX(-50%) translateY(0)}
+.char-sprite.right{right:5%}
+.char-sprite svg{width:320px;height:auto;filter:drop-shadow(0 4px 20px rgba(0,0,0,.6))}
+#dialogue-box{position:absolute;bottom:0;left:0;right:0;z-index:10;padding:20px 40px 24px;background:linear-gradient(180deg,rgba(10,10,18,.85) 0%,rgba(15,15,25,.95) 100%);border-top:2px solid var(--gold-d);min-height:180px;transform:translateY(100%);transition:transform .3s ease;cursor:default}
+#dialogue-box.show{transform:translateY(0)}
+#dialogue-box::before{content:'';position:absolute;top:-2px;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+#speaker-name{display:inline-block;padding:4px 20px;margin-bottom:10px;background:linear-gradient(135deg,var(--bg-mid),var(--bg-light));border:1px solid var(--gold-d);border-radius:4px;color:var(--gold-l);font-size:16px;font-weight:bold;letter-spacing:2px}
+#speaker-name.narration{border-color:var(--dim);color:var(--dim)}
+#speaker-name.gui{border-color:var(--gui);color:#7ac87a}
+#speaker-name.shui{border-color:var(--shui);color:#7ac0e0}
+#speaker-name.guo{border-color:var(--guo);color:#e8c060}
+#dialogue-text{color:var(--text);font-size:17px;line-height:1.9;letter-spacing:.5px;min-height:60px;text-shadow:0 1px 2px rgba(0,0,0,.8)}
+.cursor-blink{animation:blink .6s step-end infinite;color:var(--gold-l)}
+@keyframes blink{50%{opacity:0}}
+#choices-layer{position:absolute;inset:0;z-index:15;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:rgba(5,5,10,.7);opacity:0;pointer-events:none;transition:opacity .3s}
+#choices-layer.show{opacity:1;pointer-events:auto}
+.choice-btn{min-width:420px;max-width:620px;padding:16px 28px;background:linear-gradient(135deg,rgba(20,20,30,.95),rgba(30,30,45,.95));border:1px solid var(--gold-d);border-radius:6px;color:var(--cream);font-size:15px;cursor:pointer;transition:all .25s ease;letter-spacing:1px;text-align:center;position:relative;overflow:hidden}
+.choice-btn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold);transform:scaleY(0);transition:transform .25s}
+.choice-btn:hover{background:linear-gradient(135deg,rgba(40,35,20,.95),rgba(50,45,25,.95));border-color:var(--gold-l);box-shadow:0 0 20px rgba(197,160,89,.25);transform:translateX(8px)}
+.choice-btn:hover::before{transform:scaleY(1)}
+#title-screen{position:absolute;inset:0;z-index:50;background:radial-gradient(ellipse at center,#151a25 0%,#050510 80%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;transition:opacity .6s ease}
+#title-screen.hidden{opacity:0;pointer-events:none}
+.title-deco{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;background:radial-gradient(circle at 25% 35%,rgba(90,138,90,.06) 0%,transparent 40%),radial-gradient(circle at 75% 65%,rgba(74,122,170,.06) 0%,transparent 40%),radial-gradient(circle at 50% 50%,rgba(212,160,64,.04) 0%,transparent 40%)}
+#title-main{font-size:44px;font-weight:bold;color:var(--gold-l);letter-spacing:6px;text-shadow:0 0 30px rgba(197,160,89,.4),0 2px 4px #000;text-align:center;line-height:1.3}
+#title-sub{font-size:18px;color:var(--dim);letter-spacing:6px;border-top:1px solid var(--gold-d);border-bottom:1px solid var(--gold-d);padding:8px 40px;margin-top:4px}
+.title-btns{display:flex;flex-direction:column;gap:14px;margin-top:10px}
+.title-btn{min-width:240px;padding:12px 40px;background:transparent;border:1px solid var(--gold-d);color:var(--cream);font-size:16px;cursor:pointer;transition:all .25s;letter-spacing:4px;text-align:center}
+.title-btn:hover{background:rgba(197,160,89,.1);border-color:var(--gold-l);color:var(--gold-l);box-shadow:0 0 15px rgba(197,160,89,.2)}
+.title-btn.primary{background:linear-gradient(135deg,rgba(197,160,89,.15),rgba(160,40,40,.1));border-color:var(--gold)}
+#name-input-screen{position:absolute;inset:0;z-index:48;background:rgba(5,5,10,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .4s}
+#name-input-screen.hidden{opacity:0;pointer-events:none}
+#name-input-screen h2{color:var(--gold-l);font-size:22px;letter-spacing:4px}
+#name-input-screen p{color:var(--dim);font-size:14px}
+#player-name-input{padding:12px 20px;font-size:18px;background:var(--bg-mid);border:1px solid var(--gold-d);border-radius:4px;color:var(--cream);text-align:center;letter-spacing:2px;outline:none;width:240px}
+#player-name-input:focus{border-color:var(--gold-l);box-shadow:0 0 10px rgba(197,160,89,.2)}
+#hud{position:absolute;top:16px;right:20px;z-index:12;display:flex;flex-direction:column;gap:6px;opacity:0;transition:opacity .3s}
+#hud.show{opacity:1}
+.hud-item{display:flex;align-items:center;gap:6px;background:rgba(10,10,18,.7);padding:3px 10px;border-radius:4px;border:1px solid var(--bg-light);font-size:11px}
+.hud-label{min-width:28px;letter-spacing:1px}
+.hud-bar{width:70px;height:5px;background:var(--bg-light);border-radius:3px;overflow:hidden}
+.hud-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.hud-fill.gui{background:linear-gradient(90deg,#3a6a3a,var(--gui))}
+.hud-fill.shui{background:linear-gradient(90deg,#3a5a7a,var(--shui))}
+.hud-fill.guo{background:linear-gradient(90deg,#8a6a20,var(--guo))}
+#affinity-popup{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:20;font-size:22px;font-weight:bold;opacity:0;transition:all .6s ease;pointer-events:none}
+#affinity-popup.show{opacity:1;transform:translate(-50%,-60%)}
+#top-bar{position:absolute;top:0;left:0;z-index:13;display:flex;gap:8px;padding:12px}
+.top-btn{width:32px;height:32px;background:rgba(10,10,18,.6);border:1px solid var(--bg-light);border-radius:4px;color:var(--dim);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.top-btn:hover{color:var(--gold-l);border-color:var(--gold-d)}
+#ending-screen{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;opacity:0;pointer-events:none;transition:opacity 1s ease}
+#ending-screen.show{opacity:1;pointer-events:auto}
+#ending-type{font-size:16px;color:var(--gold-l);letter-spacing:6px}
+#ending-title{font-size:32px;font-weight:bold;color:var(--cream);letter-spacing:4px;text-shadow:0 0 20px rgba(197,160,89,.3);text-align:center;max-width:700px;line-height:1.5}
+#ending-text{font-size:14px;color:var(--dim);max-width:600px;text-align:center;line-height:2;letter-spacing:1px}
+.ending-btns{display:flex;gap:16px;margin-top:20px}
+#fade-overlay{position:absolute;inset:0;z-index:35;background:#000;opacity:0;pointer-events:none;transition:opacity .6s ease}
+#fade-overlay.show{opacity:1}
+#scene-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;color:var(--gold-l);font-size:20px;letter-spacing:8px;opacity:0;transition:opacity .5s;pointer-events:none;text-align:center}
+#scene-label.show{opacity:1}
+#scene-label small{display:block;font-size:13px;color:var(--dim);letter-spacing:3px;margin-top:8px}
+@media(max-width:768px){
+  .char-sprite svg{width:220px}.char-sprite{bottom:150px}
+  #dialogue-box{padding:16px 20px 20px;min-height:150px}#dialogue-text{font-size:15px}
+  #title-main{font-size:32px}.choice-btn{min-width:300px;font-size:14px;padding:12px 20px}
+  #ending-title{font-size:24px}
+}
+.click-advance{position:absolute;bottom:8px;right:16px;font-size:12px;color:var(--dim);animation:pulse 1.5s ease-in-out infinite;z-index:11}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:.8}}
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="bg-layer"></div>
+  <div id="char-layer">
+    <div id="char-left" class="char-sprite left"></div>
+    <div id="char-center" class="char-sprite center"></div>
+    <div id="char-right" class="char-sprite right"></div>
+  </div>
+  <div id="hud">
+    <div class="hud-item"><span style="font-size:12px">🐢</span><span class="hud-label" style="color:#7ac87a">龟圣帝君</span><div class="hud-bar"><div class="hud-fill gui" id="bar-gui" style="width:0%"></div></div></div>
+    <div class="hud-item"><span style="font-size:12px">🌊</span><span class="hud-label" style="color:#7ac0e0">水师父</span><div class="hud-bar"><div class="hud-fill shui" id="bar-shui" style="width:0%"></div></div></div>
+    <div class="hud-item"><span style="font-size:12px">🫕</span><span class="hud-label" style="color:#e8c060">锅皇</span><div class="hud-bar"><div class="hud-fill guo" id="bar-guo" style="width:0%"></div></div></div>
+  </div>
+  <div id="top-bar">
+    <button class="top-btn" id="btn-save" title="存档">💾</button>
+    <button class="top-btn" id="btn-auto" title="自动">⚡</button>
+    <button class="top-btn" id="btn-skip" title="快进">⏩</button>
+    <button class="top-btn" id="btn-menu" title="菜单">☰</button>
+  </div>
+  <div id="affinity-popup"></div>
+  <div id="scene-label"></div>
+  <div id="dialogue-box">
+    <span id="speaker-name"></span>
+    <div id="dialogue-text"></div>
+    <div class="click-advance" id="click-hint">▼ 点击继续</div>
+  </div>
+  <div id="choices-layer"></div>
+  <div id="fade-overlay"></div>
+  <div id="ending-screen">
+    <div id="ending-type"></div>
+    <div id="ending-title"></div>
+    <div id="ending-text"></div>
+    <div class="ending-btns">
+      <button class="title-btn" id="btn-restart">回到标题</button>
+    </div>
+  </div>
+  <div id="title-screen">
+    <div class="title-deco"></div>
+    <div id="title-main">战棋研究所</div>
+    <div id="title-sub">骰 子 与 荣 耀</div>
+    <div class="title-btns">
+      <button class="title-btn primary" id="btn-start">开始游戏</button>
+      <button class="title-btn" id="btn-continue" style="display:none">继续游戏</button>
+      <button class="title-btn" id="btn-about">关于</button>
+    </div>
+    <div id="title-tag" style="margin-top:16px;font-size:13px;color:var(--dim);letter-spacing:3px;opacity:.6">点击屏幕推进剧情 · 选择影响你的战棋之路</div>
+  </div>
+  <div id="name-input-screen" class="hidden">
+    <h2>请输入你的名字</h2>
+    <p>你是战棋研究所的新人</p>
+    <input type="text" id="player-name-input" maxlength="6" placeholder="新人" value="新人">
+    <button class="title-btn primary" id="btn-confirm-name">确认</button>
+  </div>
+</div>
+<script>
+/* ===== PORTRAITS ===== */
+function portraitGui(expr){
+  const smile=expr==='smile';
+  const serious=expr==='serious';
+  const mouth = smile
+    ?'<path d="M146,244 Q160,254 174,244" stroke="#a05050" stroke-width="2.5" fill="none" stroke-linecap="round"/>'
+    :serious
+    ?'<path d="M148,250 L172,250" stroke="#a05050" stroke-width="2.5" fill="none" stroke-linecap="round"/>'
+    :'<path d="M150,248 Q160,250 170,248" stroke="#a05050" stroke-width="2" fill="none" stroke-linecap="round"/>';
+  const eyes = smile
+    ?'<path d="M125,196 Q135,189 145,196 Q135,200 125,196" fill="#2a3a2a"/><path d="M175,196 Q185,189 195,196 Q185,200 175,196" fill="#2a3a2a"/><circle cx="135" cy="195" r="3" fill="#4a8a4a"/><circle cx="185" cy="195" r="3" fill="#4a8a4a"/><circle cx="137" cy="193" r="1.5" fill="#fff"/><circle cx="187" cy="193" r="1.5" fill="#fff"/>'
+    :'<ellipse cx="135" cy="196" rx="9" ry="6" fill="#fff"/><ellipse cx="185" cy="196" rx="9" ry="6" fill="#fff"/><circle cx="135" cy="197" r="4.5" fill="#3a6a3a"/><circle cx="185" cy="197" r="4.5" fill="#3a6a3a"/><circle cx="137" cy="195" r="1.8" fill="#fff"/><circle cx="187" cy="195" r="1.8" fill="#fff"/>';
+  const brow = serious
+    ?'<path d="M118,172 L150,178" stroke="#1a1a2e" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M170,178 L202,172" stroke="#1a1a2e" stroke-width="3" fill="none" stroke-linecap="round"/>'
+    :'<path d="M120,174 Q135,169 150,174" stroke="#1a1a2e" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M170,174 Q185,169 200,174" stroke="#1a1a2e" stroke-width="3" fill="none" stroke-linecap="round"/>';
+  return `<svg viewBox="0 0 320 480" xmlns="http://www.w3.org/2000/svg">
+<defs><linearGradient id="gs" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8d0b8"/><stop offset="1" stop-color="#d4b898"/></linearGradient>
+<linearGradient id="gh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a2a1a"/><stop offset="1" stop-color="#2a3a2a"/></linearGradient>
+<linearGradient id="gc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a3a2a"/><stop offset="1" stop-color="#1a2a1a"/></linearGradient></defs>
+<!-- Coat -->
+<path d="M50,480 L50,375 Q50,330 100,312 Q135,300 160,298 Q185,300 220,312 Q270,330 270,375 L270,480 Z" fill="url(#gc)"/>
+<!-- Collar -->
+<path d="M100,312 Q135,302 160,300 Q185,302 220,312 L210,335 Q185,328 160,325 Q135,328 110,335 Z" fill="#1a2a1a"/>
+<!-- Red headphones around neck -->
+<g transform="translate(0,0)">
+<path d="M90,300 Q75,280 78,260 Q82,240 95,235" stroke="#c42828" stroke-width="6" fill="none" stroke-linecap="round"/>
+<path d="M230,300 Q245,280 242,260 Q238,240 225,235" stroke="#c42828" stroke-width="6" fill="none" stroke-linecap="round"/>
+<ellipse cx="78" cy="258" rx="10" ry="8" fill="#c42828"/>
+<ellipse cx="242" cy="258" rx="10" ry="8" fill="#c42828"/>
+<path d="M82,260 Q160,310 238,260" stroke="#c42828" stroke-width="4" fill="none"/>
+</g>
+<!-- Neck -->
+<path d="M140,268 L140,302 Q160,308 180,302 L180,268 Z" fill="url(#gs)"/>
+<!-- Hair back -->
+<path d="M90,200 Q88,108 160,90 Q232,108 230,200 L228,270 L210,255 Q205,210 160,200 Q115,210 110,255 L92,270 Z" fill="url(#gh)"/>
+<!-- Face -->
+<path d="M108,165 Q108,108 160,96 Q212,108 212,165 L212,220 Q212,262 160,267 Q108,262 108,220 Z" fill="url(#gs)"/>
+<!-- Ears -->
+<ellipse cx="106" cy="190" rx="7" ry="13" fill="url(#gs)"/>
+<ellipse cx="214" cy="190" rx="7" ry="13" fill="url(#gs)"/>
+<!-- Hair front -->
+<path d="M95,170 Q92,100 160,86 Q228,100 225,170 L220,148 Q210,122 188,118 Q180,138 168,125 Q160,142 148,125 Q140,142 128,125 Q108,130 100,148 Z" fill="url(#gh)"/>
+<path d="M100,145 Q105,120 120,115" stroke="#2a4a2a" stroke-width="2" fill="none" opacity=".6"/>
+<path d="M220,145 Q215,120 200,115" stroke="#2a4a2a" stroke-width="2" fill="none" opacity=".6"/>
+${brow}
+${eyes}
+<!-- Nose -->
+<path d="M158,212 Q155,224 159,228 Q163,224 162,228" stroke="#c4a070" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+${mouth}
+<!-- Collar pin - Sisters of Battle emblem -->
+<circle cx="160" cy="325" r="4" fill="#c5a059"/>
+<path d="M157,325 L163,325 M160,322 L160,328" stroke="#c5a059" stroke-width="1.5"/>
+<!-- Jaw shadow -->
+<path d="M120,240 Q160,270 200,240 L200,260 Q160,270 120,260 Z" fill="#cc9a78" opacity=".15"/>
+</svg>`;
+}
+
+function portraitShui(expr){
+  const happy=expr==='happy';
+  const serious=expr==='serious';
+  const mouth = happy
+    ?'<path d="M142,246 Q160,262 178,246 Q170,255 160,256 Q150,255 142,246" fill="#c44848" opacity=".5"/><path d="M142,246 Q160,258 178,246" stroke="#a05050" stroke-width="1.5" fill="none"/>'
+    :'<path d="M148,248 Q160,252 172,248" stroke="#a05050" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+  const eyes = happy
+    ?'<path d="M122,198 Q135,190 148,198" stroke="#3a4a5a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M172,198 Q185,190 198,198" stroke="#3a4a5a" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="135" cy="200" r="2.5" fill="#4a7aaa"/><circle cx="185" cy="200" r="2.5" fill="#4a7aaa"/>'
+    :'<ellipse cx="135" cy="198" rx="9" ry="7" fill="#fff"/><ellipse cx="185" cy="198" rx="9" ry="7" fill="#fff"/><circle cx="135" cy="199" r="5" fill="#4a7aaa"/><circle cx="185" cy="199" r="5" fill="#4a7aaa"/><circle cx="136" cy="197" r="2" fill="#fff"/><circle cx="186" cy="197" r="2" fill="#fff"/>';
+  return `<svg viewBox="0 0 320 480" xmlns="http://www.w3.org/2000/svg">
+<defs><linearGradient id="ss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0d8c0"/><stop offset="1" stop-color="#ddc0a8"/></linearGradient>
+<linearGradient id="sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a4a5a"/><stop offset="1" stop-color="#2a3a4a"/></linearGradient>
+<linearGradient id="sc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a6a8a"/><stop offset="1" stop-color="#2a4a6a"/></linearGradient></defs>
+<!-- Coat -->
+<path d="M50,480 L50,380 Q50,330 95,312 Q130,300 160,298 Q190,300 225,312 Q270,330 270,380 L270,480 Z" fill="url(#sc)"/>
+<!-- Collar -->
+<path d="M95,312 Q130,302 160,300 Q190,302 225,312 L215,335 Q185,328 160,325 Q135,328 110,335 Z" fill="#3a5a7a"/>
+<!-- Neck -->
+<path d="M142,268 L142,302 Q160,308 178,302 L178,268 Z" fill="url(#ss)"/>
+<!-- Ponytail -->
+<path d="M210,145 Q240,200 238,260 Q236,320 225,350 Q220,330 218,300 Q215,250 212,210 Z" fill="url(#sh)"/>
+<ellipse cx="214" cy="148" rx="6" ry="5" fill="#4a6a7a"/>
+<!-- Hair back -->
+<path d="M92,180 Q90,108 160,92 Q230,108 228,180 L226,245 L212,232 Q207,195 160,186 Q113,195 108,232 L95,245 Z" fill="url(#sh)"/>
+<!-- Face -->
+<path d="M108,160 Q108,105 160,96 Q212,105 212,160 L212,220 Q212,258 160,263 Q108,258 108,220 Z" fill="url(#ss)"/>
+<!-- Ears -->
+<ellipse cx="106" cy="188" rx="7" ry="13" fill="url(#ss)"/>
+<ellipse cx="214" cy="188" rx="7" ry="13" fill="url(#ss)"/>
+<!-- Hair front -->
+<path d="M94,165 Q92,96 160,88 Q228,96 226,165 L222,142 Q212,118 188,114 Q180,136 168,122 Q160,140 148,122 Q140,136 128,114 Q108,120 98,138 Z" fill="url(#sh)"/>
+<!-- Eyebrows -->
+<path d="M118,178 Q135,172 148,178" stroke="#3a4a5a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M172,178 Q185,172 202,178" stroke="#3a4a5a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+${eyes}
+<!-- Glasses -->
+<g opacity=".85">
+<rect x="112" y="184" width="36" height="24" rx="4" fill="rgba(200,220,255,.04)" stroke="#3a5a7a" stroke-width="1.5"/>
+<rect x="172" y="184" width="36" height="24" rx="4" fill="rgba(200,220,255,.04)" stroke="#3a5a7a" stroke-width="1.5"/>
+<line x1="148" y1="194" x2="172" y2="194" stroke="#3a5a7a" stroke-width="1.5"/>
+<path d="M112,188 L96,184" stroke="#3a5a7a" stroke-width="1.5" fill="none"/>
+<path d="M208,188 L224,184" stroke="#3a5a7a" stroke-width="1.5" fill="none"/>
+</g>
+<!-- Nose -->
+<path d="M158,210 Q155,222 159,226 Q163,222 162,226" stroke="#d4a878" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+${mouth}
+<!-- Tie -->
+<path d="M155,283 L160,320 L165,283 Z" fill="#3a6a8a"/>
+<path d="M153,283 L160,290 L167,283 Z" fill="#4a8aaa"/>
+</svg>`;
+}
+
+function portraitGuo(expr){
+  const smug=expr==='smug';
+  const happy=expr==='happy';
+  const mouth = smug
+    ?'<path d="M144,244 Q160,258 176,244" stroke="#a06040" stroke-width="2" fill="none" stroke-linecap="round"/>'
+    :happy
+    ?'<path d="M140,242 Q160,264 180,242 Q170,252 160,253 Q150,252 140,242" fill="#c46040" opacity=".5"/><path d="M140,242 Q160,260 180,242" stroke="#a06040" stroke-width="1.5" fill="none"/>'
+    :'<path d="M150,246 Q160,250 170,246" stroke="#a06040" stroke-width="2" fill="none" stroke-linecap="round"/>';
+  const eyes = smug
+    ?'<path d="M118,196 Q135,188 148,196" stroke="#3a3a2a" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M172,196 Q185,188 202,196" stroke="#3a3a2a" stroke-width="2.5" fill="none" stroke-linecap="round"/>'
+    :'<ellipse cx="135" cy="197" rx="9" ry="7" fill="#fff"/><ellipse cx="185" cy="197" rx="9" ry="7" fill="#fff"/><circle cx="135" cy="198" r="5" fill="#4a3a2a"/><circle cx="185" cy="198" r="5" fill="#4a3a2a"/><circle cx="136" cy="196" r="2" fill="#fff"/><circle cx="186" cy="196" r="2" fill="#fff"/>';
+  return `<svg viewBox="0 0 320 480" xmlns="http://www.w3.org/2000/svg">
+<defs><linearGradient id="gos" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f8e0c8"/><stop offset="1" stop-color="#e8c8a8"/></linearGradient>
+<linearGradient id="goh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a3a2a"/><stop offset="1" stop-color="#2a1a0a"/></linearGradient>
+<linearGradient id="goc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2a3a"/><stop offset="1" stop-color="#1a1a2a"/></linearGradient></defs>
+<!-- Coat -->
+<path d="M50,480 L50,370 Q50,320 100,305 Q135,294 160,292 Q185,294 220,305 Q270,320 270,370 L270,480 Z" fill="url(#goc)"/>
+<!-- Fur collar -->
+<path d="M95,305 Q135,290 160,288 Q185,290 225,305 Q215,320 Q185,312 160,310 Q135,312 105,320 Z" fill="#6a5a4a"/>
+<!-- Neck -->
+<path d="M140,268 L140,296 Q160,302 178,296 L178,268 Z" fill="url(#gos)"/>
+<!-- Hair back -->
+<path d="M88,195 Q85,105 160,88 Q235,105 232,195 L230,265 L212,250 Q207,208 160,198 Q113,208 108,250 L90,265 Z" fill="url(#goh)"/>
+<!-- Face -->
+<path d="M108,162 Q108,105 160,94 Q212,105 212,162 L212,218 Q212,256 160,262 Q108,256 108,218 Z" fill="url(#gos)"/>
+<!-- Ears -->
+<ellipse cx="106" cy="188" rx="7" ry="13" fill="url(#gos)"/>
+<ellipse cx="214" cy="188" rx="7" ry="13" fill="url(#gos)"/>
+<!-- Hair front -->
+<path d="M92,167 Q90,98 160,85 Q230,98 228,167 L224,145 Q214,120 190,116 Q182,136 170,124 Q160,140 148,124 Q138,136 126,116 Q106,122 96,140 Z" fill="url(#goh)"/>
+<path d="M96,142 Q102,118 118,114" stroke="#5a4a3a" stroke-width="2" fill="none" opacity=".6"/>
+<path d="M224,142 Q218,118 202,114" stroke="#5a4a3a" stroke-width="2" fill="none" opacity=".6"/>
+<!-- Eyebrows -->
+<path d="M120,174 Q135,168 148,174" stroke="#3a2a1a" stroke-width="3" fill="none" stroke-linecap="round"/>
+<path d="M172,174 Q185,168 200,174" stroke="#3a2a1a" stroke-width="3" fill="none" stroke-linecap="round"/>
+${eyes}
+<!-- Nose -->
+<path d="M158,208 Q155,220 159,224 Q163,220 162,224" stroke="#d4a878" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+${mouth}
+<!-- Golden chain -->
+<path d="M130,300 Q145,320 160,310 Q175,320 190,300" stroke="#c5a059" stroke-width="2.5" fill="none"/>
+<!-- Expensive watch -->
+<circle cx="225" cy="310" r="5" fill="#c5a059"/>
+<circle cx="225" cy="310" r="3" fill="#e8c878"/>
+<!-- Jaw shadow -->
+<path d="M120,238 Q160,265 200,238 L200,258 Q160,265 120,258 Z" fill="#cc9a78" opacity=".12"/>
+</svg>`;
+}
+
+/* ===== STATE ===== */
+const State = {scene:'title',player:'新人',gui:0,shui:0,guo:0,route:null,typing:false,currentText:'',textIndex:0,typeTimer:null,autoMode:false,skipMode:false};
+const $ = id => document.getElementById(id);
+
+/* ===== SCENES ===== */
+const Scenes = {
+/* PROLOGUE */
+p1:{bg:'exterior',label:'序章',labelSub:'初临战棋研究所',
+  text:'午后的阳光透过行道树的缝隙，洒在一扇深色的木门上。\n门边挂着一块精致的铜牌——\n「战棋研究所」\n下面还有一行小字："Warhammer · Blood Bowl · 一切桌面战棋"\n你推开木门，一阵清脆的风铃声响起。'},
+p2:{bg:'interior',
+  text:'研究所的内部比外面看起来要大得多。\n左手边是一整面墙的展示柜，里面陈列着上百个精心涂装的微缩模型——\n星际战士、修女、兽人、精灵……在射灯下闪闪发光。\n右手边是几铺对战桌，桌面上的微缩城市废墟栩栩如生。\n空气中弥漫着颜料、模型胶水和咖啡混合的气味——\n对于一个战棋爱好者来说，这就是天堂的味道。'},
+p3:{bg:'interior',
+  text:'你正四顾欣赏墙上的模型，一个沉稳的声音从柜台后传来。\n"来了？新人？"\n你转过头——\n一个男人从柜台后站起来。'},
+p4:{char:'gui',expr:'smile',speaker:'gui',
+  text:'他身穿深色外套，脖子上挂着一副红色的耳机——不是戴在耳朵上，而是随意地搭在颈间，像一件从不离身的装饰品。\n"我是这家店的店主。大家都叫我龟。"\n他的声音温和，带着一种让人安心的沉稳。\n"修女玩家，偶尔也玩玩别的。欢迎来到战棋研究所。"'},
+p5:{speaker:'narration',
+  text:'他说话的同时，你注意到他胸前的徽章——是一枚精致的修女会标志。\n据说他是整个圈子里修女涂装和战术的顶尖高手，却从不以此自傲。\n这也是为什么大家都仰慕他——\n强者从不炫耀自己的强大。'},
+p6:{char:'gui',expr:'smile',speaker:'gui',
+  text:'"今天正好有人在打教学局，你要不要先看看？"\n他侧了侧身，指向对战区。\n"那个戴眼镜的——我们都叫他水师父。他最喜欢带新人了。"\n"不管是40k还是血碗，找他约教学局准没错。"'},
+p7:{bg:'table',char:'shui',expr:'happy',speaker:'shui',
+  text:'"哟！新人！"\n水师父抬起头，手里的量尺还架在两个模型之间。\n"来得正好！我这局都快打完了——等下教你玩！"\n"你想学40k还是血碗？还是都想学？"\n他笑起来的样子像个见到新玩具的孩子。'},
+p8:{speaker:'narration',
+  text:'水师父的桌上摆着两支精简后的新手向军队。\n他正在给一个完全没摸过战棋的新人讲解基础规则——\n耐心得像小学老师在教加减法。\n"你看啊，移动阶段是这样……"'},
+p9:{bg:'interior',
+  text:'忽然，门口传来一阵玻璃门被推开的声响。\n一个穿着讲究的身影走了进来。'},
+p10:{char:'guo',expr:'smug',speaker:'guo',
+  text:'"哟，都在呢？"\n他手里提着两个巨大的模型箱，腕上的金表在灯光下闪了一下。\n他径直走到展示柜前，打开箱子——\n里面是一整套全涂装极限战士战团，每一台都闪着金属光泽。\n"新到的货。刚刚从海外拍的，全涂装，限量版。"\n他若无其事地说道，仿佛在说今天天气不错。'},
+p11:{char:'gui',expr:'serious',speaker:'gui',char2:'guo',expr2:'smug',charPos2:'right',
+  text:'"锅皇，你又……"\n"又什么？投资爱好嘛！"锅皇理直气壮地打断了他。\n"再说了，这不也是支持战棋生态吗？"\n龟圣帝君叹了口气，但眼里带着一丝无奈的笑意。'},
+p12:{speaker:'narration',
+  text:'你后来才知道——这位就是鼎鼎大名的"锅皇"。\n他最大的爱好就是展示财力：限量版模型、全涂装战团、绝版规则书……\n圈子里流传着一句话："锅皇的柜子，比博物馆还值钱。"'},
+p13:{char:'shui',expr:'happy',speaker:'shui',charPos:'left',char2:'guo',expr2:'smug',charPos2:'right',
+  text:'"锅皇！来得巧！这位是新人——你正好给人展示一下你那台战犬级泰坦！"\n"那当然！"锅皇立刻来了精神。"我放在二楼储藏柜了——专门定制的展示箱，带LED灯带和恒温恒湿系统。"\n水师父冲你眨了眨眼——他知道锅皇最喜欢的就是展示藏品。'},
+p14:{speaker:'narration',
+  text:'你一边听着锅皇滔滔不绝地介绍他的收藏——\n从战犬级泰坦到限量版荷鲁斯叛乱系列，每一件都价值不菲——\n你一边打量着这个神奇的地方。\n\n墙上挂着一幅字："骰子不会说谎，但命运会。"\n落款是——龟圣帝君。\n\n你忽然觉得，自己好像找到了一个不得了的归宿。'},
+p15:{speaker:'narration',
+  text:'第一天就这样过去了。\n临走前，龟圣帝君叫住了你。\n"下周有新人教学日。你想学什么？还是说——"\n他顿了顿，嘴角带着一丝笑意。\n"想直接来一局？"\n\n你走出研究所时，天已经快黑了。\n门牌上的铜字在路灯下泛着温暖的光。\n你已经开始期待下一次推门而入了。'},
+/* ROUTE SELECT */
+c1:{bg:'interior',label:'第一章',labelSub:'选择你的道路',
+  text:'一周后，你再次推开战棋研究所的深色木门。\n今天店里人不多。龟圣帝君在柜台后整理库存清单，\n水师父在对战区翻看规则书，锅皇在一楼展示柜前摆弄他的新藏品。\n你决定今天——'},
+c1_choice:{choices:[
+  {text:'去找龟圣帝君，向他请教修女战术',next:'g1',route:'gui',hint:'修女之道，圣洁之火'},
+  {text:'去找水师父，约一局教学对战',next:'s1',route:'shui',hint:'实战出真知'},
+  {text:'去找锅皇，看看他的收藏品',next:'k1',route:'guo',hint:'财力展示时间'}
+]},
+/* ===== GUI ROUTE ===== */
+g1:{bg:'interior',label:'龟圣帝君线',labelSub:'圣洁之火',
+  text:'你走向柜台。龟圣帝君正低头在纸上写写画画——是一张修女小队的战术布阵图。\n他看到你过来，微笑着合上了本子。'},
+g2:{char:'gui',expr:'smile',speaker:'gui',
+  text:'"想学修女？"\n他像是看穿了你的心思。\n"来，坐这边。"\n他带你到对战区，从展示柜里轻轻取出一台修女战斗修女小队。\n"修女会是信仰与火焰的化身。她们不需要星际战士那样的基因改造——\n她们的武器是纯粹的信仰。"'},
+g3:{speaker:'narration',
+  text:'龟圣帝君讲解修女的时候，整个人都变了。\n他平时温和沉稳，一说起战术就眼神发亮——\n但和那些炫耀技术的人不同，他的热情是内敛而深沉的。\n像一团藏在灰烬下的火。'},
+g4:{char:'gui',expr:'normal',speaker:'gui',
+  text:'"修女的核心战术思路是——近身。"\n他用指尖在桌上画了一条线。\n"以炽热的信仰作为护盾，以火焰作为惩戒。\n她们不擅长打消耗战——她们是突击的力量。"'},
+g5:{char:'gui',expr:'smile',speaker:'gui',
+  text:'"要不要来一局？我用修女，你用……嗯——"\n他扫了一眼柜子。\n"我用修女，你也用修女。这样你能最快理解她们的打法。"\n"我让你先手。"'},
+g5_choice:{choices:[
+  {text:'"好！请多指教！"（兴奋地坐下）',next:'g6',affinity:{gui:2}},
+  {text:'"我水平太差了，怕浪费你的时间……"',next:'g6b',affinity:{gui:1}},
+  {text:'"能不能先教我一个简单的combo？"',next:'g6c',affinity:{gui:1}}
+]},
+g6:{char:'gui',expr:'smile',speaker:'gui',next:'g7',
+  text:'"有勇气是第一步。"\n他微微点头，将修女模型推到你面前。\n"不用紧张——这只是一局教学。"\n"赢了算你的，输了算我的。"'},
+g6b:{char:'gui',expr:'normal',speaker:'gui',next:'g7',
+  text:'"时间就是用来花的。"\n他语气平静，没有一丝不耐烦。\n"每个高手都是从新手过来的。我当初被人打哭过很多次。"\n"——虽然都是内部局。"'},
+g6c:{char:'gui',expr:'smile',speaker:'gui',next:'g7',
+  text:'"当然。"\n他拿起一个修女模型，指着她手上的火焰喷射器。\n"修女最强的combo——推进、喷火、冲锋。"\n"三步走。简单，致命，圣洁。"'},
+g7:{speaker:'narration',
+  text:'那一局你输得很惨。\n但奇怪的是——你一点都不沮丧。\n因为龟圣帝君的每一个操作都在教你。\n他的推进像是舞蹈，他的火力覆盖精准到毫米。\n你仿佛不是在跟对手打，而是在看一场表演。'},
+g8:{char:'gui',expr:'smile',speaker:'gui',
+  text:'"你发现了吗——你输的原因不是操作差。"\n他一边收模型一边说。\n"是你的修女们还不够『相信』自己能赢。"\n"在战锤里，信念是一种战术。"'},
+g9:{char:'gui',expr:'normal',speaker:'gui',
+  text:'"你什么时候能让你手上的修女『相信』她们会胜利——"\n"你就入门了。"\n他把那台修女战斗修女小队放回展示柜。\n"下次来，我们再打一局。"'},
+g9_choice:{choices:[
+  {text:'"我一定会让她们相信的。下次见！"',next:'g10',affinity:{gui:2}},
+  {text:'"能不能先借我规则书回去看看？"',next:'g10b',affinity:{gui:1}},
+  {text:'"修女好难……我是不是该换个阵营？"',next:'g10c',affinity:{gui:-1}}
+]},
+g10:{char:'gui',expr:'smile',speaker:'gui',next:'g11',
+  text:'"好。我等你。"\n他的笑容里带着一丝期待。\n"对了——这个送你。"\n他从抽屉里取出一枚修女会的小徽章。\n"新手护身符。"'},
+g10b:{char:'gui',expr:'normal',speaker:'gui',next:'g11',
+  text:'"当然可以。"\n他从柜台下取出一本规则书。\n"这本你带回去看——上面有我的笔记。"\n翻开扉页，上面满满都是手写的注释。'},
+g10c:{char:'gui',expr:'normal',speaker:'gui',next:'g11',
+  text:'"如果你觉得修女不适合你，当然可以换。"\n他的语气依然温和，但你隐约感到一丝惋惜。\n"不过——初学者选修女，其实是很好的起点。"'},
+g11:{speaker:'narration',
+  text:'那天你离开研究所时，天色已晚。\n柜台的灯还亮着——龟圣帝君又低头在画他的战术图了。\n红色耳机在灯光下泛着温润的光。\n你握紧口袋里的修女徽章。\n下次来——一定要让他刮目相看。'},
+g12:{bg:'night',text:'又一周过去了。\n你再次走进研究所——这一次，你觉得自己不一样了。'},
+g13:{char:'gui',expr:'smile',speaker:'gui',
+  text:'"你来了。"\n他合上手里的书，微微颔首。\n"规则书看完了？"\n"那来吧——今天我不让你先手了。"\n他站起身，走向对战区。\n"让我看看你这周练得怎么样。"'},
+g13_choice:{choices:[
+  {text:'"好！这次我一定撑到第三回合！"',next:'g14',affinity:{gui:2}},
+  {text:'"我做了笔记！有几个战术问题想问你。"',next:'g14b',affinity:{gui:1}},
+  {text:'"这周太忙了，还没看完……"',next:'g14c',affinity:{gui:-1}}
+]},
+g14:{speaker:'narration',
+  text:'那一局你撑到了第四回合。\n龟圣帝君的嘴角始终带着一丝若有若无的笑意。\n最后一步——你的修女指挥官和她的修女对峙。\n你犹豫了。\n"你已经赢了。"他说。\n你抬头看他。\n"你看——你的修女站到了和我对等的位置上。"\n"从战术上说，你赢了。"'},
+g15:{char:'gui',expr:'smile',speaker:'gui',
+  text:'"我开这家研究所，不是为了教人赢棋。"\n他把红色耳机从脖子上取下来，轻轻放在桌上。\n"是为了让人找到——属于自己的战术。"\n"而你——找到了。"\n他向你伸出手。\n"欢迎正式加入战棋研究所。"\n→ 前往结局判定'},
+g14b:{speaker:'narration',
+  text:'龟圣帝君看了你的笔记，认真地回答了每一个问题。\n你们讨论了一个下午——从修女战术到阵营背景故事。\n他说话时偶尔会推一下耳机，像在思考。\n你发现，被他认真对待的感觉，真好。\n→ 前往结局判定'},
+g14c:{speaker:'narration',
+  text:'"没关系。战棋不是功课。"\n他重新坐下来。\n"等你准备好了，随时可以来找我。"\n他依然温和——但你从他的语气里读到了一丝淡淡的失望。\n→ 前往结局判定'},
+
+/* ===== SHUI ROUTE ===== */
+s1:{bg:'table',label:'水师父线',labelSub:'教学相长',
+  text:'你走向对战区。水师父正和另一个玩家打血碗——\n场上狼人正抱着球冲向达阵区，场面一度十分混乱。\n"好球！！"\n水师父一拍桌子，骰子跳了起来。'},
+s2:{char:'shui',expr:'happy',speaker:'shui',
+  text:'"哟！你来了！"\n他结束那局后，连比分都没看就朝你走来。\n"等我三分钟！我收一下模型——然后咱俩开一局！"\n"你想打40k还是血碗？"\n"算了你不用回答——两个都打一遍吧！"'},
+s3:{speaker:'narration',
+  text:'水师父的热情让人无法拒绝。\n三分钟后，桌上摆好了两支新手友好军队。\n"40k和血碗其实很多底层逻辑是通的——"\n"移动、进攻、防守、骰运。学会了40k，血碗就是橄榄球版的40k。"'},
+s4:{speaker:'narration',
+  text:'水师父的教学方式和龟圣帝君截然不同。\n龟圣帝君是诗——安静而深邃。\n水师父是摇滚——热烈而直接。\n他会为了你掷出一个六点而欢呼，也会因为你战术失误而拍着桌子大笑。\n"不不不——你这个位置放错了！你看啊——"'},
+s5:{char:'shui',expr:'happy',speaker:'shui',
+  text:'"但是没关系！犯错才是学习最快的方式！"\n他重新摆好你的模型。\n"来，重新来——这次你换一个思路。试试侧翼包抄。"'},
+s5_choice:{choices:[
+  {text:'"好！我试试！"（干劲满满）',next:'s6',affinity:{shui:2}},
+  {text:'"你教得真好……比我之前自己看规则书强多了。"',next:'s6b',affinity:{shui:1}},
+  {text:'"我有点累了，想歇会儿……"',next:'s6c',affinity:{shui:-1}}
+]},
+s6:{char:'shui',expr:'happy',speaker:'shui',next:'s7',
+  text:'"对对对！就是这个气势！"\n水师父重重拍了拍你的肩膀。\n"战棋最重要的不是技术——是想赢的心！"\n"技术可以练——心气不能丢！"'},
+s6b:{char:'shui',expr:'happy',speaker:'shui',next:'s7',
+  text:'"哈哈，你这么一说我都不好意思了。"\n他挠了挠头，眼镜片后面的眼睛笑成了两条缝。\n"其实我就是喜欢带新人——看到你们从不会到会，比我自己赢棋还开心。"'},
+s6c:{char:'shui',expr:'normal',speaker:'shui',next:'s7',
+  text:'"行！那休息一会儿！"\n他立刻放下了骰子。\n"我去给你倒杯水——对了你喝什么？茶还是咖啡？"\n"我们店里的咖啡可是龟圣帝君亲自挑的豆子。"'},
+s7:{speaker:'narration',
+  text:'你们打了三局。\n第一局你被血虐。\n第二局你勉强撑到了第五回合。\n第三局——你在水师父放了一片海的情况下，赢了一次。'},
+s8:{char:'shui',expr:'happy',speaker:'shui',
+  text:'"漂亮！漂亮！"\n他比你还激动，差点把桌上的地形撞倒。\n"看到没——你是有天赋的！"\n"第一次来能打成这样，我当年可是连跪了两个月才赢第一局！"'},
+s9:{char:'shui',expr:'normal',speaker:'shui',
+  text:'"不过说真的——"\n他难得地正经起来。\n"你知道为什么我喜欢带新人吗？"\n他靠在椅背上，看着天花板。\n"因为每个人第一次玩战棋的时候，眼睛里都有光。"\n"那种『原来还可以这样』的眼神——比任何对战都精彩。"'},
+s10:{char:'shui',expr:'happy',speaker:'shui',
+  text:'"而我希望——你眼里的光，能一直亮下去。"\n他举起可乐罐——他喝的是可乐，不是茶。\n"敬骰子！敬战棋！"\n你笑着跟他碰了碰罐。'},
+s11:{speaker:'narration',
+  text:'不知不觉到了傍晚。\n其他客人都走了，水师父还在跟你复盘今天的对战。\n他身上有一种让人放松的魔力——\n跟他在一起，输赢都不重要。\n重要的是——你享受了战棋的快乐。'},
+s12:{bg:'night',char:'shui',expr:'happy',speaker:'shui',
+  text:'"下周还来吗？"\n他在门口问你。\n"我研究了一套新的血碗战术——星际战队式进攻阵型！"\n"你可以当我的陪练！"\n他说"陪练"的时候眼睛亮晶晶的——\n其实是想教你新战术，却不好意思直说。'},
+s12_choice:{choices:[
+  {text:'"来！我已经开始期待了！"',next:'s13',affinity:{shui:2}},
+  {text:'"如果周末不加班的话就来。"',next:'s13b',affinity:{shui:1}},
+  {text:'"下次我想试试别的阵营……"',next:'s13c',affinity:{shui:-1}}
+]},
+s13:{speaker:'narration',
+  text:'水师父咧嘴笑了。\n"那就说定了！"\n他转身走回店里，背影消失在暖黄色的灯光中。\n你站在门口，心想——\n能遇到这么好的师父，是你战棋之路上最大的幸运。\n→ 前往结局判定'},
+s13b:{speaker:'narration',
+  text:'"行！有空就来！"\n他挥了挥手。\n"我反正每天都在——除了周二，周二我去进货。"\n你点了点头。\n水师父这样的人——他会在原地一直等你。\n→ 前往结局判定'},
+s13c:{speaker:'narration',
+  text:'"可以啊！想试哪个阵营？我帮你准备军队！"\n他的热情依然不减。\n但你知道——你婉拒的不仅仅是一场约局。\n→ 前往结局判定'},
+
+/* ===== GUO ROUTE ===== */
+k1:{bg:'interior',label:'锅皇线',labelSub:'财力展示',
+  text:'你走向展示柜。锅皇正小心翼翼地擦拭一个玻璃展示盒——里面是一台巨大的战犬级泰坦。\n他抬头看到你，立刻露出了"终于有人来欣赏我的宝贝了"的表情。'},
+k2:{char:'guo',expr:'smug',speaker:'guo',
+  text:'"新人！来得正好！"\n他拍了拍身边的展示柜。\n"来来来，我带你看看我的收藏。"\n"你知道这台泰坦我花了多少钱拍到的吗？"\n他说了一个让你倒吸一口凉气的数字。'},
+k3:{speaker:'narration',
+  text:'锅皇的收藏品陈列在旋转楼梯下方的玻璃柜中。\n每一层都打着精准的射灯，每一台模型都配着烫金铭牌——\n"战犬级泰坦 · 限量涂装版 · No.087/500"\n"圣血天使战团长 · 赛事纪念版"\n"荷鲁斯之乱 · 全系列角色套装（未拆封）"'},
+k4:{char:'guo',expr:'smug',speaker:'guo',
+  text:'"你知道收藏的秘诀是什么吗？"\n他神秘地压低声音。\n"不是有钱——是眼光。"\n"要在它还没涨起来的时候入手。"\n"比如这台——我入手的时候才这个数——"\n他又说了一个数字，这次你没有倒吸凉气——\n因为你已经完全不知道他在说什么了。'},
+k4_choice:{choices:[
+  {text:'"哇……这些模型真的好精致！"（真诚赞美）',next:'k5',affinity:{guo:2}},
+  {text:'"这个投资回报率大概是多少？"（假装懂行）',next:'k5b',affinity:{guo:1}},
+  {text:'"……这一柜子得多少钱啊。"',next:'k5c',affinity:{guo:-1}}
+]},
+k5:{char:'guo',expr:'smug',speaker:'guo',next:'k6',
+  text:'"对吧！我就知道你有品位！"\n锅皇眼睛一亮，像是找到了知音。\n"你看这个涂装——阴影过渡、高光层次——这可是一流涂装师的杰作！"'},
+k5b:{char:'guo',expr:'smug',speaker:'guo',next:'k6',
+  text:'"哦？你也懂投资？"\n他推了推并不存在的眼镜。\n"那我跟你讲讲——战棋模型的二级市场走势……"\n接下来半小时，你后悔了自己问出的这个问题。'},
+k5c:{char:'guo',expr:'normal',speaker:'guo',next:'k6',
+  text:'"呃……不多不多。"\n他难得地有点不好意思。\n"也就是一辆车的钱……好吧，几辆车。"\n"但是——爱好嘛！人活着不就是为了爱好吗！"'},
+k6:{speaker:'narration',
+  text:'锅皇带着你参观了整个收藏柜——从一楼到二楼。\n他的热情是真挚的。虽然他总是在"炫"，但他炫的方式有一种天真的快乐——\n像一个孩子跟朋友展示自己收集的奥特曼卡片。'},
+k7:{char:'guo',expr:'happy',speaker:'guo',
+  text:'"你知道我最喜欢的是什么吗？"\n他走到最里面的一个柜子前。\n里面陈列着一台——\n看起来极其粗糙的、涂装歪歪扭扭的星际战士兰德袭击者。\n"这是我十年前涂的第一台模型。"'},
+k8:{char:'guo',expr:'normal',speaker:'guo',
+  text:'"那时候我什么都不懂——拿毛笔涂的。你看这个边缘——"\n他指着那台坦克的履带。\n"颜料都流到外面了。"\n"但是我一直留着它。"\n"因为它提醒我——每个人都是从新手开始的。"'},
+k8_choice:{choices:[
+  {text:'"这台模型的回忆比那些限量版更珍贵吧？"',next:'k9',affinity:{guo:2}},
+  {text:'"你进步好大！跟现在比简直判若两人！"',next:'k9b',affinity:{guo:1}},
+  {text:'"确实涂得挺丑的……"',next:'k9c',affinity:{guo:-1}}
+]},
+k9:{char:'guo',expr:'smile',speaker:'guo',next:'k10',
+  text:'锅皇愣了一下，然后笑了——\n是那种发自内心的、不带任何炫耀的笑容。\n"你说得对。"\n"这台破坦克——比我一整柜限量版都有意义。"'},
+k9b:{char:'guo',expr:'happy',speaker:'guo',next:'k10',
+  text:'"哈哈哈——那当然！我可是烧了不少钱来进步的！"\n他看起来被夸得很开心。\n"你要是想学涂装，我可以教你几招——"'},
+k9c:{char:'guo',expr:'normal',speaker:'guo',next:'k10',
+  text:'"喂！……好吧确实是丑。"\n他故作生气地瞪了你一眼，但嘴角带着笑。\n"但是——这是我自己的第一台。丑也是我的。"'},
+k10:{char:'guo',expr:'smile',speaker:'guo',
+  text:'"其实我天天炫这些收藏——"\n他环顾了一圈自己的展示柜。\n"不是为了让别人羡慕我。"\n"是想让人知道——战棋这个爱好，值得投入。"\n"不管是时间、金钱——还是热爱。"'},
+k11:{speaker:'narration',
+  text:'你看着锅皇认真擦拭那台歪歪扭扭的兰德袭击者。\n忽然觉得——他其实不像表面看起来那么浮夸。\n他只是在用他自己的方式，守护着对战棋的热爱。'},
+k12:{bg:'night',text:'临走前，锅皇叫住了你。'},
+k13:{char:'guo',expr:'happy',speaker:'guo',
+  text:'"对了——这个送你。"\n他从柜子里拿出一个小盒。\n里面是一套崭新的涂装笔。\n"初学者用这个牌子最好——我当年也是用这个起步的。"\n"等你的第一台模型涂好了——拿给我看。"'},
+k13_choice:{choices:[
+  {text:'"谢谢你！我一定认真涂！"',next:'k14',affinity:{guo:2}},
+  {text:'"这太贵重了……我不能收。"',next:'k14b',affinity:{guo:1}},
+  {text:'"好……我试试看。"（没什么信心）',next:'k14c',affinity:{guo:-1}}
+]},
+k14:{speaker:'narration',
+  text:'你握着那套画笔，觉得沉甸甸的。\n锅皇拍了拍你的肩膀。\n"记住——每一台你亲手涂的模型，都是你战棋之路的勋章。"\n"不管你涂得多丑——那都是你的。"\n他朝你眨了眨眼睛。\n\n走出研究所时，你低头看了看那套画笔。\n——你已经开始构思自己的第一台模型了。\n→ 前往结局判定'},
+k14b:{speaker:'narration',
+  text:'"拿着吧。"\n他硬把盒子塞到你手里。\n"就当是——欢迎加入战棋研究所的见面礼。"\n"等你有自己的作品了，再还不迟。"\n你收下了盒子。\n——锅皇给的见面礼，谁敢不收呢。\n→ 前往结局判定'},
+k14c:{speaker:'narration',
+  text:'"别怕！涂坏了也没关系！"\n他用力拍了拍你的背。\n"你看我那台兰德袭击者——涂成那样我都没扔！"\n"只要是你亲手涂的，就值得珍惜！"\n你点了点头。\n→ 前往结局判定'},
+
+/* ===== ENDINGS ===== */
+ending_gui_good:{bg:'ending',label:'结局',labelSub:'龟圣帝君线·Good Ending',type:'GOOD ENDING',title:'圣焰传承',
+  text:'几个月后，你的修女小队已经小有名气。\n在研究所举办的内部赛中，你打进了四强。\n龟圣帝君在半决赛中输给了你——准确的说是他放了一片海，但你确实变强了。\n\n赛后他站在展示柜前，把那副红色耳机取下来，挂在了你的脖子上。\n"你不再需要新手护身符了。"他说。\n"现在——你是战棋研究所的正式成员了。"\n那副耳机还残留着他的体温。\n\n在战棋的世界里，最珍贵的传承不是战术——\n而是有人愿意把火炬递到你手上。\n而你，接住了。'},
+ending_gui_normal:{bg:'ending',label:'结局',labelSub:'龟圣帝君线·Normal Ending',type:'NORMAL ENDING',title:'稳步前行',
+  text:'你成了研究所的常客。\n每次来都会找龟圣帝君打一局修女内战。\n你的胜率从0%慢慢升到了偶尔能赢一次。\n他依然是那副温和从容的样子，但你知道——\n他在为你感到高兴。\n\n"继续加油。"他推了推耳机。\n"你这周比上周强多了。"\n——对于龟圣帝君来说，这已经是很高的评价了。'},
+ending_shui_good:{bg:'ending',label:'结局',labelSub:'水师父线·Good Ending',type:'GOOD ENDING',title:'薪火相传',
+  text:'水师父说你是他带过最有天赋的新人之一。\n你不仅学会了40k的基础战术，还在血碗里打出了自己的风格。\n有一天，你正在教另一个新人怎么设置移动阶段——\n水师父在旁边看着，忽然笑了。\n\n"你知道你刚才的样子像谁吗？"\n"像我。"\n他走过来，拍了拍那个新人的肩膀。\n"这位是我的徒弟——现在是你的师兄了。"\n\n那一刻你才明白——\n水师父教给你的不只是战棋。\n是「学会了，就要教给下一个人」的传承。'},
+ending_shui_normal:{bg:'ending',label:'结局',labelSub:'水师父线·Normal Ending',type:'NORMAL ENDING',title:'快乐玩家',
+  text:'你成了水师父的固定棋友。\n每周三和周六，你们都会打上几局——\n40k、血碗、甚至偶尔尝试一些冷门规则。\n输赢不重要，重要的是每次打完都会一起去便利店买可乐。\n\n"下周我研究一个新战术！"他每次告别时都会这么说。\n你笑着点头。\n——战棋的快乐，就是这么简单。'},
+ending_guo_good:{bg:'ending',label:'结局',labelSub:'锅皇线·Good Ending',type:'GOOD ENDING',title:'收藏之心',
+  text:'你完成了自己的第一台涂装模型——\n一台涂装歪歪扭扭的星际战士兰德袭击者。\n和锅皇那台并排放在展示柜的最底层。\n\n锅皇看着你那台模型，沉默了很久。\n然后他把自己的那台拿了出来，放在了你旁边。\n"以后——这两台就是镇店之宝了。"\n他难得没提价格。\n\n你的模型旁边多了一张烫金铭牌——\n「新人之光 · 战棋研究所的新成员作品」\n下面还有一行小字：\n"每一个大师，都从一个蹩脚的第一步开始。"'},
+ending_guo_normal:{bg:'ending',label:'结局',labelSub:'锅皇线·Normal Ending',type:'NORMAL ENDING',title:'展示柜邻居',
+  text:'你的第一台模型被锅皇放进了他的展示柜——\n虽然是最底层最角落的位置。\n"等你涂好了下一台，我给你挪到中间去。"\n他敲了敲玻璃柜。\n\n你知道他只是嘴上这么说。\n但你决定——下一台一定要涂好一点。\n因为锅皇的展示柜，是你入坑的起点。'},
+ending_bad:{bg:'ending',label:'结局',labelSub:'Bad Ending',type:'BAD ENDING',title:'入门即止',
+  text:'你渐渐不再去战棋研究所了。\n不是因为不喜欢战棋——只是生活太忙了。\n加班、社交、各种乱七八糟的事。\n\n偶尔路过那扇深色木门，能透过落地窗看到里面暖黄色的灯光。\n展示柜里的模型还在那里。\n龟圣帝君大概还在柜台后画战术图。\n水师父大概还在带新人打教学局。\n锅皇大概又在擦他的泰坦了。\n\n但你没有推开门。\n\n有些爱好，错过了最好的时机——\n就再也捡不起来了。'}
+};
+
+/* ===== CHARS ===== */
+const Chars = {gui:{name:'龟圣帝君',port:portraitGui},shui:{name:'水师父',port:portraitShui},guo:{name:'锅皇',port:portraitGuo},narration:{name:'',cls:'narration'}};
+
+/* ===== ENGINE ===== */
+let currentSceneId=null;
+function setBg(name){const l=$('bg-layer');l.innerHTML='';const d=document.createElement('div');d.className='bg-scene bg-'+name+' active';l.appendChild(d);}
+function setChar(p,c,e){const el=$('char-'+p);if(!c){el.classList.remove('active');setTimeout(()=>{if(!el.classList.contains('active'))el.innerHTML='';},500);return;}el.innerHTML=Chars[c].port(e||'normal');requestAnimationFrame(()=>el.classList.add('active'));}
+function setSpeaker(c){const el=$('speaker-name');if(c==='narration'||!c){el.textContent='';el.className='narration';return;}el.textContent=Chars[c].name;el.className=c;}
+function showSceneLabel(l,s){if(!l)return;const el=$('scene-label');el.innerHTML=l+(s?'<small>'+s+'</small>':'');el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200);}
+function typewriter(t,cb){State.currentText=t;State.textIndex=0;State.typing=true;$('dialogue-text').innerHTML='';clearInterval(State.typeTimer);let i=0;State.typeTimer=setInterval(()=>{if(i<t.length){const ch=t[i];if(ch==='\n')$('dialogue-text').innerHTML+='<br>';else $('dialogue-text').innerHTML+=ch;i++;}else{clearInterval(State.typeTimer);State.typing=false;$('dialogue-text').innerHTML+='<span class="cursor-blink">▼</span>';if(cb)cb();}},28);}
+function skipTypewriter(){if(State.typing){clearInterval(State.typeTimer);State.typing=false;$('dialogue-text').innerHTML=State.currentText.replace(/\n/g,'<br>')+'<span class="cursor-blink">▼</span>';return true;}return false;}
+function updateHUD(){$('bar-gui').style.width=Math.min(100,State.gui*10)+'%';$('bar-shui').style.width=Math.min(100,State.shui*10)+'%';$('bar-guo').style.width=Math.min(100,State.guo*10)+'%';}
+function showAffinityPopup(c,v){const el=$('affinity-popup');const e={'gui':'🐢','shui':'🌊','guo':'🫕'};const cl={'gui':'#7ac87a','shui':'#7ac0e0','guo':'#e8c060'};el.innerHTML=e[c]+' '+(v>0?'+':'')+v;el.style.color=v>0?cl[c]:'#666';el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+function renderScene(id){
+  const sc=Scenes[id];if(!sc)return;currentSceneId=id;State.scene=id;
+  if(sc.choices){showChoices(sc.choices);return;}
+  if(sc.type){showEnding(sc);return;}
+  if(sc.bg)setBg(sc.bg);
+  if(sc.label||sc.labelSub)showSceneLabel(sc.label,sc.labelSub);
+  setChar('left',null);setChar('center',null);setChar('right',null);
+  if(sc.char){const p=sc.charPos||'center';setChar(p,sc.char,sc.expr);}
+  if(sc.char2){setChar(sc.charPos2||'right',sc.char2,sc.expr2);}
+  setSpeaker(sc.speaker);$('dialogue-box').classList.add('show');
+  setTimeout(()=>{let t=(sc.text||'').replace(/{name}/g,State.player);typewriter(t,()=>{if(State.autoMode)setTimeout(advance,2000);});},300);
+}
+function showChoices(choices){$('dialogue-box').classList.remove('show');const l=$('choices-layer');l.innerHTML='';choices.forEach((c,i)=>{const b=document.createElement('div');b.className='choice-btn';b.innerHTML=c.text+(c.hint?'<br><span style="font-size:12px;color:var(--dim);margin-top:4px;display:block">'+c.hint+'</span>':'');b.onclick=(e)=>{e.stopPropagation();makeChoice(c);};l.appendChild(b);});setTimeout(()=>l.classList.add('show'),200);}
+function makeChoice(c){$('choices-layer').classList.remove('show');setTimeout(()=>$('choices-layer').innerHTML='',300);if(c.affinity){for(const[k,v]of Object.entries(c.affinity)){State[k]+=v;showAffinityPopup(k,v);}updateHUD();}if(c.route)State.route=c.route;setTimeout(()=>renderScene(c.next),400);}
+function getNextSceneId(id){const s=Scenes[id];if(!s)return null;if(s.choices)return null;if(s.type)return null;if(s.next)return s.next;const k=Object.keys(Scenes);const i=k.indexOf(id);if(i<k.length-1)return k[i+1];return null;}
+function advance(){
+  if($('choices-layer').classList.contains('show'))return;
+  if($('title-screen').classList.contains('hidden')===false)return;
+  if($('name-input-screen').classList.contains('hidden')===false)return;
+  if($('ending-screen').classList.contains('show'))return;
+  if($('fade-overlay').classList.contains('show'))return;
+  if(skipTypewriter())return;
+  const ends={g15:'gui',g14b:'gui',g14c:'gui',s13:'shui',s13b:'shui',s13c:'shui',k14:'guo',k14b:'guo',k14c:'guo'};
+  if(ends[currentSceneId]){checkEnding(ends[currentSceneId]);return;}
+  const n=getNextSceneId(currentSceneId);
+  if(n){$('fade-overlay').classList.add('show');setTimeout(()=>{renderScene(n);$('fade-overlay').classList.remove('show');},400);}
+}
+function checkEnding(r){
+  $('fade-overlay').classList.add('show');
+  setTimeout(()=>{const e={gui:{g:'ending_gui_good',n:'ending_gui_normal',b:'ending_bad'},shui:{g:'ending_shui_good',n:'ending_shui_normal',b:'ending_bad'},guo:{g:'ending_guo_good',n:'ending_guo_normal',b:'ending_bad'}};const m={gui:State.gui,shui:State.shui,guo:State.guo};const v=m[r]||0;const o=e[r];let end=v>=5?o.g:v>=2?o.n:o.b;renderScene(end);$('fade-overlay').classList.remove('show');},600);
+}
+function showEnding(s){$('dialogue-box').classList.remove('show');setChar('left',null);setChar('center',null);setChar('right',null);if(s.bg)setBg(s.bg);if(s.label)showSceneLabel(s.label,s.labelSub);$('hud').classList.remove('show');$('ending-type').textContent=s.type;$('ending-title').textContent=s.title;$('ending-text').innerHTML=s.text.replace(/\n/g,'<br>');setTimeout(()=>{$('ending-screen').classList.add('show');},1500);}
+function saveGame(){localStorage.setItem('wargame_save',JSON.stringify({scene:currentSceneId,player:State.player,gui:State.gui,shui:State.shui,guo:State.guo,route:State.route}));}
+function loadGame(){const r=localStorage.getItem('wargame_save');return r?JSON.parse(r):null;}
+function startNewGame(){State.gui=0;State.shui=0;State.guo=0;State.route=null;$('hud').classList.add('show');updateHUD();$('title-screen').classList.add('hidden');renderScene('p1');}
+function continueGame(){const d=loadGame();if(!d)return;State.player=d.player||'新人';State.gui=d.gui||0;State.shui=d.shui||0;State.guo=d.guo||0;State.route=d.route||null;$('hud').classList.add('show');updateHUD();$('title-screen').classList.add('hidden');$('name-input-screen').classList.add('hidden');renderScene(d.scene);}
+$('game').addEventListener('click',(e)=>{if(e.target.closest('button')||e.target.closest('.choice-btn'))return;if($('choices-layer').classList.contains('show'))return;if($('ending-screen').classList.contains('show'))return;advance();});
+$('btn-start').addEventListener('click',()=>{$('title-screen').classList.add('hidden');$('name-input-screen').classList.remove('hidden');$('player-name-input').focus();});
+$('btn-confirm-name').addEventListener('click',()=>{const n=$('player-name-input').value.trim()||'新人';State.player=n;$('name-input-screen').classList.add('hidden');startNewGame();});
+$('player-name-input').addEventListener('keydown',(e)=>{if(e.key==='Enter')$('btn-confirm-name').click();});
+$('btn-continue').addEventListener('click',continueGame);
+$('btn-about').addEventListener('click',()=>{alert('《战棋研究所 - 骰子与荣耀》\n\n一款关于战棋、传承与热爱的文字冒险游戏。\n\n你作为新加入战棋研究所的玩家，\n在与三位核心人物的互动中做出选择，\n每一个决定都将影响你的战棋之路。\n\n可攻略角色：\n🐢 龟圣帝君 — 店长，修女顶尖高手，沉稳友善\n🌊 水师父 — 老玩家，40k/血碗教学达人\n🫕 锅皇 — 收藏家，财力展示专业户\n\n点击推进剧情 · 选择决定结局');});
+$('btn-restart').addEventListener('click',()=>{$('ending-screen').classList.remove('show');$('title-screen').classList.remove('hidden');$('dialogue-box').classList.remove('show');setChar('left',null);setChar('center',null);setChar('right',null);State.gui=0;State.shui=0;State.guo=0;State.route=null;updateHUD();$('hud').classList.remove('show');});
+$('btn-save').addEventListener('click',(e)=>{e.stopPropagation();if(currentSceneId&&Scenes[currentSceneId]&&!Scenes[currentSceneId].type&&!Scenes[currentSceneId].choices){saveGame();const b=$('btn-save');const o=b.textContent;b.textContent='✓';setTimeout(()=>b.textContent=o,1000);}});
+$('btn-auto').addEventListener('click',(e)=>{e.stopPropagation();State.autoMode=!State.autoMode;const b=$('btn-auto');b.style.color=State.autoMode?'var(--gold-l)':'';b.style.borderColor=State.autoMode?'var(--gold-d)':'';});
+$('btn-skip').addEventListener('click',(e)=>{e.stopPropagation();State.skipMode=!State.skipMode;const b=$('btn-skip');b.style.color=State.skipMode?'var(--gold-l)':'';b.style.borderColor=State.skipMode?'var(--gold-d)':'';if(State.skipMode){skipTypewriter();const si=setInterval(()=>{if(!State.skipMode){clearInterval(si);return;}if($('choices-layer').classList.contains('show')||$('ending-screen').classList.contains('show')){clearInterval(si);State.skipMode=false;b.style.color='';b.style.borderColor='';return;}skipTypewriter();advance();},100);}});
+$('btn-menu').addEventListener('click',(e)=>{e.stopPropagation();if(confirm('返回标题画面？（进度会自动保存）')){saveGame();$('ending-screen').classList.remove('show');$('dialogue-box').classList.remove('show');$('choices-layer').classList.remove('show');$('choices-layer').innerHTML='';setChar('left',null);setChar('center',null);setChar('right',null);$('hud').classList.remove('show');$('title-screen').classList.remove('hidden');setBg('exterior');if(loadGame())$('btn-continue').style.display='';}});
+const oR=renderScene;renderScene=function(id){oR(id);if(id&&Scenes[id]&&!Scenes[id].type&&!Scenes[id].choices){setTimeout(()=>{try{saveGame();}catch(e){}},500);}};
+setBg('exterior');if(loadGame()){$('btn-continue').style.display='';}
+</script>
+</body>
+</html>
