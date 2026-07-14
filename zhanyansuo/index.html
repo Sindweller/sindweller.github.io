@@ -144,7 +144,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:"Mi
   <div id="title-screen">
     <div class="title-deco"></div>
     <div id="title-main">战棋研究所</div>
-    <div id="title-sub">骰 子 与 荣 耀</div>
+    <div id="title-sub">未 卜 之 音</div>
     <div class="title-btns">
       <button class="title-btn primary" id="btn-start">开始游戏</button>
       <button class="title-btn" id="btn-continue" style="display:none">继续游戏</button>
@@ -594,7 +594,7 @@ $('btn-start').addEventListener('click',()=>{$('title-screen').classList.add('hi
 $('btn-confirm-name').addEventListener('click',()=>{const n=$('player-name-input').value.trim()||'新人';State.player=n;$('name-input-screen').classList.add('hidden');startNewGame();});
 $('player-name-input').addEventListener('keydown',(e)=>{if(e.key==='Enter')$('btn-confirm-name').click();});
 $('btn-continue').addEventListener('click',continueGame);
-$('btn-about').addEventListener('click',()=>{alert('《战棋研究所 - 骰子与荣耀》\n\n一款关于战棋、传承与热爱的文字冒险游戏。\n\n你作为新加入战棋研究所的玩家，\n在与三位核心人物的互动中做出选择，\n每一个决定都将影响你的战棋之路。\n\n可攻略角色：\n🐢 龟圣帝君 — 店长，修女顶尖高手，沉稳友善\n🌊 水师父 — 老玩家，40k/血碗教学达人\n🫕 锅皇 — 收藏家，财力展示专业户\n\n点击推进剧情 · 选择决定结局');});
+$('btn-about').addEventListener('click',()=>{alert('《战棋研究所 - 未卜之音》\n\n一款关于战棋、传承与热爱的文字冒险游戏。\n\n你作为新加入战棋研究所的玩家，\n在与三位核心人物的互动中做出选择，\n每一个决定都将影响你的战棋之路。\n\n可攻略角色：\n🐢 龟圣帝君 — 店长，修女顶尖高手，沉稳友善\n🌊 水师父 — 老玩家，40k/血碗教学达人\n🫕 锅皇 — 收藏家，财力展示专业户\n\n点击推进剧情 · 选择决定结局');});
 $('btn-restart').addEventListener('click',()=>{$('ending-screen').classList.remove('show');$('title-screen').classList.remove('hidden');$('dialogue-box').classList.remove('show');setChar('left',null);setChar('center',null);setChar('right',null);State.gui=0;State.shui=0;State.guo=0;State.route=null;updateHUD();$('hud').classList.remove('show');});
 $('btn-save').addEventListener('click',(e)=>{e.stopPropagation();if(currentSceneId&&Scenes[currentSceneId]&&!Scenes[currentSceneId].type&&!Scenes[currentSceneId].choices){saveGame();const b=$('btn-save');const o=b.textContent;b.textContent='✓';setTimeout(()=>b.textContent=o,1000);}});
 $('btn-auto').addEventListener('click',(e)=>{e.stopPropagation();State.autoMode=!State.autoMode;const b=$('btn-auto');b.style.color=State.autoMode?'var(--gold-l)':'';b.style.borderColor=State.autoMode?'var(--gold-d)':'';});
