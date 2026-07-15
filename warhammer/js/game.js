@@ -319,9 +319,8 @@ function advance(){
   }
 
   // Random encounter outro: return to original scene
-  if(curSc && curSc.encounterOutro && State.randomReturnTo){
-    const returnTo = State.randomReturnTo;
-    State.randomReturnTo = null;
+  if(curSc && curSc.encounterOutro){
+    const returnTo = takeEncounterReturn();
     $('fade-overlay').classList.add('show');
     setTimeout(()=>{
       renderScene(returnTo);
@@ -340,6 +339,14 @@ function advance(){
       $('fade-overlay').classList.remove('show');
     }, 400);
   }
+}
+
+// 小剧场是主线的子程序，返回地址只在内存里。丢失时兜底回路线选择——绝不能交给 getNextSceneId
+// 顺延，因为 key 顺序下游是不可达的 z*/hz* 孤儿线，过滤后的第一个落点是 l1（李工线）。
+function takeEncounterReturn(){
+  const returnTo = State.randomReturnTo || 'c1_choice';
+  State.randomReturnTo = null;
+  return returnTo;
 }
 
 // Grab a random encounter scene during prologue (called at choice points)
@@ -435,14 +442,16 @@ function showEnding(sc){
 ======================================== */
 function saveGame(){
   const data = {
-    scene: currentSceneId,
+    // 身处小剧场时存主线返回点：返回地址不持久化，存了小剧场场景读档后就回不去主线
+    scene: State.randomReturnTo || currentSceneId,
     player: State.player,
     haidi: State.haidi,
     duorou: State.duorou,
     ligong: State.ligong,
     shalaxi: State.shalaxi,
     ss: State.ss,
-    route: State.route
+    route: State.route,
+    randomEncountered: State.randomEncountered
   };
   localStorage.setItem('warhammer_save', JSON.stringify(data));
 }
@@ -478,11 +487,14 @@ function continueGame(){
   State.shalaxi = data.shalaxi || 0;
   State.ss = data.ss || 0;
   State.route = data.route || null;
+  State.randomEncountered = data.randomEncountered || {zhou:false, huyou:false, tan:false, yao:false, alex:false};
+  State.randomReturnTo = null;
   $('hud').classList.add('show');
   updateHUD();
   $('title-screen').classList.add('hidden');
   $('name-input-screen').classList.add('hidden');
-  renderScene(data.scene);
+  // 旧版存档可能停在小剧场内，返回地址已随页面关闭丢失
+  renderScene(data.scene && data.scene.startsWith('re_') ? 'c1_choice' : data.scene);
 }
 
 /* ========================================
@@ -594,6 +606,13 @@ function skipToNextChoice(){
     // Stop at ending display
     if(sc.type) break;
 
+    // 小剧场 outro 只能回主线，不能按 key 顺序顺延
+    if(sc.encounterOutro){
+      curId = takeEncounterReturn();
+      steps++;
+      continue;
+    }
+
     // Get next scene
     let nextId = null;
     if(sc.next){
@@ -641,6 +660,12 @@ function skipToNextBranch(){
     if(sc.type) break;
     if(sc.choices && sc.choices.some(c => c.route)){
       break; // found a route-branching choice
+    }
+    // 小剧场 outro 只能回主线，不能按 key 顺序顺延
+    if(sc.encounterOutro){
+      curId = takeEncounterReturn();
+      steps++;
+      continue;
     }
     let nextId = null;
     if(sc.next){
