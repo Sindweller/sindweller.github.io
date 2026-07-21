@@ -20,6 +20,10 @@
 
   <!-- HUD -->
   <div id="hud">
+    <!-- Time & Energy -->
+    <div id="hud-time" style="font-size:11px;color:var(--dim);letter-spacing:1px;text-align:right;padding:2px 8px;background:rgba(10,10,18,.7);border-radius:4px;border:1px solid var(--bg-light)">第1周 第1天 | ❤️❤️❤️❤️❤️</div>
+    <div id="hud-cp" style="font-size:11px;color:var(--gold-l);letter-spacing:1px;text-align:right;padding:2px 8px;background:rgba(10,10,18,.7);border-radius:4px;border:1px solid var(--gold-d)">🎲 CP(计谋): 0</div>
+    <!-- Affinity -->
     <div class="hud-item">
       <span class="hud-heart">💙</span>
       <span class="hud-label" style="color:#8ab4d8">海底</span>
@@ -45,6 +49,24 @@
       <span class="hud-label" style="color:#80b8a0">SS</span>
       <div class="hud-bar"><div class="hud-fill ss" id="bar-ss" style="width:0%"></div></div>
     </div>
+    <div style="border-top:1px solid var(--bg-light);margin:4px 0 2px"></div>
+    <!-- Attributes -->
+    <div class="hud-item">
+      <span class="hud-label" style="color:var(--gold);min-width:28px">计谋</span>
+      <div class="hud-bar"><div class="hud-fill intellect" id="bar-intellect" style="width:0%"></div></div>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label" style="color:var(--gold);min-width:28px">审美</span>
+      <div class="hud-bar"><div class="hud-fill aesthetic" id="bar-aesthetic" style="width:0%"></div></div>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label" style="color:var(--gold);min-width:28px">运气</span>
+      <div class="hud-bar"><div class="hud-fill luck" id="bar-luck" style="width:0%"></div></div>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label" style="color:var(--gold);min-width:28px">涂装</span>
+      <div class="hud-bar"><div class="hud-fill paintSkill" id="bar-paintSkill" style="width:0%"></div></div>
+    </div>
   </div>
 
   <!-- Top bar -->
@@ -53,6 +75,7 @@
     <button class="top-btn" id="btn-auto" title="自动">⚡</button>
     <button class="top-btn" id="btn-skip" title="跳到下个选项">⏭</button>
     <button class="top-btn skip-btn" id="btn-skip-branch" title="快进到分支">⚡ 分支</button>
+    <button class="top-btn" id="btn-worship" title="拜骰神" style="width:auto;padding:0 12px;font-size:13px;letter-spacing:1px">🎲 拜骰神</button>
     <button class="top-btn" id="btn-shop" title="模型商城" style="width:auto;padding:0 12px;font-size:13px;letter-spacing:1px">🛒 购物</button>
     <button class="top-btn" id="btn-menu" title="菜单">☰</button>
   </div>
@@ -182,6 +205,31 @@
       <div id="ligong-image-close">✕</div>
       <img id="ligong-image-img" src="./李工夺冠.png" alt="李工WTC夺冠" style="max-width:320px;max-height:400px;border-radius:8px;object-fit:contain;display:block;margin:0 auto">
       <div id="ligong-image-caption">WTC总决赛现场——暗黑天使军团列阵，李工高举奖杯</div>
+    </div>
+  </div>
+
+  <!-- QTE placeholder modal -->
+  <div id="qte-modal">
+    <div id="qte-panel">
+      <div id="qte-title">🎲 QTE 挑战</div>
+      <div id="qte-body">⚔️</div>
+      <div id="qte-text">此刻应有 QTE</div>
+      <div id="qte-hint">（小游戏开发中……）</div>
+      <button class="title-btn primary" id="qte-close-btn" style="margin-top:16px;font-size:14px;padding:10px 32px">跳 过</button>
+    </div>
+  </div>
+
+  <!-- Worship (Dice God) modal -->
+  <div id="worship-modal">
+    <div id="worship-panel">
+      <div id="worship-idol">🗿</div>
+      <div id="worship-title">供奉骰神</div>
+      <div id="worship-desc">俱乐部角落里那个丑丑的小雕像。<br>据说每日朝拜，可获一点计谋（CP），用于重投任何骰子结果。</div>
+      <div id="worship-status">今日尚未朝拜</div>
+      <div id="worship-btns">
+        <button class="title-btn primary" id="worship-do-btn">💫 朝拜</button>
+        <button class="title-btn" id="worship-close-btn">关闭</button>
+      </div>
     </div>
   </div>
 
