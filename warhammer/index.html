@@ -52,10 +52,6 @@
     <div style="border-top:1px solid var(--bg-light);margin:4px 0 2px"></div>
     <!-- Attributes -->
     <div class="hud-item">
-      <span class="hud-label" style="color:var(--gold);min-width:28px">计谋</span>
-      <div class="hud-bar"><div class="hud-fill intellect" id="bar-intellect" style="width:0%"></div></div>
-    </div>
-    <div class="hud-item">
       <span class="hud-label" style="color:var(--gold);min-width:28px">审美</span>
       <div class="hud-bar"><div class="hud-fill aesthetic" id="bar-aesthetic" style="width:0%"></div></div>
     </div>
@@ -208,14 +204,26 @@
     </div>
   </div>
 
-  <!-- QTE placeholder modal -->
+  <!-- QTE modal: 涂装读条 -->
   <div id="qte-modal">
     <div id="qte-panel">
-      <div id="qte-title">🎲 QTE 挑战</div>
-      <div id="qte-body">⚔️</div>
-      <div id="qte-text">此刻应有 QTE</div>
-      <div id="qte-hint">（小游戏开发中……）</div>
-      <button class="title-btn primary" id="qte-close-btn" style="margin-top:16px;font-size:14px;padding:10px 32px">跳 过</button>
+      <div id="qte-title">🎨 涂 装</div>
+      <div id="paint-stage-label">第 1 / 3 · 剪水口</div>
+      <div id="paint-desc">让指针停在金色区域内</div>
+      <div id="paint-bar">
+        <div id="paint-target"></div>
+        <div id="paint-indicator"></div>
+      </div>
+      <div id="paint-results">
+        <div class="paint-result-dot" id="paint-r1"></div>
+        <div class="paint-result-dot" id="paint-r2"></div>
+        <div class="paint-result-dot" id="paint-r3"></div>
+      </div>
+      <div id="paint-hitmsg">&nbsp;</div>
+      <div id="paint-btns">
+        <button class="title-btn primary" id="paint-action-btn">点击停下</button>
+        <button class="title-btn" id="qte-close-btn">跳过（默认桌涂）</button>
+      </div>
     </div>
   </div>
 
@@ -229,6 +237,46 @@
       <div id="worship-btns">
         <button class="title-btn primary" id="worship-do-btn">💫 朝拜</button>
         <button class="title-btn" id="worship-close-btn">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Store Race (瑞士轮 QTE) modal -->
+  <div id="race-modal">
+    <div id="race-panel">
+      <div id="race-header">
+        <span id="race-title">🎲 达米拉多店赛 · 瑞士轮</span>
+        <span id="race-round">第 1 / 3 轮</span>
+      </div>
+      <div id="race-opponent">对手：<span id="race-opp-name">李工</span></div>
+      <div id="race-board">
+        <div class="race-side race-mine">
+          <div class="race-side-label">你</div>
+          <div class="race-dice">
+            <div class="race-die" id="race-die-my1">?</div>
+            <div class="race-die" id="race-die-my2">?</div>
+          </div>
+          <div class="race-bonus" id="race-my-bonus">加成 +0</div>
+          <div class="race-sum">合计：<span id="race-my-sum">-</span></div>
+        </div>
+        <div class="race-vs">VS</div>
+        <div class="race-side race-opp">
+          <div class="race-side-label">对手</div>
+          <div class="race-dice">
+            <div class="race-die" id="race-die-op1">?</div>
+            <div class="race-die" id="race-die-op2">?</div>
+          </div>
+          <div class="race-bonus" id="race-opp-bonus">&nbsp;</div>
+          <div class="race-sum">合计：<span id="race-opp-sum">-</span></div>
+        </div>
+      </div>
+      <div id="race-diff">分差：<span id="race-diff-val">0</span> / 累计：<span id="race-total-val">0</span></div>
+      <div id="race-log"></div>
+      <div id="race-btns">
+        <button class="title-btn primary" id="race-roll-btn">🎲 掷骰</button>
+        <button class="title-btn" id="race-reroll-btn" disabled>♻️ CP 重投（消耗 1）</button>
+        <button class="title-btn" id="race-next-btn" style="display:none">下一轮 ▶</button>
+        <button class="title-btn primary" id="race-finish-btn" style="display:none">查看结果</button>
       </div>
     </div>
   </div>

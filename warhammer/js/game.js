@@ -55,7 +55,28 @@ const State = {
   // Special flags
   morningLuckBonus:false,  // P0-1 迷路了 buff
   randomEncountered:{zhou:false, huyou:false, tan:false, yao:false, alex:false},
-  randomReturnTo:null
+  randomReturnTo:null,
+
+  // === Chapter 2 additions ===
+  chapterTwoStarted:false,
+  money:0,                   // 资金
+  addiction:0,               // 锤瘾
+  dayOfWeek:1,               // 1=周一 … 7=周日
+  chargeCount:0,             // 累计"冲锋结果12"次数 → 恐虐
+  moraleCount:0,             // 累计"士气结果2"次数 → 大角鼠
+  heresyCount:0,             // 累计"离经叛道发言"次数 → 大角鼠
+  dailyReroll:0,             // 骰神朝拜后获得，每日可重投
+  npcMetToday:{haidi:false, duorou:false, ligong:false, shalaxi:false},
+  ateToday:false,
+  battleToday:false,
+  eventToday:false,
+  storeRaceEnrolled:false,
+  storeRaceRank:null,
+  storeRaceScore:0,
+  storeRacePlayed:false,
+  slaneeshBlessed:false,     // 色孽赐福
+  tzeentchBlessed:false,     // 巧高奇赐福（预留）
+  cutsceneShown:{khorne:false, hornedrat:false, slaneesh:false, tzeentch:false}
 };
 
 /* ========================================
@@ -170,9 +191,24 @@ function renderScene(id){
     }
   }
 
+  // Apply scene-level state effects (Chapter 2)
+  applySceneEffects(sc);
+
+  // onEnter callback: run before any text/choices render
+  if(sc.onEnter && typeof window[sc.onEnter] === 'function'){
+    try{ window[sc.onEnter](); }catch(e){ console.error(e); }
+  }
+
+  // Resolve dynamic text / choices for this render
+  const scText = sc.textFn ? sc.textFn(State) : (sc.text || '');
+  let scChoices = sc.choicesFn ? sc.choicesFn(State) : sc.choices;
+  if(Array.isArray(scChoices)){
+    scChoices = scChoices.filter(c => !c.enabledIf || c.enabledIf(State));
+  }
+
   // Random encounter check at choice points
-  // 触发条件：第一章已完成（在 c1_choice 或之后的路线选择点）+ 未选路线 + 不在小剧场返回途中
-  if(sc.choices && State.chapterOneDone && State.route === null && !State.randomReturnTo){
+  // 触发条件：第一章已完成 + 未选路线 + 不在小剧场返回途中 + 非第二章日常循环内
+  if(scChoices && State.chapterOneDone && State.route === null && !State.randomReturnTo && !id.startsWith('p2_')){
     const reScene = grabRandomEncounter();
     if(reScene){
       State.randomReturnTo = id;
@@ -187,8 +223,9 @@ function renderScene(id){
 
   // Choices: 如果场景同时有 text，先显示 text，等用户点击后再显示 choices（在 advance() 里处理）
   // 如果场景只有 choices 没有 text，则直接显示选项
-  if(sc.choices && !sc.text){
-    showChoices(sc.choices);
+  if(scChoices && !scText){
+    __pendingChoices = scChoices;
+    showChoices(scChoices);
     return;
   }
 
@@ -233,24 +270,80 @@ function renderScene(id){
     }, 800);
   }
 
-  // QTE placeholder popup
+  // QTE (涂装读条)
   if(sc.qte){
     setTimeout(()=>{
-      $('qte-modal').classList.add('show');
+      openPaintQTE();
     }, 800);
   }
 
   // Name input prompt (P1-2) — do NOT auto-popup; wait for user click in advance()
 
+  // Cache resolved choices for advance()
+  __pendingChoices = scChoices || null;
+
   // Typewriter
   setTimeout(()=>{
-    let txt = (sc.text || '').replace(/{name}/g, State.player);
+    let txt = (scText || '').replace(/{name}/g, State.player);
+    // Support state placeholders like {money}, {week}, {day}, {addiction}, {dayName}
+    txt = txt.replace(/\{money\}/g, State.money)
+             .replace(/\{week\}/g, State.week)
+             .replace(/\{day\}/g, State.day)
+             .replace(/\{addiction\}/g, State.addiction)
+             .replace(/\{dayName\}/g, weekdayName(State.dayOfWeek))
+             .replace(/\{energy\}/g, State.energy)
+             .replace(/\{maxEnergy\}/g, State.maxEnergy);
     typewriter(txt, ()=>{
       if(State.autoMode){
         setTimeout(advance, 1500);
       }
     });
   }, 300);
+}
+
+/* Chapter 2: scene effects & helpers ------------------------------- */
+let __pendingChoices = null;
+
+function applySceneEffects(sc){
+  if(typeof sc.money === 'number' && sc.money !== 0){
+    State.money += sc.money;
+    showMoneyPopup(sc.money);
+    updateHUD();
+  }
+  if(typeof sc.addiction === 'number' && sc.addiction !== 0){
+    State.addiction += sc.addiction;
+    showAttributePopup('addiction', sc.addiction);
+  }
+  if(typeof sc.energyDelta === 'number' && sc.energyDelta !== 0){
+    State.energy = Math.max(0, Math.min(State.maxEnergy, State.energy + sc.energyDelta));
+    showAttributePopup('energy', sc.energyDelta);
+    updateHUD();
+  }
+  if(sc.affinity){
+    for(const [k,v] of Object.entries(sc.affinity)){
+      State[k] += v; showAffinityPopup(k, v);
+    }
+    updateHUD();
+  }
+  if(sc.attributes){
+    for(const [k,v] of Object.entries(sc.attributes)){
+      State[k] += v; showAttributePopup(k, v);
+    }
+    updateHUD();
+  }
+}
+
+function weekdayName(d){
+  return ['','周一','周二','周三','周四','周五','周六','周日'][d] || '';
+}
+
+function showMoneyPopup(val){
+  const el = $('affinity-popup');
+  const sign = val>0?'+':'';
+  el.innerHTML = '💰 资金 ' + sign + val;
+  el.style.color = val>0 ? '#e0c078' : '#c88';
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 1200);
 }
 
 function showChoices(choices){
@@ -316,6 +409,33 @@ function makeChoice(choice){
     updateHUD();
   }
 
+  // Chapter 2: choice-level money/addiction/energy/counters
+  if(typeof choice.money === 'number' && choice.money !== 0){
+    State.money += choice.money; showMoneyPopup(choice.money); updateHUD();
+  }
+  if(typeof choice.addiction === 'number' && choice.addiction !== 0){
+    State.addiction += choice.addiction; showAttributePopup('addiction', choice.addiction);
+  }
+  if(typeof choice.energyDelta === 'number' && choice.energyDelta !== 0){
+    State.energy = Math.max(0, Math.min(State.maxEnergy, State.energy + choice.energyDelta));
+    showAttributePopup('energy', choice.energyDelta);
+    updateHUD();
+  }
+  if(choice.mark){ // mark daily-once flags like npcMetToday.haidi
+    for(const [k,v] of Object.entries(choice.mark)){
+      if(k.indexOf('.')>=0){
+        const [a,b]=k.split('.'); if(State[a]) State[a][b]=v;
+      } else {
+        State[k]=v;
+      }
+    }
+  }
+  if(choice.counter){ // increment story counters (chargeCount / moraleCount / heresyCount)
+    for(const [k,v] of Object.entries(choice.counter)){
+      State[k] = (State[k]||0) + v;
+    }
+  }
+
   // Set model color
   if(choice.modelColor){
     State.modelColor = choice.modelColor;
@@ -327,6 +447,12 @@ function makeChoice(choice){
     State.gamePhase = 'route';
   }
 
+  // Action dispatch (openWorship / openShop / endDay / storeRace / signup)
+  if(choice.action){
+    handleAction(choice.action, choice);
+    return;
+  }
+
   // Random encounter return
   if(choice.autoReturn && State.randomReturnTo){
     const returnTo = State.randomReturnTo;
@@ -335,15 +461,305 @@ function makeChoice(choice){
     return;
   }
 
-  // Go to next scene
-  if(choice.next){
-    setTimeout(()=>renderScene(choice.next), 400);
+  // Compute dynamic next
+  let nextId = choice.next;
+  if(!nextId && choice.nextFn){ nextId = choice.nextFn(State); }
+  if(nextId){
+    setTimeout(()=>renderScene(nextId), 400);
   }
+}
+
+/* Chapter 2: choice actions ------------------------------- */
+function handleAction(action, choice){
+  const nextId = choice.next || (choice.nextFn ? choice.nextFn(State) : null);
+  switch(action){
+    case 'openWorship':
+      openWorshipModal();
+      if(nextId) setTimeout(()=>renderScene(nextId), 300);
+      break;
+    case 'openShop':
+      $('shop-overlay').classList.add('show');
+      if(nextId) setTimeout(()=>renderScene(nextId), 300);
+      break;
+    case 'signupRace':
+      if(State.money >= 200 && !State.storeRaceEnrolled){
+        State.money -= 200; State.storeRaceEnrolled = true;
+        showMoneyPopup(-200); updateHUD();
+      }
+      if(nextId) setTimeout(()=>renderScene(nextId), 300);
+      break;
+    case 'nextDay':
+      // Called from P2-9-5 结算
+      endDay();
+      const target = getNextDaySceneId();
+      setTimeout(()=>renderScene(target), 400);
+      break;
+    case 'storeRace':
+      runStoreRace();
+      break;
+    default:
+      // Fallback: 如果 action 是全局函数名，直接调用
+      if(typeof window[action] === 'function'){
+        try{ window[action](); }catch(e){ console.error(e); }
+        return;
+      }
+      if(nextId) setTimeout(()=>renderScene(nextId), 400);
+  }
+}
+
+/* Chapter 2: day/week logic ------------------------------- */
+function endDay(){
+  State.addiction += 1;
+  showAttributePopup('addiction', 1);
+  // Blessings check (only trigger cutscene once each)
+  const blessings = [];
+  if(!State.cutsceneShown.khorne && !State.khorneBlessed && State.chargeCount >= 3) blessings.push('khorne');
+  if(!State.cutsceneShown.hornedrat && !State.hornedRatBlessed && (State.moraleCount >= 3 || State.heresyCount >= 3)) blessings.push('hornedrat');
+  if(!State.cutsceneShown.slaneesh && !State.slaneeshBlessed){
+    const npcs = [State.haidi>=3, State.duorou>=3, State.ligong>=3, State.shalaxi>=3].filter(Boolean).length;
+    if(npcs >= 3) blessings.push('slaneesh');
+  }
+  State.__pendingCutscene = blessings.length > 0 ? blessings[0] : null;
+  // Time advance
+  State.day += 1;
+  State.dayOfWeek += 1;
+  if(State.dayOfWeek > 7){
+    State.dayOfWeek = 1;
+    State.week += 1;
+  }
+  // Reset per-day flags & energy
+  State.worshipedToday = false;
+  State.dailyReroll = 0;
+  State.npcMetToday = {haidi:false, duorou:false, ligong:false, shalaxi:false};
+  State.ateToday = false;
+  State.battleToday = false;
+  State.eventToday = false;
+  State.maxEnergy = (State.dayOfWeek === 7 ? 3 : 2);
+  State.energy = State.maxEnergy;
+  updateHUD();
+}
+
+function getNextDaySceneId(){
+  // Cutscene has highest priority
+  if(State.__pendingCutscene){
+    const c = State.__pendingCutscene;
+    State.__pendingCutscene = null;
+    if(c === 'khorne') return 'p2_cs_khorne';
+    if(c === 'hornedrat') return 'p2_cs_hornedrat';
+    if(c === 'slaneesh') return 'p2_cs_slaneesh';
+  }
+  // 第4周 · 周日：店赛日
+  if(State.week >= 4 && State.dayOfWeek === 7){
+    return State.storeRaceEnrolled ? 'p2_9_12' : 'p2_9_15';
+  }
+  // 第4周 · 周六：明天店赛
+  if(State.week >= 4 && State.dayOfWeek === 6){
+    return 'p2_9_11';
+  }
+  // 第4周 · 工作日：加班提示
+  if(State.week >= 4 && State.dayOfWeek <= 5){
+    return 'p2_9_10';
+  }
+  // 前3周 · 周六周日
+  if(State.dayOfWeek >= 6){
+    return 'p2_9_9';
+  }
+  // 前3周 · 工作日
+  return 'p2_9_6';
+}
+
+/* Chapter 2: store race ------------------------------- */
+// 简单 QTE 版店赛：3 轮瑞士轮，玩家亲自掷骰，可用 CP 重投一颗骰子
+const Race = {
+  round:0,               // 0=未开始, 1..3=当前轮次, 4=已结束
+  myDice:[0,0],          // 玩家 2d6
+  oppDice:[0,0],         // 对手 2d6
+  myBonus:0,             // 属性加成
+  oppBonus:0,            // 对手随机加成
+  myLocked:[false,false],// 骰子是否已确认（不能再重投）
+  total:0,               // 累计有效分差
+  rolled:false,          // 本轮玩家已掷
+  oppRolled:false,       // 本轮对手已掷
+  opponents:['李工','海底','多肉']
+};
+
+function openStoreRaceModal(){
+  Race.round = 1;
+  Race.total = 0;
+  Race.rolled = false;
+  Race.oppRolled = false;
+  Race.myDice = [0,0];
+  Race.oppDice = [0,0];
+  Race.myLocked = [false,false];
+  Race.myBonus = Math.min(6, Math.floor(State.intellect/2) + Math.floor(State.luck/3) + Math.floor(State.paintSkill/3));
+  Race.oppBonus = 0;
+  $('race-log').innerHTML = '';
+  $('race-modal').classList.add('show');
+  updateRaceUI();
+}
+
+function updateRaceUI(){
+  $('race-round').textContent = '第 ' + Math.min(3, Race.round) + ' / 3 轮';
+  $('race-opp-name').textContent = Race.opponents[(Race.round-1)%Race.opponents.length];
+  const my1=$('race-die-my1'), my2=$('race-die-my2');
+  const op1=$('race-die-op1'), op2=$('race-die-op2');
+  my1.textContent = Race.myDice[0]||'?';
+  my2.textContent = Race.myDice[1]||'?';
+  op1.textContent = Race.oppDice[0]||'?';
+  op2.textContent = Race.oppDice[1]||'?';
+  my1.classList.toggle('locked', Race.myLocked[0]);
+  my2.classList.toggle('locked', Race.myLocked[1]);
+  $('race-my-bonus').textContent = '加成 +' + Race.myBonus;
+  $('race-opp-bonus').innerHTML = Race.oppBonus>0 ? ('加成 +' + Race.oppBonus) : '&nbsp;';
+  const mySum = Race.rolled ? (Race.myDice[0]+Race.myDice[1]+Race.myBonus) : '-';
+  const opSum = Race.oppRolled ? (Race.oppDice[0]+Race.oppDice[1]+Race.oppBonus) : '-';
+  $('race-my-sum').textContent = mySum;
+  $('race-opp-sum').textContent = opSum;
+  const roundDiff = (Race.rolled && Race.oppRolled) ? clamp20((mySum-opSum)*2) : 0;
+  $('race-diff-val').textContent = roundDiff;
+  $('race-total-val').textContent = Race.total;
+  // Buttons
+  const rollBtn = $('race-roll-btn');
+  const rerollBtn = $('race-reroll-btn');
+  const nextBtn = $('race-next-btn');
+  const finishBtn = $('race-finish-btn');
+  if(Race.round > 3){
+    rollBtn.style.display = 'none'; rerollBtn.style.display = 'none';
+    nextBtn.style.display = 'none';
+    finishBtn.style.display = '';
+    return;
+  }
+  if(!Race.rolled){
+    rollBtn.style.display = ''; rollBtn.disabled = false;
+    rerollBtn.style.display = ''; rerollBtn.disabled = true;
+    nextBtn.style.display = 'none'; finishBtn.style.display = 'none';
+  } else {
+    rollBtn.style.display = 'none';
+    rerollBtn.style.display = ''; rerollBtn.disabled = (State.intellect<=0) || (Race.myLocked[0]&&Race.myLocked[1]);
+    nextBtn.style.display = ''; nextBtn.disabled = false;
+    finishBtn.style.display = 'none';
+  }
+}
+
+function clamp20(n){ return Math.max(-20, Math.min(20, n)); }
+
+function raceRoll(){
+  if(Race.rolled) return;
+  // Animate
+  $('race-die-my1').classList.add('rolling');
+  $('race-die-my2').classList.add('rolling');
+  $('race-die-op1').classList.add('rolling');
+  $('race-die-op2').classList.add('rolling');
+  let ticks = 0;
+  const interval = setInterval(()=>{
+    Race.myDice = [rollD6(), rollD6()];
+    Race.oppDice = [rollD6(), rollD6()];
+    updateRaceUI();
+    ticks++;
+    if(ticks >= 8){
+      clearInterval(interval);
+      $('race-die-my1').classList.remove('rolling');
+      $('race-die-my2').classList.remove('rolling');
+      $('race-die-op1').classList.remove('rolling');
+      $('race-die-op2').classList.remove('rolling');
+      // final rolls
+      Race.myDice = [rollD6(), rollD6()];
+      Race.oppDice = [rollD6(), rollD6()];
+      Race.oppBonus = Math.floor(Math.random()*5);
+      Race.rolled = true;
+      Race.oppRolled = true;
+      // Count story flags: 冲锋结果12 / 士气结果2
+      const myTotal = Race.myDice[0]+Race.myDice[1];
+      if(myTotal === 12){ State.chargeCount += 1; showAttributePopup('冲锋12', 1); }
+      if(myTotal === 2){ State.moraleCount += 1; showAttributePopup('士气2', 1); }
+      logRace('第 ' + Race.round + ' 轮：你 ' + Race.myDice.join('+') + '(+' + Race.myBonus + ') vs 对手 ' + Race.oppDice.join('+') + (Race.oppBonus?'(+'+Race.oppBonus+')':''));
+      updateRaceUI();
+    }
+  }, 60);
+}
+
+function rollD6(){ return Math.floor(Math.random()*6)+1; }
+
+function raceReroll(){
+  if(!Race.rolled) return;
+  if(State.intellect <= 0) return;
+  // 选一颗未锁定且分数较低的骰子重投
+  let pick = -1;
+  if(!Race.myLocked[0] && !Race.myLocked[1]){
+    pick = (Race.myDice[0] <= Race.myDice[1]) ? 0 : 1;
+  } else if(!Race.myLocked[0]){
+    pick = 0;
+  } else if(!Race.myLocked[1]){
+    pick = 1;
+  }
+  if(pick < 0) return;
+  State.intellect -= 1;
+  showAttributePopup('intellect', -1);
+  updateHUD();
+  const die = $('race-die-my'+(pick+1));
+  die.classList.add('rolling');
+  let ticks = 0;
+  const interval = setInterval(()=>{
+    Race.myDice[pick] = rollD6();
+    updateRaceUI();
+    ticks++;
+    if(ticks >= 6){
+      clearInterval(interval);
+      die.classList.remove('rolling');
+      Race.myDice[pick] = rollD6();
+      Race.myLocked[pick] = true;
+      logRace('CP 重投第' + (pick+1) + '颗骰子 → ' + Race.myDice[pick]);
+      updateRaceUI();
+    }
+  }, 60);
+}
+
+function raceNext(){
+  if(!Race.rolled) return;
+  // Settle this round
+  const mySum = Race.myDice[0]+Race.myDice[1]+Race.myBonus;
+  const opSum = Race.oppDice[0]+Race.oppDice[1]+Race.oppBonus;
+  const diff = clamp20((mySum - opSum) * 2);
+  Race.total += diff;
+  logRace(diff>=0 ? ('  → 本轮胜 +'+diff) : ('  → 本轮负 '+diff), diff>=0?'log-win':'log-lose');
+  Race.round += 1;
+  Race.rolled = false;
+  Race.oppRolled = false;
+  Race.myDice = [0,0];
+  Race.oppDice = [0,0];
+  Race.myLocked = [false,false];
+  updateRaceUI();
+}
+
+function raceFinish(){
+  $('race-modal').classList.remove('show');
+  // Compute rank
+  State.storeRaceScore = Race.total;
+  State.storeRacePlayed = true;
+  if(Race.total >= 20) State.storeRaceRank = 1;
+  else if(Race.total >= 0) State.storeRaceRank = 2;
+  else State.storeRaceRank = 3 + Math.floor(Math.random()*3);
+  const nextId = State.storeRaceRank === 1 ? 'p2_9_13' : 'p2_9_14';
+  setTimeout(()=>renderScene(nextId), 300);
+}
+
+function logRace(msg, cls){
+  const el = $('race-log');
+  const line = document.createElement('div');
+  line.className = 'log-line' + (cls?' '+cls:'');
+  line.textContent = msg;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+// 由 handleAction('storeRace') 调用：改为打开 QTE 界面而非直接结算
+function runStoreRace(){
+  openStoreRaceModal();
 }
 
 function showAttributePopup(attr, val){
   const el = $('affinity-popup'); // reuse same popup element
-  const labels = {intellect:'计谋(CP)', aesthetic:'审美', luck:'运气', paintSkill:'涂装技术', dailyDiceMod:'每日骰运', tp:'TP好感'};
+  const labels = {intellect:'计谋(CP)', aesthetic:'审美', luck:'运气', paintSkill:'涂装技术', dailyDiceMod:'每日骰运', tp:'TP好感', addiction:'锤瘾', energy:'体力'};
   const sign = val>0?'+':'';
   el.innerHTML = '⚜️ ' + (labels[attr] || attr) + ' ' + sign + val;
   el.style.color = val>0 ? '#c5a059' : '#666';
@@ -371,7 +787,6 @@ function updateHUD(){
   $('bar-shalaxi').style.width = Math.min(100, State.shalaxi*10) + '%';
   $('bar-ss').style.width = Math.min(100, State.ss*10) + '%';
   // Attribute bars
-  $('bar-intellect').style.width = Math.min(100, State.intellect*8) + '%';
   $('bar-aesthetic').style.width = Math.min(100, State.aesthetic*8) + '%';
   $('bar-luck').style.width = Math.min(100, State.luck*8) + '%';
   const paintBar = $('bar-paintSkill');
@@ -381,22 +796,37 @@ function updateHUD(){
   if(el){
     let extra = '';
     if(State.dailyDiceMod !== 0) extra = ' 🎲' + (State.dailyDiceMod>0?'+':'') + State.dailyDiceMod;
-    el.textContent = '第' + State.week + '周 第' + State.day + '天 | ' + '❤️'.repeat(State.energy) + '🖤'.repeat(Math.max(0, State.maxEnergy - State.energy)) + extra;
+    if(State.dailyReroll > 0) extra += ' ♻️';
+    let dow = State.chapterTwoStarted ? (' ' + weekdayName(State.dayOfWeek)) : '';
+    el.textContent = '第' + State.week + '周' + dow + ' | ' + '❤️'.repeat(State.energy) + '🖤'.repeat(Math.max(0, State.maxEnergy - State.energy)) + extra;
   }
   // CP == 计谋
   const cpEl = $('hud-cp');
-  if(cpEl) cpEl.textContent = '🎲 CP(计谋): ' + State.intellect;
+  if(cpEl){
+    let ch2 = '';
+    if(State.chapterTwoStarted){
+      ch2 = ' | 💰¥' + State.money + ' | 🔨锤瘾' + State.addiction;
+      const flags = [];
+      if(State.khorneBlessed) flags.push('🔴恐虐');
+      if(State.hornedRatBlessed) flags.push('🟢大角鼠');
+      if(State.slaneeshBlessed) flags.push('🟣色孽');
+      if(State.tzeentchBlessed) flags.push('🔵巧高奇');
+      if(flags.length) ch2 += ' ' + flags.join(' ');
+    }
+    cpEl.textContent = '🎲 CP(计谋): ' + State.intellect + ch2;
+  }
 }
 
 // Get next scene id
 function getNextSceneId(id){
   const sc = Scenes[id];
   if(!sc) return null;
-  if(sc.choices) return null; // wait for choice
+  if(sc.choices || sc.choicesFn) return null; // wait for choice
   if(sc.type) return null; // ending
   if(sc.endingCheck) return null; // ending trigger - handled by advance()
   // If scene has explicit next, use it
   if(sc.next) return sc.next;
+  if(sc.nextFn) return sc.nextFn(State);
   // Find next sequential scene, skip re_* and hz/z scenes
   const keys = Object.keys(Scenes);
   const idx = keys.indexOf(id);
@@ -430,8 +860,10 @@ function advance(){
   }
 
   // Show choices after user reads text (for scenes with both text and choices)
-  if(curScNI && curScNI.choices){
-    showChoices(curScNI.choices);
+  if(curScNI && (curScNI.choices || curScNI.choicesFn)){
+    const chs = __pendingChoices || (curScNI.choicesFn ? curScNI.choicesFn(State) : curScNI.choices);
+    const filtered = chs ? chs.filter(c => !c.enabledIf || c.enabledIf(State)) : chs;
+    showChoices(filtered);
     return;
   }
 
@@ -606,7 +1038,28 @@ function saveGame(){
     modelColor: State.modelColor,
     modelQuality: State.modelQuality,
     morningLuckBonus: State.morningLuckBonus,
-    randomEncountered: State.randomEncountered
+    randomEncountered: State.randomEncountered,
+    // Chapter 2
+    chapterTwoStarted: State.chapterTwoStarted,
+    money: State.money,
+    addiction: State.addiction,
+    dayOfWeek: State.dayOfWeek,
+    chargeCount: State.chargeCount,
+    moraleCount: State.moraleCount,
+    heresyCount: State.heresyCount,
+    dailyReroll: State.dailyReroll,
+    npcMetToday: State.npcMetToday,
+    ateToday: State.ateToday,
+    battleToday: State.battleToday,
+    eventToday: State.eventToday,
+    storeRaceEnrolled: State.storeRaceEnrolled,
+    storeRaceRank: State.storeRaceRank,
+    storeRaceScore: State.storeRaceScore,
+    storeRacePlayed: State.storeRacePlayed,
+    slaneeshBlessed: State.slaneeshBlessed,
+    tzeentchBlessed: State.tzeentchBlessed,
+    cutsceneShown: State.cutsceneShown,
+    chapterOneDone: State.chapterOneDone
   };
   localStorage.setItem('warhammer_save', JSON.stringify(data));
 }
@@ -648,10 +1101,33 @@ function startNewGame(){
   State.route = null;
   State.randomEncountered = {zhou:false, huyou:false, tan:false, yao:false, alex:false};
   State.randomReturnTo = null;
+  resetChapterTwoState();
   $('hud').classList.add('show');
   updateHUD();
   $('title-screen').classList.add('hidden');
   renderScene('p0_1');
+}
+
+function resetChapterTwoState(){
+  State.chapterTwoStarted = false;
+  State.money = 0;
+  State.addiction = 0;
+  State.dayOfWeek = 1;
+  State.chargeCount = 0;
+  State.moraleCount = 0;
+  State.heresyCount = 0;
+  State.dailyReroll = 0;
+  State.npcMetToday = {haidi:false, duorou:false, ligong:false, shalaxi:false};
+  State.ateToday = false;
+  State.battleToday = false;
+  State.eventToday = false;
+  State.storeRaceEnrolled = false;
+  State.storeRaceRank = null;
+  State.storeRaceScore = 0;
+  State.storeRacePlayed = false;
+  State.slaneeshBlessed = false;
+  State.tzeentchBlessed = false;
+  State.cutsceneShown = {khorne:false, hornedrat:false, slaneesh:false, tzeentch:false};
 }
 
 function continueGame(){
@@ -685,6 +1161,27 @@ function continueGame(){
   State.route = data.route || null;
   State.randomEncountered = data.randomEncountered || {zhou:false, huyou:false, tan:false, yao:false, alex:false};
   State.randomReturnTo = null;
+  State.chapterOneDone = !!data.chapterOneDone;
+  // Chapter 2
+  State.chapterTwoStarted = !!data.chapterTwoStarted;
+  State.money = data.money || 0;
+  State.addiction = data.addiction || 0;
+  State.dayOfWeek = data.dayOfWeek || 1;
+  State.chargeCount = data.chargeCount || 0;
+  State.moraleCount = data.moraleCount || 0;
+  State.heresyCount = data.heresyCount || 0;
+  State.dailyReroll = data.dailyReroll || 0;
+  State.npcMetToday = data.npcMetToday || {haidi:false, duorou:false, ligong:false, shalaxi:false};
+  State.ateToday = !!data.ateToday;
+  State.battleToday = !!data.battleToday;
+  State.eventToday = !!data.eventToday;
+  State.storeRaceEnrolled = !!data.storeRaceEnrolled;
+  State.storeRaceRank = data.storeRaceRank || null;
+  State.storeRaceScore = data.storeRaceScore || 0;
+  State.storeRacePlayed = !!data.storeRacePlayed;
+  State.slaneeshBlessed = !!data.slaneeshBlessed;
+  State.tzeentchBlessed = !!data.tzeentchBlessed;
+  State.cutsceneShown = data.cutsceneShown || {khorne:false, hornedrat:false, slaneesh:false, tzeentch:false};
   $('hud').classList.add('show');
   updateHUD();
   $('title-screen').classList.add('hidden');
@@ -700,6 +1197,14 @@ $('game').addEventListener('click', (e)=>{
   if(e.target.closest('button') || e.target.closest('.choice-btn')) return;
   if($('choices-layer').classList.contains('show')) return;
   if($('ending-screen').classList.contains('show')) return;
+  // Modal overlays block advance
+  if($('race-modal').classList.contains('show')) return;
+  if($('worship-modal').classList.contains('show')) return;
+  if($('shop-overlay').classList.contains('show')) return;
+  if($('qte-modal').classList.contains('show')) return;
+  if($('qrcode-modal').classList.contains('show')) return;
+  if($('yao-image-modal').classList.contains('show')) return;
+  if($('ligong-image-modal').classList.contains('show')) return;
   advance();
 });
 
@@ -771,6 +1276,7 @@ $('btn-restart').addEventListener('click', ()=>{
   State.route = null;
   State.randomEncountered = {zhou:false, huyou:false, tan:false, yao:false, alex:false};
   State.randomReturnTo = null;
+  resetChapterTwoState();
   updateHUD();
   $('hud').classList.remove('show');
 });
@@ -962,12 +1468,117 @@ $('worship-modal').addEventListener('click', (e)=>{
   }
 });
 
+/* ======== STORE RACE (瑞士轮) ======== */
+$('race-roll-btn').addEventListener('click', (e)=>{ e.stopPropagation(); raceRoll(); });
+$('race-reroll-btn').addEventListener('click', (e)=>{ e.stopPropagation(); raceReroll(); });
+$('race-next-btn').addEventListener('click', (e)=>{ e.stopPropagation(); raceNext(); });
+$('race-finish-btn').addEventListener('click', (e)=>{ e.stopPropagation(); raceFinish(); });
+
 /* Advance day helper: reset per-day flags */
 function advanceDay(){
   State.day += 1;
   State.worshipedToday = false;
   State.energy = State.maxEnergy;
   updateHUD();
+}
+
+/* Chapter 2 onEnter: start the daily-loop system */
+function startChapter2(){
+  if(State.chapterTwoStarted) return;
+  State.chapterTwoStarted = true;
+  // 从第一章第一天之后，直接进入第一周·周一（早晨闹钟）
+  State.week = 1;
+  State.day = 1;
+  State.dayOfWeek = 1;
+  State.maxEnergy = 2;
+  State.energy = 2;
+  State.addiction = 1; // P2-1 "锤瘾"解锁 +1
+  showAttributePopup('addiction', 1);
+  updateHUD();
+}
+
+/* Chapter 2 onEnter: 拜骰神 —— scene P2-9-2 */
+function worshipDiceGod(){
+  if(State.worshipedToday) return;
+  State.worshipedToday = true;
+  State.diceGodWorshiped = true;
+  State.dailyReroll = 1;
+  State.intellect += 1;
+  showAttributePopup('intellect', 1);
+  updateHUD();
+}
+
+/* Chapter 2 onEnter: 聚餐 P2-9-4 */
+function runDinner(){
+  const pool = ['haidi','duorou','ligong','shalaxi'];
+  // Pick 2 random npcs
+  const p1 = pool.splice(Math.floor(Math.random()*pool.length),1)[0];
+  const p2 = pool.splice(Math.floor(Math.random()*pool.length),1)[0];
+  State[p1] += 1; showAffinityPopup(p1, 1);
+  State[p2] += 1; showAffinityPopup(p2, 1);
+  State.energy = Math.min(State.maxEnergy, State.energy + 1);
+  showAttributePopup('energy', 1);
+  const cost = 20 + Math.floor(Math.random()*31);
+  State.money = Math.max(0, State.money - cost);
+  showMoneyPopup(-cost);
+  State.ateToday = true;
+  updateHUD();
+}
+
+/* Chapter 2 onEnter: 随机对战 P2-9-battle */
+function runRandomBattle(){
+  // 冲锋掷 2d6，士气掷 d6
+  const charge = (Math.floor(Math.random()*6)+1) + (Math.floor(Math.random()*6)+1);
+  const morale = Math.floor(Math.random()*6)+1;
+  if(charge === 12){ State.chargeCount += 1; showAttributePopup('冲锋12', 1); }
+  if(morale === 2 || morale === 1){ State.moraleCount += 1; showAttributePopup('士气崩', 1); }
+  const win = Math.random() < 0.5 + Math.min(0.3, State.intellect*0.03);
+  if(win){
+    State.intellect += 1; showAttributePopup('intellect', 1);
+  } else {
+    State.paintSkill += 1; showAttributePopup('paintSkill', 1);
+  }
+  State.battleToday = true;
+  updateHUD();
+}
+
+/* Chapter 2 onEnter: 每日随机事件 */
+function runDailyEvent(){
+  // 从已有小剧场池中挑选一个（如果未触发过），或者简单地给一点资源
+  const roll = Math.random();
+  if(roll < 0.4){
+    const gain = 20 + Math.floor(Math.random()*30);
+    State.money += gain; showMoneyPopup(gain);
+  } else if(roll < 0.7){
+    State.aesthetic += 1; showAttributePopup('aesthetic', 1);
+  } else {
+    State.luck += 1; showAttributePopup('luck', 1);
+  }
+  State.eventToday = true;
+  updateHUD();
+}
+
+/* 升魔过场：接受赐福 */
+function markKhorne(){
+  State.khorneBlessed = true;
+  State.cutsceneShown.khorne = true;
+  updateHUD();
+  const next = getNextDaySceneId();
+  setTimeout(()=>renderScene(next), 400);
+}
+function markHornedRat(){
+  State.hornedRatBlessed = true;
+  State.cutsceneShown.hornedrat = true;
+  updateHUD();
+  const next = getNextDaySceneId();
+  setTimeout(()=>renderScene(next), 400);
+}
+function markSlaneesh(){
+  State.slaneeshBlessed = true;
+  State.cutsceneShown.slaneesh = true;
+  updateHUD();
+  const next = getNextDaySceneId();
+  setTimeout(()=>renderScene(next), 400);
 }
 
 /* ======== YAO IMAGE MODAL ======== */
@@ -986,16 +1597,147 @@ $('yao-image-modal').addEventListener('click', (e)=>{
   }
 });
 
-/* ======== QTE MODAL ======== */
-$('qte-close-btn').addEventListener('click', ()=>{
-  $('qte-modal').classList.remove('show');
-});
+/* ======== PAINT QTE (涂装读条) ======== */
+const Paint = {
+  stage: 0,                 // 0=未开始, 1..3=当前阶段
+  stages: [
+    { name:'剪水口', targetW:32, speed:1.6 },
+    { name:'喷底漆', targetW:26, speed:2.1 },
+    { name:'点眼睛', targetW:18, speed:2.7 }
+  ],
+  targetLeft: 0,
+  indicatorPos: 0,
+  direction: 1,
+  animId: null,
+  results: [null,null,null],
+  clicked: false
+};
 
-$('qte-modal').addEventListener('click', (e)=>{
-  if(e.target === $('qte-modal')){
-    $('qte-modal').classList.remove('show');
+function openPaintQTE(){
+  Paint.stage = 1;
+  Paint.results = [null,null,null];
+  $('qte-modal').classList.add('show');
+  startPaintStage();
+}
+
+function startPaintStage(){
+  const st = Paint.stages[Paint.stage-1];
+  // 目标区随机（留出边距，避免贴边）
+  Paint.targetLeft = 5 + Math.random() * (95 - st.targetW - 5);
+  Paint.indicatorPos = 0;
+  Paint.direction = 1;
+  Paint.clicked = false;
+
+  $('paint-stage-label').textContent = '第 ' + Paint.stage + ' / 3 · ' + st.name;
+  const targetEl = $('paint-target');
+  targetEl.style.left = Paint.targetLeft + '%';
+  targetEl.style.width = st.targetW + '%';
+  $('paint-action-btn').textContent = '点击停下';
+  $('paint-action-btn').disabled = false;
+  const msg = $('paint-hitmsg');
+  msg.textContent = '\u00a0';
+  msg.classList.remove('miss');
+  updatePaintResults();
+  runPaintAnim();
+}
+
+function runPaintAnim(){
+  if(Paint.animId) cancelAnimationFrame(Paint.animId);
+  const st = Paint.stages[Paint.stage-1];
+  function tick(){
+    if(Paint.clicked) return;
+    Paint.indicatorPos += Paint.direction * st.speed;
+    if(Paint.indicatorPos >= 100){ Paint.indicatorPos = 100; Paint.direction = -1; }
+    if(Paint.indicatorPos <= 0){ Paint.indicatorPos = 0; Paint.direction = 1; }
+    $('paint-indicator').style.left = Paint.indicatorPos + '%';
+    Paint.animId = requestAnimationFrame(tick);
   }
-});
+  Paint.animId = requestAnimationFrame(tick);
+}
+
+function paintActionClick(){
+  if(Paint.stage < 1 || Paint.stage > 3) return;
+  if(!Paint.clicked){
+    // Stop the indicator
+    Paint.clicked = true;
+    if(Paint.animId) cancelAnimationFrame(Paint.animId);
+    const st = Paint.stages[Paint.stage-1];
+    const hit = Paint.indicatorPos >= Paint.targetLeft &&
+                Paint.indicatorPos <= Paint.targetLeft + st.targetW;
+    Paint.results[Paint.stage-1] = hit ? 'hit' : 'miss';
+    updatePaintResults();
+    const msg = $('paint-hitmsg');
+    if(hit){
+      msg.textContent = '✓ 完美！';
+      msg.classList.remove('miss');
+    } else {
+      msg.textContent = '✗ 手抖了';
+      msg.classList.add('miss');
+    }
+    $('paint-action-btn').textContent = (Paint.stage >= 3) ? '查看结果' : '下一阶段 ▶';
+    return;
+  }
+  // Advance
+  if(Paint.stage >= 3){
+    paintFinish();
+  } else {
+    Paint.stage += 1;
+    startPaintStage();
+  }
+}
+
+function updatePaintResults(){
+  const ids = ['paint-r1','paint-r2','paint-r3'];
+  for(let i=0;i<3;i++){
+    const el = $(ids[i]);
+    if(!el) continue;
+    el.classList.remove('hit','miss');
+    if(Paint.results[i]==='hit') el.classList.add('hit');
+    else if(Paint.results[i]==='miss') el.classList.add('miss');
+  }
+}
+
+function paintFinish(){
+  if(Paint.animId) cancelAnimationFrame(Paint.animId);
+  const hits = Paint.results.filter(r=>r==='hit').length;
+  applyPaintRewards(hits);
+  $('qte-modal').classList.remove('show');
+  Paint.stage = 0;
+}
+
+function paintSkip(){
+  // 跳过：给桌涂默认奖励
+  if(Paint.animId) cancelAnimationFrame(Paint.animId);
+  if(Paint.stage !== 0){
+    applyPaintRewards(1); // 视作 1 命中：桌涂
+  }
+  $('qte-modal').classList.remove('show');
+  Paint.stage = 0;
+}
+
+function applyPaintRewards(hits){
+  if(hits >= 3){
+    State.paintSkill += 2; showAttributePopup('paintSkill', 2);
+    State.aesthetic += 1;  showAttributePopup('aesthetic', 1);
+    State.duorou += 2;     showAffinityPopup('duorou', 2);
+    State.modelQuality = 90;
+  } else if(hits === 2){
+    State.paintSkill += 1; showAttributePopup('paintSkill', 1);
+    State.duorou += 1;     showAffinityPopup('duorou', 1);
+    State.modelQuality = 65;
+  } else if(hits === 1){
+    State.paintSkill += 1; showAttributePopup('paintSkill', 1);
+    State.modelQuality = 40;
+  } else {
+    State.modelQuality = 20;
+  }
+  updateHUD();
+}
+
+$('paint-action-btn').addEventListener('click', (e)=>{ e.stopPropagation(); paintActionClick(); });
+$('qte-close-btn').addEventListener('click', (e)=>{ e.stopPropagation(); paintSkip(); });
+// 屏蔽点击 modal 背景关闭（避免误触失去 QTE 奖励）
+$('qte-modal').addEventListener('click', (e)=>{ e.stopPropagation(); });
 
 /* ======== SHOP ======== */
 $('btn-shop').addEventListener('click', (e)=>{
@@ -1068,7 +1810,7 @@ $('btn-menu').addEventListener('click', (e)=>{
 const origRender = renderScene;
 renderScene = function(id){
   origRender(id);
-  if(id && Scenes[id] && !Scenes[id].type && !Scenes[id].choices){
+  if(id && Scenes[id] && !Scenes[id].type && !Scenes[id].choices && !Scenes[id].choicesFn){
     setTimeout(()=>{
       try{ saveGame(); }catch(e){}
     }, 500);

@@ -201,7 +201,406 @@ p1_19:{
   bg:'night',
   speaker:'narration', flags:{chapterOneDone:true},
   text:'这一天，你在俱乐部待了很晚。\n临走时，海底过来送你。送到门口，他指着一个丑丑的小雕像说道：\n"对了，这是我们这里供奉的骰神。毕竟是骰子游戏，如果有兴趣的话，不妨每天拜一拜，或许有意想不到的效果。"\n你满口答应，然后转身离开。\n\n——第一章，完',
-  next:'c1'
+  next:'p2_1'
+},
+
+/* ============================================================
+ * ===================== CHAPTER 2 =============================
+ * ============================================================ */
+
+/* P2-1: 闹钟响起 — 解锁"锤瘾" */
+p2_1:{
+  bg:'interior', label:'第二章', labelSub:'锤瘾',
+  speaker:'narration', onEnter:'startChapter2',
+  text:'伴随着闹钟响起，又是平常的一天开始了，但似乎一切又已经不平常。\n你伸手去拍那个复古的机械结构闹钟，却仿佛是在拍棋钟，恍惚间愣了愣神。坐到餐桌旁，你把鸡蛋磕在桌子上，又仿佛听见了骰子磕在骰盘里来回滚动的声音。\n\n面前粥碗和菜盘不够规整，你怎么看怎么觉得别扭，仿佛是被挪动过了的地形必须复位，而你最忍不了的，是忍不住想去对面盘子里夹咸菜，仿佛那是你对手占领的部署区——你，现在、立刻、马上，就得占领那里，完成你抽到的任务。\n\n出门，地铁，你在闸门关闭前最后一秒跑了进去，你下意识掏出背包中的雨伞空挥了两下。突然间，你忍不住笑出声来，是啊，你"冲锋"成功了，现在必须发起"近战"，碾碎他们！\n\n你感受到一股暖意，一份热忱，一阵燥热，你不知道那是什么，但你知道——你必须赶往锤店。\n\n【锤瘾】已解锁',
+  choices:[
+    {text:'谋生（去上班）', next:'p2_2'}
+  ]
+},
+
+/* P2-2: 下班后到达俱乐部 */
+p2_2:{
+  bg:'interior', speaker:'narration', money:200,
+  text:'等这一天都结束了，你拖着疲惫的身体来到"达米拉多"，打开冰箱，一瓶可乐的冰凉直冲你的胸膛，清凉的冷气也吹过你的面颊，让你振作起来！\n\n几个目光看向你，然后各自忙回手头的事情。',
+  next:'p2_2b'
+},
+p2_2b:{
+  char:'haidi', expr:'smile', speaker:'haidi',
+  text:'"你来了！今天想玩点什么？如果还没想好的话，可以看看这几张传单。"',
+  next:'p2_3'
+},
+
+/* P2-3: 传单菜单（关键节点） */
+p2_3:{
+  bg:'interior', label:'传单', speaker:'narration',
+  text:'（角落的公告墙上贴着几张传单）',
+  choices:[
+    {text:'📃 达米拉多7月份店赛（联赛预选）', next:'p2_4'},
+    {text:'📃 城市模型展将于8月初举办', next:'p2_5'},
+    {text:'📃 战锤Cos小组成立', next:'p2_6'},
+    {text:'📃 战锤同人游戏筹备中（急招原画师）', next:'p2_7'},
+    {text:'我知道我该干什么了', next:'p2_8'}
+  ]
+},
+
+/* P2-4: 店赛传单 */
+p2_4:{
+  bg:'interior', speaker:'narration',
+  text:'🔥 达米拉多战锤店将在【七月最后一个周日】火热开赛！🔥\n\n欢迎所有 40K 指挥官齐聚桌面沙场。本次店内赛事为【北方城市联赛预选赛】，本次店赛优胜者将直接斩获联赛参赛资格。\n\n无论你是征战多年的老牌战将，还是刚刚组建军队的新人玩家，皆可报名参战。\n\n备好你的军队，打磨涂装、演练卡组！席位静待强者，硝烟即将燃起——\n\n👉 详询店长海底。',
+  next:'p2_3'
+},
+
+/* P2-5: 模型展 */
+p2_5:{
+  bg:'interior', speaker:'narration',
+  text:'🎨 城市模型展定于八月盛大启幕！\n\n本店将组织选手统一报名，有独立展台。本次展会重磅邀请国际顶级涂装赛事【金恶魔奖】特邀评委亲临现场。\n\n展会汇集众多战锤微缩模型创作者，佳作云集，涵盖单体精涂、史诗军团与情景地台作品。\n\n八月的第一周，共赴这场属于涂装与微缩艺术的狂欢！\n\n👉 详询店长多肉。',
+  next:'p2_3'
+},
+
+/* P2-6: Cos 小组 */
+p2_6:{
+  bg:'interior', speaker:'narration',
+  text:'⚔️ 本店战锤 Cos 小组正式组建，招募同好！\n\n无论是人类帝国、星际战士、灵族或是混沌势力，只要热爱战锤世界观，均可加入。\n\n欢迎萌新与资深爱好者齐聚于此，探讨服饰改造、武器道具手工制作。还有欢乐的 Cos 2v2 活动。\n\n想要华丽的踏上现实中的银河战场？扫描下方二维码入群。\n\n👉 详询组长青嶙。',
+  next:'p2_3'
+},
+
+/* P2-7: 同人游戏 */
+p2_7:{
+  bg:'interior', speaker:'narration',
+  text:'⚔️ 战锤同人文字游戏筹备启动！项目完全非盈利，纯粹用俺寻思之力，为爱发癫！\n\n现紧急招募原画师，不要求熟练手绘、擅长 AI 辅助创作即可。工作内容包含角色立绘、场景插图、道具原画，画风统一即可。\n\n欢迎上班摸鱼、周末无聊爱好战锤游戏者参与。成果仅用于同人作品，不作任何商业用途。\n\n👉 详询策划牢 K。',
+  next:'p2_3'
+},
+
+/* P2-8: 海底的两点忠告 */
+p2_8:{
+  bg:'interior', char:'haidi', expr:'serious', speaker:'haidi',
+  text:'"好吧，看来你已经想好要干什么了。店里的大家都很友好，但是有两点忠告送给你——\n\n第一，观棋不语，除非别人主动问你，不要给出建议或作出评价；\n第二，不要乱动别人的模型，模型毕竟是塑料制品，本身脆弱，有些涂装更是造价不菲。"',
+  next:'p2_8b'
+},
+p2_8b:{
+  char:'haidi', expr:'normal', speaker:'haidi',
+  text:'"如果需要进行模型采购，可以找我；如果需要规则教学或者对战训练，也可以随时找我。想和其他玩家约战，则需要看对方的时间——我建议你先从跟你水平差不多的玩家开始。"',
+  next:'p2_9_1'
+},
+
+/* ============================================================
+ * P2-9-1  主日常菜单（关键节点）
+ * ============================================================ */
+p2_9_1:{
+  bg:'interior', label:'达米拉多', speaker:'narration',
+  textFn:(s)=>{
+    return '【第' + s.week + '周·' + weekdayName(s.dayOfWeek) + '】\n体力：' + '❤️'.repeat(s.energy) + '🖤'.repeat(Math.max(0,s.maxEnergy-s.energy)) + '　资金：¥' + s.money + '　锤瘾：' + s.addiction + '\n\n今天要干什么？';
+  },
+  choicesFn:(s)=>{
+    const list = [];
+    list.push({
+      text:(s.worshipedToday?'🎲 已朝拜过骰神':'🎲 拜一拜骰神') + (s.dailyReroll>0?'（今日已获重投）':''),
+      next:'p2_9_2',
+      enabledIf:st=>!st.worshipedToday
+    });
+    list.push({text:'🛒 购物（打开商城）', action:'openShop', next:'p2_9_1'});
+    if(!s.storeRaceEnrolled && s.week <= 4){
+      list.push({text:'📝 报名7月店赛（¥200）', action:'signupRace', next:'p2_9_1', enabledIf:st=>st.money>=200 && !st.storeRaceEnrolled});
+    }
+    list.push({text:'💙 去找海底', next:'p2_9_haidi', enabledIf:st=>st.energy>=1 && !st.npcMetToday.haidi});
+    list.push({text:'🧡 去找多肉', next:'p2_9_duorou', enabledIf:st=>st.energy>=1 && !st.npcMetToday.duorou});
+    list.push({text:'💜 去找李工', next:'p2_9_ligong', enabledIf:st=>st.energy>=1 && !st.npcMetToday.ligong});
+    list.push({text:'💜 去找青嶙', next:'p2_9_shalaxi', enabledIf:st=>st.energy>=1 && !st.npcMetToday.shalaxi});
+    list.push({text:'⚔️ 在店里随机匹配', next:'p2_9_battle', enabledIf:st=>st.energy>=1 && !st.battleToday});
+    list.push({text:'👀 远处似乎有些热闹', next:'p2_9_event', enabledIf:st=>st.energy>=1 && !st.eventToday});
+    list.push({text:'🍜 和大家聚餐', next:'p2_9_4', enabledIf:st=>!st.ateToday});
+    list.push({text:'📋 看看角落的海报', next:'p2_3'});
+    list.push({text:'🌙 意满离，今天可以回家了', next:'p2_9_5'});
+    return list;
+  }
+},
+
+/* P2-9-2: 拜骰神 */
+p2_9_2:{
+  bg:'interior', speaker:'narration',
+  energyDelta:-1,
+  onEnter:'worshipDiceGod',
+  text:'你双手合十拜了拜门口那尊丑丑的小雕像，满心希望命运的天平向你倾斜。\n\n（体力 -1，获得【每日一次的重投】）',
+  next:'p2_9_1'
+},
+
+/* 购物专用返回节点（因为购物 UI 是覆盖层，返回主菜单即可） */
+p2_9_shop:{
+  bg:'interior', speaker:'narration',
+  text:'你合上购物窗口，回到店里继续挑选活动。',
+  next:'p2_9_1'
+},
+
+/* P2-9-海底：日常对话 */
+p2_9_haidi:{
+  bg:'table', char:'haidi', expr:'smile', speaker:'haidi',
+  energyDelta:-1, affinity:{haidi:1},
+  text:'"来了？今天有空的话，跟我复盘几手，我给你讲讲这波你冲锋的时机可以再压一下。"\n海底铺开一张场图，慢条斯理地讲着战术，你听得津津有味。',
+  choices:[
+    {text:'专注复盘（+计谋）', next:'p2_9_haidi_end', attributes:{intellect:1}, mark:{'npcMetToday.haidi':true}},
+    {text:'附和几句就好', next:'p2_9_haidi_end', mark:{'npcMetToday.haidi':true}}
+  ]
+},
+p2_9_haidi_end:{
+  bg:'interior', speaker:'narration',
+  text:'"下次再打，别急着近战——你先想清楚你要占哪块目标，再决定要不要过桥。"',
+  next:'p2_9_1'
+},
+
+/* P2-9-多肉：日常对话 */
+p2_9_duorou:{
+  bg:'painting', char:'duorou', expr:'happy', speaker:'duorou',
+  energyDelta:-1, affinity:{duorou:1},
+  text:'"嘿，你来啦！过来过来！我给你演示一下渐层法，一学就会——你先摇匀这瓶稀释剂。"\n多肉边说边把画笔塞到你手里。',
+  choices:[
+    {text:'认真跟着涂（+涂装）', next:'p2_9_duorou_end', attributes:{paintSkill:1}, mark:{'npcMetToday.duorou':true}},
+    {text:'感慨"这也太美了"（+审美）', next:'p2_9_duorou_end', attributes:{aesthetic:1}, mark:{'npcMetToday.duorou':true}}
+  ]
+},
+p2_9_duorou_end:{
+  bg:'interior', speaker:'narration',
+  text:'"下次再来！我给你留一支限定色的高光笔。"',
+  next:'p2_9_1'
+},
+
+/* P2-9-李工：日常对话 */
+p2_9_ligong:{
+  bg:'table', char:'ligong', expr:'nervous', speaker:'ligong',
+  energyDelta:-1, affinity:{ligong:1},
+  text:'"要不……我们打一局？我最近在试新阵容，估计还是会输。"\n李工搓了搓手，一副既紧张又期待的样子。',
+  choices:[
+    {text:'"来！我陪你打到你赢为止。"', next:'p2_9_ligong_end', affinity:{ligong:1}, mark:{'npcMetToday.ligong':true}},
+    {text:'"简单对个几手就好。"', next:'p2_9_ligong_end', mark:{'npcMetToday.ligong':true}}
+  ]
+},
+p2_9_ligong_end:{
+  bg:'interior', speaker:'narration',
+  text:'那一局你玩得很尽兴，李工输了也咧嘴笑着，像是又攒了一点勇气。',
+  next:'p2_9_1'
+},
+
+/* P2-9-青嶙：日常对话 */
+p2_9_shalaxi:{
+  bg:'painting', char:'shalaxi', expr:'alluring', speaker:'shalaxi',
+  energyDelta:-1, affinity:{shalaxi:1},
+  text:'"过来看看这个新做的地台。"\n青嶙半眯着眼，指尖抚过一块半透明的紫色晶体：\n"再加一层——就再一层，就完美了。"',
+  choices:[
+    {text:'"确实……再加一层可能会更好。"（离经叛道 +1）', next:'p2_9_shalaxi_end', mark:{'npcMetToday.shalaxi':true}, counter:{heresyCount:1}, affinity:{shalaxi:1}},
+    {text:'"我觉得已经很好看了。"', next:'p2_9_shalaxi_end', mark:{'npcMetToday.shalaxi':true}, attributes:{aesthetic:1}}
+  ]
+},
+p2_9_shalaxi_end:{
+  bg:'interior', speaker:'narration',
+  text:'青嶙冲你眨了眨眼，又转过头去继续涂他那"再一层"的高光。',
+  next:'p2_9_1'
+},
+
+/* P2-9-4: 聚餐 (Waaagh!) */
+p2_9_4:{
+  bg:'night', speaker:'narration', onEnter:'runDinner',
+  text:'你发起了一场"吃饭之 Waaagh"，几位锤友一呼百应，浩浩荡荡地杀去楼下的烧烤店。\n\n烟熏火燎里，一人一杯冰啤，几串腰子几串筋，锤瘾和肚子都得到了满足。\n\n（聚餐 —— 体力 +1，随机 2 位 NPC 好感 +1，资金 -20~50）',
+  next:'p2_9_1'
+},
+
+/* P2-9-battle: 随机匹配 */
+p2_9_battle:{
+  bg:'table', speaker:'narration', energyDelta:-1,
+  onEnter:'runRandomBattle',
+  text:'你在群里@了一声，很快就有人举手应战。\n\n骰盘上一阵爆响——冲锋、士气、近战……战局起起落落。战斗结束后你复盘了一下，收获颇丰。',
+  choices:[
+    {text:'继续游玩', next:'p2_9_1', mark:{battleToday:true}}
+  ]
+},
+
+/* P2-9-event: 每日随机事件 */
+p2_9_event:{
+  bg:'interior', speaker:'narration', energyDelta:-1,
+  onEnter:'runDailyEvent',
+  text:'角落里似乎有些动静，你走过去凑热闹——',
+  choices:[
+    {text:'继续游玩', next:'p2_9_1', mark:{eventToday:true}}
+  ]
+},
+
+/* ============================================================
+ * P2-9-5  日结算：意满离，回家了（关键节点）
+ * ============================================================ */
+p2_9_5:{
+  bg:'night', label:'夜幕降临', speaker:'narration',
+  text:'你收拾好东西，走出俱乐部。\n夜风吹在脸上，带着一点疲惫和一点满足。\n\n（时间 +1　体力恢复　锤瘾 +1）',
+  choices:[
+    {text:'回家睡觉', action:'nextDay'}
+  ]
+},
+
+/* ============================================================
+ * P2-9-6 / P2-9-9 / P2-9-10 / P2-9-11：一天开始
+ * ============================================================ */
+p2_9_6:{
+  bg:'exterior', label:'工作日', speaker:'narration',
+  textFn:(s)=>'【第' + s.week + '周·' + weekdayName(s.dayOfWeek) + '】\n忙了一天，你打算——',
+  choices:[
+    {text:'加班（¥+300）', next:'p2_9_7'},
+    {text:'去锤店（¥+200）', next:'p2_9_8'}
+  ]
+},
+p2_9_7:{
+  bg:'night', speaker:'narration', money:300, addiction:1,
+  text:'玩锤的事就留到下次吧！你在办公室里对着屏幕熬到深夜，钱包鼓了一点，锤瘾也涨了一点。',
+  choices:[
+    {text:'一头栽进被窝', action:'nextDay'}
+  ]
+},
+p2_9_8:{
+  bg:'interior', speaker:'narration', money:200,
+  text:'你来到达米拉多。老熟人们招呼你："来啦？"',
+  next:'p2_9_1'
+},
+p2_9_9:{
+  bg:'exterior', label:'休息日', speaker:'narration',
+  textFn:(s)=>'【第' + s.week + '周·' + weekdayName(s.dayOfWeek) + '】\n今天是休息日，你早早把模型整备完毕——你知道你必须战斗了！',
+  next:'p2_9_8'
+},
+p2_9_10:{
+  bg:'exterior', label:'工作日 · 第四周', speaker:'narration',
+  textFn:(s)=>'【第' + s.week + '周·' + weekdayName(s.dayOfWeek) + '】\n忙了一天，你记起 7 月店赛快临近了，' + (s.storeRaceEnrolled?'你已经报了名，':'如果还没报名的话，你得赶紧报名了！') + '你打算——',
+  choices:[
+    {text:'加班（¥+300）', next:'p2_9_7'},
+    {text:'去锤店（¥+200）', next:'p2_9_8'}
+  ]
+},
+p2_9_11:{
+  bg:'interior', label:'店赛前夜', speaker:'narration',
+  textFn:(s)=>'明天就是店赛了，你知道必须认真准备。' + (s.storeRaceEnrolled?'':'（如果还没报名，今天已经来不及了。）'),
+  next:'p2_9_8'
+},
+
+/* ============================================================
+ * P2-9-12 店赛日（第4周·周日，已报名）
+ * ============================================================ */
+p2_9_12:{
+  bg:'interior', label:'店赛日', labelSub:'达米拉多 · 瑞士轮',
+  speaker:'narration',
+  text:'不知为何，今天你醒的很早。\n吃早饭时，你想起那个奇妙的早晨——那个早晨，你把鸡蛋磕在桌面上，像是听到了骰子在骰盘里的滚动声。\n\n你最后整理了一遍你的军箱：团策、军表、战术，模型、尺子、骰子……一切准备完毕，你拎着收纳箱推开家门。\n\n达米拉多，店赛日。',
+  next:'p2_9_12b'
+},
+p2_9_12b:{
+  bg:'table', speaker:'narration',
+  text:'你推开俱乐部的大门，空调的冷风被店里阵阵的紧张逐渐加热，空气里飘着模型漆淡淡的气味，和人头攒动带来的微微的汗味，桌面上已提前摆好队长战场。\n\n你将军箱搁在角落，小心翼翼地取出排布整齐的棋子，把它们码放在一个方便的托盘里。四周指挥官互相清点兵力，骰子碰撞声响此起彼伏。',
+  next:'p2_9_12c'
+},
+p2_9_12c:{
+  char:'ligong', expr:'happy', speaker:'ligong',
+  text:'"嗨，你来啦！摇号已经结束了，我们是第一轮的对手哦！我很期待你的表现！"\n\n李工一边说着，一边带你来到你们的对战桌，拉开阵势。\n\n这一个月里，有眼见，有耳闻，你知道他成长了很多——但你知道，你也不差。',
+  next:'p2_9_12d'
+},
+p2_9_12d:{
+  bg:'table', speaker:'narration',
+  text:'【瑞士轮赛制】三轮无淘汰，首轮随机匹配；第二、三轮同战绩配对。单场有效分差上限 20 分，总分最高者夺得优胜。\n本场特约裁判：Dvd、海底。',
+  choices:[
+    {text:'🎲 掷骰开战！', action:'storeRace'}
+  ]
+},
+
+/* ============================================================
+ * P2-9-13 店赛结局一 · 冠军
+ * ============================================================ */
+p2_9_13:{
+  bg:'ending', label:'第二章·结局一', labelSub:'新人夺冠',
+  speaker:'narration', money:1000,
+  affinity:{ligong:5, haidi:3, duorou:3, shalaxi:3},
+  text:'经过三轮的厮杀，你终于完成了全部比赛。第一次参加比赛的你克服了紧张和恐惧，你早早完赛，具体名次还要等待其他桌最后一轮的比分结果。\n\n你远远看向海底，不时有人走到他身边，跟海底说了几句，然后两人齐齐看向你，像是在讨论你，看得你小脸微微一热。\n\n你拿了瓶冰凉的可乐猛喝几口，内心积累的焦躁一扫而光，你缓步走到李工那一桌看他的最后一轮对战。',
+  next:'p2_9_13b'
+},
+p2_9_13b:{
+  bg:'table', speaker:'narration',
+  text:'"我不坚守。"李工的对手抱着肩膀，沉思良久，缓缓吐出这么一句。\n"我算错了！我算错了！"那个对手微胖，竖着寸头，他刚做完决定，随即反悔。\n"让火焰净化一切！"那个对手面露凶光，甩出一把骰子，李工的先锋瞬间损失了一大半，但你看得出，李工已经留足了后手，这一波反扑只是他对手的垂死反抗……\n\n三轮瑞士轮的厮杀终于落幕，裁判高声公布最终总分——\n你以纯新人的身份夺得本次店赛第一名。',
+  next:'p2_9_13c'
+},
+p2_9_13c:{
+  bg:'ending', speaker:'narration',
+  text:'指尖还残留着紧握骰子的紧绷感，桌上历经多局鏖战的棋子静静陈列。四周棋友围上来道贺，李工也笑着向你致意。赛后所有人结伴聚餐，席间大家复盘各场对局，讨论战术得失。\n\n回想一路走来，反复打磨涂装、推演阵容的日夜都有了归宿。一同入坑的李工实力依旧强劲，稳定跻身前列。你享受这份胜利，却并未自满——棋盘之上没有永恒的赢家，这次的胜负只是一时结果。\n\n所以，下一步是什么？下个月的店赛吗？还是，城市联赛？\n\n这一切遥远又贴近，虚假而又真实。\n\n李工取得了第二名的成绩，如果他有时间参赛，你们将在城市联赛再次决一雌雄。你看向李工，你发现李工也在看你，他对你报以微笑，微笑中带有战意——你知道，你依旧是他的"宿敌"。\n\n（比赛奖金 ¥+800　完赛奖励 ¥+200）\n\n—— 第二章 · 完 ——',
+  next:'p2_9_bridge'
+},
+
+/* ============================================================
+ * P2-9-14 店赛结局二 · 落榜
+ * ============================================================ */
+p2_9_14:{
+  bg:'ending', label:'第二章·结局二', labelSub:'时也势也',
+  speaker:'narration', money:400,
+  affinity:{ligong:3, haidi:1, duorou:1, shalaxi:1},
+  textFn:(s)=>'经过三轮的厮杀，你终于完成了全部比赛。第一次参加比赛的你克服了紧张和恐惧，你早早完赛，具体名次还要等待其他桌最后一轮的比分结果。\n\n三轮对战全部结束，总分核算完毕，第【' + (s.storeRaceRank||3) + '】名。\n\n时也势也，战锤毕竟是个运气游戏，虽未能登顶冠军，但几场对局打得酣畅淋漓。你灵活调整战术，和各路对手激烈交锋，积累了不少实战经验。赛事落幕后，众人相约聚餐，席间气氛热闹。',
+  next:'p2_9_14b'
+},
+p2_9_14b:{
+  bg:'ending', speaker:'narration',
+  text:'同你一同起步的李工发挥稳定，竟以新人的身份取得了第二名的好成绩。你们趁着闲聊交流对局里的失误，互相探讨阵容优劣。看着身边同好热烈讨论模型与战术，你心中满是畅快。\n\n这次参赛让你看清自身阵容存在不少短板，你打算回去改良配置，优化思路。静待下一届店赛到来，打磨更强的军团，期待再度站上棋盘，与李工以及众多老对手再度交锋。\n\n（比赛奖励 ¥+200　完赛奖励 ¥+200）\n\n—— 第二章 · 完 ——',
+  next:'p2_9_bridge'
+},
+
+/* ============================================================
+ * P2-9-15 店赛结局三 · 未报名
+ * ============================================================ */
+p2_9_15:{
+  bg:'interior', label:'第二章·结局三', labelSub:'旁观',
+  speaker:'narration', money:200, affinity:{ligong:-1},
+  text:'或许是由于还没准备好，或许是由于不够自信，或者只是单纯忘了，你并未报名本次店赛。\n\n这天的天气格外好，俱乐部除了店赛暂时不接待其他活动。\n\n你抱着看热闹的心态来到达米拉多，赛场气氛热烈。你围在李工那一桌看他的对战，他正一步步把他的对手逼向角落。',
+  next:'p2_9_15b'
+},
+p2_9_15b:{
+  bg:'table', speaker:'narration',
+  text:'"我不坚守。"李工的对手抱着肩膀，沉思良久，缓缓吐出这么一句。\n"我算错了！我算错了！"那个对手微胖，竖着寸头，他刚做完决定，随即反悔。\n"让火焰净化一切！"那个对手面露凶光，甩出一把骰子，李工的先锋瞬间损失了一大半，但你看得出，李工已经留足了后手……\n\n三轮瑞士轮角逐落下帷幕，名次尘埃落定。你得知李工拿下第二名，心中感慨万千——你们是同时入坑战锤的玩家，当初一同摸索规则、慢慢拼装涂装模型。如今他取得名次甚至可以直接参加城市联赛，你由衷感到欣慰。',
+  next:'p2_9_15c'
+},
+p2_9_15c:{
+  char:'ligong', expr:'happy', speaker:'ligong',
+  text:'"很遗憾没有跟你在比赛中交手，希望你下次一定要出现！"\n\n你拍了拍他的肩膀，还给他一个微笑。\n\n经过一天的鏖战，大家都已经精疲力尽，但是赛后的聚餐，大家讨论起比赛的细节来，又来了精神。\n\n席间你看着李工和其他锤友交流战术、讨论对局得失，你暗自下定决心——这一次你错失同台竞技的机会，但未来还有更多赛场。\n\n—— 第二章 · 完 ——',
+  next:'p2_9_bridge'
+},
+
+/* 第二章结束后过渡到路线选择（原 c1_choice） */
+p2_9_bridge:{
+  bg:'interior', label:'尾声', labelSub:'新的抉择',
+  speaker:'narration',
+  text:'店赛之后，你的日子被战锤填得满满当当。\n\n你开始明白：胜负只是这段旅程的一部分——真正让你留下来的，是这家小小的俱乐部，和它里面的人。\n\n下一段故事，才刚刚要开始。',
+  next:'c1_choice'
+},
+
+/* ============================================================
+ * 升魔过场（简化版）
+ * ============================================================ */
+p2_cs_khorne:{
+  bg:'bloodbowl', label:'恐虐低语', labelSub:'BLOOD FOR THE BLOOD GOD',
+  speaker:'narration',
+  text:'骰盘里回响着三次完美的 12 点——一次又一次的完美冲锋。\n你的血液在耳膜里擂鼓。\n\n你听见有个粗粝的声音说：\n"血——献给血神。头骨——献给王座。"\n\n你可以选择接受这份"赐福"：\n· 之后每次冲锋检定获得 +1 加值\n· 但你的战锤之路会染上血色',
+  choices:[
+    {text:'接受赐福（+恐虐）', next:'p2_cs_after', flags:{khorneBlessed:true}, mark:{'cutsceneShown.khorne':true}},
+    {text:'拒绝', next:'p2_cs_after', mark:{'cutsceneShown.khorne':true}}
+  ]
+},
+p2_cs_hornedrat:{
+  bg:'night', label:'大角鼠的低语', labelSub:'Yes-Yes / Die-Die',
+  speaker:'narration',
+  text:'"Yes-yes……Die-die……"\n\n阴影里传来吱吱的碎语，你连续三次投出让人抓狂的士气崩溃／脱轨的选择——大角鼠盯上了你。\n\n· 之后每次士气检定获得 +1 加值\n· 但世界的秩序会开始扭曲',
+  choices:[
+    {text:'接受赐福（+大角鼠）', next:'p2_cs_after', flags:{hornedRatBlessed:true}, mark:{'cutsceneShown.hornedrat':true}},
+    {text:'拒绝', next:'p2_cs_after', mark:{'cutsceneShown.hornedrat':true}}
+  ]
+},
+p2_cs_slaneesh:{
+  bg:'painting', label:'色孽的低语', labelSub:'再一层……就一层',
+  speaker:'narration',
+  text:'你环顾四周——海底、多肉、李工、青嶙……他们中有三个人对你露出了同一种笑。\n\n你桌角的模型开始渗出紫色的晶体。\n"再一层，"有人在你耳边说，"就再一层，就完美了。"\n\n· 之后每场对战的涂装加成翻倍\n· 但你会越来越难停下来',
+  choices:[
+    {text:'接受赐福（+色孽）', next:'p2_cs_after', flags:{slaneeshBlessed:true}, mark:{'cutsceneShown.slaneesh':true}},
+    {text:'拒绝', next:'p2_cs_after', mark:{'cutsceneShown.slaneesh':true}}
+  ]
+},
+p2_cs_after:{
+  bg:'interior', speaker:'narration',
+  text:'……你回过神来。桌上的骰子还是那颗骰子，模型还是那具模型。\n只是不知怎的，今天的空气好像多了一丝别样的气味。',
+  nextFn:(s)=>getNextDaySceneId()
 },
 
 /* ===== ROUTE SELECT ===== */
