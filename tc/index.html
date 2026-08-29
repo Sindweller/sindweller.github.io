@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>迈向昨日的明天 · 文化祭篇</title>
+<style>
+  :root{
+    --bg-dark:#0a0a12; --bg-mid:#13131f; --bg-light:#1e1e30;
+    --gold:#c5a059; --gold-l:#e8c878; --gold-d:#8a7030;
+    --text:#e0d8c8; --dim:#7a7a8a;
+    --huajie:#e8a888; --xxj:#8ab4d8; --baig:#e0a050; --jerry:#e8d060;
+    --zeen:#b0a0e0; --chong:#c89ad0; --yuqing:#8ab89a; --xiao:#e88888; --mafeng:#9ab8d8;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{width:100%;height:100%;overflow:hidden;background:#000;
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif; user-select:none;}
+  #game{
+    position:relative; width:100%; height:100%; max-width:1024px; margin:0 auto;
+    background:var(--bg-dark); overflow:hidden; display:flex; flex-direction:column;
+  }
+  #titlebar{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    padding:7px 14px; background:linear-gradient(90deg,#12121e,#1a1a2a);
+    border-bottom:2px solid var(--gold-d); z-index:3; flex-shrink:0;
+  }
+  #titlebar b{color:var(--gold-l); font-size:14px; letter-spacing:2px; white-space:nowrap;}
+  #stage{
+    flex:1; position:relative; overflow:hidden;
+    background:
+      radial-gradient(ellipse at 50% 115%, rgba(197,160,89,.10), transparent 62%),
+      linear-gradient(180deg,#0e0e1a,#171730 62%,#0b0b14);
+  }
+  #stage::before{
+    content:""; position:absolute; inset:0; opacity:.5;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='200'%3E%3Cpath d='M0,180 Q90,120 170,160 Q260,100 340,150 Q430,110 510,150 Q580,130 640,165 L640,200 L0,200 Z' fill='%23242638'/%3E%3Crect x='70' y='120' width='20' height='60' fill='%231f2132'/%3E%3Crect x='95' y='140' width='13' height='40' fill='%23232638'/%3E%3Crect x='300' y='100' width='24' height='80' fill='%231f2132'/%3E%3Crect x='330' y='120' width='15' height='60' fill='%23232638'/%3E%3Crect x='480' y='115' width='20' height='65' fill='%231f2132'/%3E%3C/svg%3E");
+    background-size:100% 100%; background-repeat:no-repeat; background-position:bottom;
+  }
+  #scene-label{
+    position:absolute; top:10px; left:14px; z-index:2;
+    color:var(--gold-l); font-size:12px; letter-spacing:2px;
+    background:rgba(10,10,18,.6); padding:4px 12px; border:1px solid var(--gold-d); border-radius:3px;
+  }
+  #affinity{
+    position:absolute; top:10px; right:14px; z-index:2;
+    display:flex; flex-direction:column; gap:4px;
+    background:rgba(10,10,18,.6); border:1px solid var(--bg-light); border-radius:6px;
+    padding:7px 10px; font-size:11px; line-height:1.4;
+  }
+  #affinity .af{display:flex; align-items:center; gap:6px; white-space:nowrap;}
+  #affinity .af .heart{font-size:11px;}
+  #affinity .af .nm{color:var(--text); letter-spacing:1px;}
+  #affinity .af .val{color:var(--gold-l); font-weight:700; min-width:14px; text-align:right;}
+  #affinity .af .bar{width:40px; height:6px; background:var(--bg-light); border-radius:2px; overflow:hidden;}
+  #affinity .af .bar i{display:block; height:6px; border-radius:2px;}
+  #dialog{
+    flex-shrink:0; padding:14px 26px 16px; min-height:188px; position:relative;
+    background:linear-gradient(180deg,rgba(10,10,18,.82),rgba(14,14,24,.96));
+    border-top:2px solid var(--gold-d); box-shadow:0 -10px 30px rgba(0,0,0,.5);
+  }
+  #dialog::before{content:""; display:block; position:absolute; top:-2px; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent); opacity:.7;}
+  #nameplate{
+    display:inline-block; background:linear-gradient(135deg,var(--bg-mid),var(--bg-light));
+    border:1px solid var(--gold-d); border-radius:4px; color:var(--gold-l);
+    font-size:16px; font-weight:700; letter-spacing:2px; padding:4px 14px; margin-bottom:8px;
+  }
+  #nameplate.narration{border-color:var(--dim); color:var(--dim);}
+  #nameplate.hua{color:#e8a888; border-color:var(--huajie);}
+  #nameplate.xxj{color:#8ab4d8; border-color:var(--xxj);}
+  #nameplate.bai{color:#e0a050; border-color:var(--baig);}
+  #nameplate.jer{color:#e8d060; border-color:var(--jerry);}
+  #nameplate.zee{color:#b0a0e0; border-color:var(--zeen);}
+  #nameplate.cho{color:#c89ad0; border-color:var(--chong);}
+  #nameplate.yu{color:#8ab89a; border-color:var(--yuqing);}
+  #nameplate.xia{color:#e88888; border-color:var(--xiao);}
+  #nameplate.ma{color:#9ab8d8; border-color:var(--mafeng);}
+  #text{color:var(--text); line-height:2; font-size:16px; white-space:pre-wrap; min-height:96px;}
+  #choices{margin-top:10px;}
+  .choice{
+    display:block; width:100%; text-align:left; background:linear-gradient(135deg,rgba(30,30,48,.9),rgba(20,20,34,.95));
+    color:var(--text); border:1px solid var(--bg-light); border-left:3px solid var(--gold-d);
+    border-radius:4px; padding:10px 14px; margin:6px 0; font-size:15px; cursor:pointer; transition:.15s;
+  }
+  .choice:hover{background:linear-gradient(135deg,#2a2a42,#232338); border-left-color:var(--gold-l); color:var(--gold-l);}
+  #menu{
+    position:absolute; inset:0; z-index:6; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+    background:radial-gradient(ellipse at center,#171526,#0a0a12 70%);
+    color:var(--text); text-align:center; padding:20px;
+  }
+  #menu::after{content:""; position:absolute; inset:0; opacity:.5; pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Ccircle cx='20' cy='30' r='2' fill='%23c5a059' opacity='.4'/%3E%3Ccircle cx='80' cy='20' r='1.5' fill='%23c5a059' opacity='.3'/%3E%3Ccircle cx='55' cy='80' r='2' fill='%23c5a059' opacity='.35'/%3E%3C/svg%3E");}
+  #menu>*{position:relative; z-index:1;}
+  #menu h1{font-size:34px; letter-spacing:4px; color:var(--gold-l); text-shadow:0 0 24px rgba(197,160,89,.35);}
+  #menu .sub{color:var(--gold-d); letter-spacing:6px; font-size:15px;}
+  #menu p{color:#b8bcc9; font-size:14px; max-width:520px; line-height:1.9;}
+  #menu .aff-row{font-size:12px; color:var(--dim); line-height:1.8;}
+  #menu button{
+    background:linear-gradient(135deg,var(--gold),#a8873f); color:#15151f; border:none; border-radius:4px;
+    padding:12px 44px; font-size:16px; font-weight:700; cursor:pointer; letter-spacing:3px; box-shadow:0 0 20px rgba(197,160,89,.25);
+  }
+  #menu button:hover{filter:brightness(1.12);}
+  #ending-screen{
+    position:absolute; inset:0; z-index:7; display:none; flex-direction:column; align-items:center; justify-content:center; gap:18px; text-align:center; padding:24px;
+    background:radial-gradient(ellipse at center,#221d33,#0a0a12 72%); color:var(--text);
+  }
+  #ending-screen .end-route{color:var(--dim); letter-spacing:4px; font-size:14px;}
+  #ending-screen .end-title{font-size:30px; letter-spacing:4px; color:var(--gold-l); text-shadow:0 0 26px rgba(197,160,89,.4);}
+  #ending-screen .end-text{color:#cdc4b0; line-height:2; max-width:620px; white-space:pre-wrap;}
+  #ending-screen button{
+    background:linear-gradient(135deg,var(--gold),#a8873f); color:#15151f; border:none; border-radius:4px;
+    padding:11px 36px; font-size:15px; font-weight:700; cursor:pointer; letter-spacing:2px;
+  }
+  #ending-screen button:hover{filter:brightness(1.12);}
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="titlebar">
+    <b>迈向昨日的明天</b>
+  </div>
+  <div id="stage">
+    <div id="scene-label">共通线 · 序章</div>
+    <div id="affinity"></div>
+  </div>
+  <div id="dialog">
+    <div id="nameplate">旁白</div>
+    <div id="text"></div>
+    <div id="choices"></div>
+  </div>
+
+  <div id="menu">
+    <h1>迈向昨日的明天</h1>
+    <div class="sub">文 化 祭 篇</div>
+    <p>九月，开学第一天。<br>你遇到了命中注定的人。<br>这所名为 tc 的高中，从此不再普通。</p>
+    <div style="color:var(--dim);letter-spacing:3px;font-size:13px;margin-top:16px">potomato presents</div>
+    <button onclick="startGame()">▸ 开始游戏</button>
+  </div>
+
+  <div id="ending-screen">
+    <div class="end-route" id="end-route"></div>
+    <div class="end-title" id="end-title"></div>
+    <div class="end-text" id="end-text"></div>
+    <button onclick="location.reload()">回到标题</button>
+  </div>
+</div>
+
+<script>
+// ============ 状态 ============
+var state = { aff:{}, flags:{} };
+var AFFS = ["花姐","xxj","白给","jerry","zeen","充"];
+
+// ============ 叙事节点引擎 ============
+function node(d){ // build from {text, name, next | choices}
+  var n = { text:d.text, name:d.name||"旁白", choices:[] };
+  if(d.next!==undefined){ n.choices.push({ text:"▸ 继续", next:d.next }); }
+  if(d.choices){
+    for(var i=0;i<d.choices.length;i++){
+      var c = d.choices[i];
+      n.choices.push({ text:c.text, next:c.next, effect:c.effect||null, show:c.show||null });
+    }
+  }
+  return n;
+}
+
+// 便捷好感调整
+function aff(k,v){ return function(){ state.aff[k]=(state.aff[k]||0)+v; }; }
+function flag(k,v){ return function(){ state.flags[k]=v; }; }
+function setRoute(r){ return function(){ state.route=r; }; }
+
+// ============ 剧本数据 ============
+var S = {};
+
+// ---------- 序章 ----------
+S.pro_start = node({
+  name:"旁白",
+  text:"九月，开学第一天。校门口大得不像话，人流像被吸进鲸鱼嘴里一样涌进教学楼。\n你站在公告栏前，被身后的同学挤得几乎贴上去。阳光反射在白纸上，你注视着学生会名单。",
+  next:"pro_door"
+});
+S.pro_door = node({
+  name:"？？？",
+  text:"「同学，不要挡在公告栏前面。」\n身后传来一个女声，冷淡，带着一点点不耐烦。",
+  choices:[
+    { text:"头也不回：「等我看完。」", next:"pro_a1", effect:function(){ state.flags.ma=0; state.aff["花姐"]=(state.aff["花姐"]||0)+0; state.flags.cold=(state.flags.cold||0)+1; } },
+    { text:"回头道歉，脱口喊「迈姐」", next:"pro_a2", effect:function(){ state.flags.ma=1; state.aff["花姐"]=(state.aff["花姐"]||0)+1; state.flags.title="迈姐"; } }
+  ]
+});
+S.pro_a1 = node({
+  name:"？？？",
+  text:"你感觉到背后的气压骤然降低。一只手「啪」地按在公告栏上，从你耳边伸过来，指节用力得发白。\n「……行，你慢慢看。」她冷着脸走开。",
+  next:"pro_baig"
+});
+S.pro_a2 = node({
+  name:"花姐",
+  text:"你转身，一个精致的女生抱臂站在后面，胸前的学生会牌反射着光。\n「迈姐好」三个字从嘴里漏出来。她的表情变了，身边几个学生会成员「噗」地笑出来。",
+  next:"pro_baig"
+});
+S.pro_baig = node({
+  name:"白给",
+  text:"高一（3）班。你找到座位坐下，旁边的女孩黑皮肤、短头发，正把腿翘在课桌上刷手机，袖子撸到肩膀，露出结实的胳膊。\n「哟，新同学，我叫白给，以后有事报我名字。」\n「报你名字有什么用？」\n「没用，但很帅。」",
+  next:"pro_xxj"
+});
+S.pro_xxj = node({
+  name:"旁白",
+  text:"放学，鞋柜前。你刚换好鞋，一个人从旁边递过一串钥匙：「你……你钥匙掉了。」\n是邻居xxj。她穿着整洁的校服，隐隐散发出洗衣液的香气，额间碎发随风飘动，书包侧袋露出一本包着书皮的书。目光扫过你书包侧袋，又小声补了一句：「那个……你书包上的挂件，是《星之回响》的吗？」",
+  choices:[
+    { text:"「你也看《星之回响》？」", next:"pro_xxj1", effect:function(){ state.aff["xxj"]=(state.aff["xxj"]||0)+1; state.flags.talk_lingsa=true; } },
+    { text:"「啊，谢谢。」收下钥匙扣转身离开", next:"pro_xxj2", effect:function(){ state.aff["xxj"]=(state.aff["xxj"]||0)-1; } }
+  ]
+});
+S.pro_xxj1 = node({
+  name:"xxj",
+  text:"她愣了一下，眼睛随即亮起来，抬头认真地看着你：「嗯，我很喜欢凛香。那段独白，我看了很多遍。」\n你记住了这个叫「凛香」的名字。",
+  next:"pro_zeen"
+});
+S.pro_xxj2 = node({
+  name:"旁白",
+  text:"身后传来轻轻「诶」的一声，像有什么话被咽了回去。\n（低好感路线下，次日她会主动再来搭话。）",
+  next:"pro_zeen"
+});
+S.pro_zeen = node({
+  name:"旁白",
+  text:"图书馆。你推门进去，借阅台后面坐着一个黑长直、戴眼镜的学姐，黑色过膝袜包裹的双腿交叠着。\n她头也没抬：「新生？知道借书流程吗。不知道的话——算了你肯定不知道。」\n接下来五分钟，她面无表情地向你解释了图书馆分类法和借阅系统的「底层逻辑」。到扫码时，机器卡住了。",
+  next:"pro_zeen2"
+});
+S.pro_zeen2 = node({
+  name:"zeen",
+  text:"她皱了皱眉，越点越糟，最后拍了一下机器，机器「嘀嘀」响了三声。\n你试探着：「学姐，要不要重启？」\n「你在质疑我的操作？这是系统层面的响应延迟，不是重启能解决的。」\n她继续点了二十下。机器彻底黑屏。沉默三秒后，她扶了扶眼镜，不以为然地说：「……重启也能解决百分之百的问题。」",
+  choices:[
+    { text:"「学姐挺厉害的。」", next:"pro_zeenA", effect:function(){ state.aff["zeen"]=(state.aff["zeen"]||0)+3; state.flags.talk_sys=true; } },
+    { text:"「所以刚才为什么不重启？」", next:"pro_zeenB", effect:function(){ state.aff["zeen"]=(state.aff["zeen"]||0)-1; state.flags.zeen_conflict=true; state.flags.cold=(state.flags.cold||0)+1; } }
+  ]
+});
+S.pro_zeenA = node({ name:"zeen", text:"zeen看了你一眼：「你比看起来聪明一点。」", next:"ch1" });
+S.pro_zeenB = node({ name:"zeen", text:"zeen面色不善：「你在教我做事？」\n但她记住你了。", next:"ch1" });
+
+// ---------- 第一章 ----------
+S.ch1 = node({
+  name:"旁白", text:"开学第二周。你发现在这所学校，奇怪的人比想象中更多。\n首先是同班的两个男生——不对，是——语倾和小赵。", next:"ch1_tz"
+});
+S.ch1_tz = node({
+  name:"小赵",
+  text:"「新同学，坐那么远干嘛？我又不会吃了你。」\n语倾：「小赵，你不要吓到人家。」\n小赵：「我哪里吓人了？我这么可爱。」\n语倾叹了口气，朝你抱歉地笑了笑。",
+  next:"ch1_jerry"
+});
+S.ch1_jerry = node({
+  name:"旁白",
+  text:"放学路上，你走出校门，看见一个打扮时尚的女孩子靠在电线杆旁嚼口香糖。她看见你，吹了个泡泡，「啪」地破了，露出一个肆意飞扬的笑。",
+  next:"ch1_jerry2"
+});
+S.ch1_jerry2 = node({
+  name:"jerry",
+  text:"「哟，tc高校的新生。没有见过你？」\n「我……」\n「哪个班的？」\n「……你是学生吗？」\n「你猜。」\n她绕着你转了一圈：「还不知道你jerry姐。不过你以后会求我办事的。」",
+  next:"ch1_xxj_warhammer"
+});
+S.ch1_xxj_warhammer = node({
+  name:"旁白",
+  text:"回到小区，天快黑了。楼下的自动贩卖机前蹲着一个人，是xxj。她抱着一瓶没拧开的汽水，眼睛盯着贩卖机旁边的空地，嘴里念念有词。你走近一听，她在说：「……为了帝皇。」",
+  choices:[
+    { text:"「为了帝皇？」", next:"ch1_wh1", effect:function(){ state.aff["xxj"]=(state.aff["xxj"]||0)+1; state.flags.talk_warhammer=true; } },
+    { text:"装作没听见，走过去买水", next:"ch1_wh2", effect:function(){} }
+  ]
+});
+S.ch1_wh1 = node({
+  name:"xxj",
+  text:"xxj身形一顿，汽水「啪」地掉在地上滚出老远。她定了定神，拾起瓶子，抬头看向你：「……你听到了？」\n你点头。她没躲，反而问：「那你觉得，战锤有意思吗？」",
+  next:"ch1_huajie"
+});
+S.ch1_wh2 = node({
+  name:"旁白",
+  text:"xxj松了一口气，但眼神里闪过一丝失落。\n（她会在后续试探你是否讨厌她。）",
+  next:"ch1_huajie"
+});
+S.ch1_huajie = node({
+  name:"旁白",
+  text:"第二天午休，你在走廊看见花姐在训一个没穿校服外套的男生。她语速很快，每一句都像在刀切豆腐：「规定就是规定，你热，别人不热？学生会干事每天早上六点五十到校，你几点起来的，啊？」\n那男生被训得抬不起头。花姐走后，他朝她的背影小声骂了一句。\n你听见了，冲上去盯着那个男生：\n「自己做错了事，还这么不敞亮，难怪花姐看不起你。」\n对方瞬间红温，但他显然没那个胆子继续反击你。",
+  choices:[
+    { text:"去学生会室告诉花姐", next:"ch1_hj1", effect:function(){ state.aff["花姐"]=(state.aff["花姐"]||0)+2; state.flags.Epos=true; } },
+    { text:"当作没听见", next:"ch1_hj2", effect:function(){} }
+  ]
+});
+S.ch1_hj1 = node({
+  name:"花姐",
+  text:"花姐听完沉默了一秒，随即冷笑：「我知道他是这样的人。这种事我自己会处理，不用你替我出头。」她顿了顿，语气缓了半分：「……不过，谢了。」\n说完递给你一瓶冰水。",
+  next:"ch2"
+});
+S.ch1_hj2 = node({
+  name:"旁白",
+  text:"花姐在走廊上远远看了你一眼，像知道了什么。",
+  next:"ch2"
+});
+
+// ---------- 第二章 ----------
+S.ch2 = node({
+  name:"旁白",
+  text:"第三周。你开始频繁跑图书馆。原因之一，是zeen在借阅台后面的表情太有意思了。\n她会用「语义网络」「行为路径优化」之类的词解释为什么把推理小说放在哲学区旁边是合理的。结果被花姐带人检查时，整个书架的分类被判定为「不符合校图书馆管理条例」，勒令重排。",
+  next:"ch2_zeen_argue"
+});
+S.ch2_zeen_argue = node({
+  name:"zeen",
+  text:"zeen据理力争：「我的分类法在信息检索效率上优于传统中图法。」\n花姐：「这是学校，不是你的实验室。要么按制度来，要么你换个地方当志愿者。」\nzeen咬着下唇，半晌没说话。最后她扶了扶眼镜，小声说：「制度不合理时，修正制度才是正解。」\n花姐走后，她默默开始重新排书架。你在旁边帮忙，她抬头看了你一眼，没说谢谢，只说：「右下第三排，放错了。」",
+  next:"ch2_chong"
+});
+S.ch2_chong = node({
+  name:"旁白",
+  text:"午休，食堂。你第一次见到「充」。\n她走进食堂的时候，整个空间像被人按了静音。她端着餐盘，步伐不紧不慢，长发在背后轻轻晃动。没有人上前搭话，只是自动让出一条路。\n你旁边的小赵用筷子戳着饭：「完美的女人，真是犯规啊。」\n语倾：「你别乱说人家。」",
+  next:"ch2_chong2"
+});
+S.ch2_chong2 = node({
+  name:"旁白",
+  text:"第二天放学，你经过旧校舍后面的花圃，看见充弯着腰，在跟谁说话。那人躲在阴影里，只能看见半张脸——是马蜂。他穿着男生校服，却扎着侧马尾。充看着他，眼神温柔得不像「校花」，像另一个人。",
+  choices:[
+    { text:"偷听", next:"ch2_f1", effect:function(){ state.flags.steal=true; state.aff["充"]=(state.aff["充"]||0)+3; } },
+    { text:"装作路过，直接走", next:"ch2_f2", effect:function(){ state.flags.mafeng_good=true; } }
+  ]
+});
+S.ch2_f1 = node({
+  name:"旁白",
+  text:"你听见充小声说：「今天又被老师叫去谈话了，好烦。」\n马蜂笑：「那今晚打游戏？」\n你隐约察觉两人关系不一般。获得关键线索【充的另一面】。",
+  next:"ch3"
+});
+S.ch2_f2 = node({
+  name:"旁白",
+  text:"你经过时，充回头看了你一眼，微笑点头。马蜂也探出头，朝你挥了挥手。\n（马蜂对你留下友善印象。）",
+  next:"ch3"
+});
+
+// ---------- 第三章 ----------
+S.ch3 = node({
+  name:"旁白",
+  text:"第四周。文化祭进入筹备期。班里投票决定做女仆咖啡厅还是鬼屋。\n白给第一个跳起来：「鬼屋啊！女仆咖啡厅没意思！」\n小赵撑着下巴笑：「女仆咖啡厅多好，我可以穿女仆装。」\n语倾：「你穿女仆装，那还叫女仆咖啡厅吗……」\n小赵：「怎么，我不可爱吗？」\n语倾：「可、可爱……」",
+  next:"ch3_vote"
+});
+S.ch3_vote = node({
+  name:"白给",
+  text:"白给一把勾住你的脖子：「主角，你说！鬼屋还是女仆咖啡厅！」\n全班的目光聚集过来。你看了看白给，又看了看小赵。",
+  choices:[
+    { text:"支持鬼屋", next:"ch3_ghost", effect:function(){ state.flags.cat="ghost"; state.aff["白给"]=(state.aff["白给"]||0)+3; state.flags.baigEvent=(state.flags.baigEvent||0)+1; } },
+    { text:"支持女仆咖啡厅", next:"ch3_maid", effect:function(){ state.flags.cat="maid"; state.flags.maidTalk=(state.flags.maidTalk||0)+1; } },
+    { text:"弃权", next:"ch3_abstain", effect:function(){ state.flags.cat="abstain"; state.flags.cold=(state.flags.cold||0)+1; } }
+  ]
+});
+S.ch3_ghost = node({
+  name:"白给",
+  text:"白给用力拍你的背：「好兄弟！我果然没看错你！」\n（鬼屋路线确定。）",
+  next:"ch3_night_xxj"
+});
+S.ch3_maid = node({
+  name:"小赵",
+  text:"小赵朝你眨眨眼：「有眼光。」语倾脸红了一下。\n（女仆咖啡厅路线确定。）",
+  next:"ch3_night_xxj"
+});
+S.ch3_abstain = node({
+  name:"花姐",
+  text:"花姐正好巡查到门口，冷笑：「高一（3）班连个决定都做不出来？」\n（学生会长的裁决介入。）",
+  next:"ch3_night_xxj"
+});
+S.ch3_night_xxj = node({
+  name:"旁白",
+  text:"当晚，你回家时又碰到xxj。她抱着一大袋快递，摇摇晃晃地走。你上前帮忙，看见快递单上写着「战锤40K 战斗修女 树脂模型」。\nxxj朝你竖起食指，搁在唇边：「嘘——」",
+  choices:[
+    { text:"「好酷。」", next:"ch3_xxjH1", effect:function(){ state.aff["xxj"]=(state.aff["xxj"]||0)+1; state.flags.talk_sister=true; } },
+    { text:"「我不会说的。」", next:"ch3_xxjH2", effect:function(){} }
+  ]
+});
+S.ch3_xxjH1 = node({
+  name:"xxj",
+  text:"xxj略微错愕，随即大方地笑了：「……你还真懂。」",
+  next:"ch3_end"
+});
+S.ch3_xxjH2 = node({
+  name:"旁白",
+  text:"「这是我们两个的秘密。」她顿了顿，补了一句：「下次有空……一起涂吗？」",
+  next:"ch3_end"
+});
+S.ch3_end = node({
+  name:"旁白",
+  text:"第三章结束。夜晚降临，文化祭就在明天。\n在睡前，你回想着开学以来发生的一切——\n（根据前面积累的好感与选择，通往不同的道路……）",
+  choices:[
+    { text:"▸ 闭上眼，等待明天", next:null, effect:function(){ routeResolve(); } }
+  ]
+});
+
+// ---------- 路线分歧：谁好感最高进谁 ----------
+function routeResolve(){
+  var a = state.aff;
+  var F = state.flags;
+  // 六位可攻略角色；jerry 无共通好感，作为零投入时的兜底
+  var order = ["花姐","xxj","白给","zeen","充"];
+  var max = -999, winner = null;
+  order.forEach(function(k){
+    var v = a[k]||0;
+    if(v > max){ max = v; winner = k; }
+  });
+  var route;
+  if(max <= 0){
+    // 全程几乎没给任何人好感
+    route = ((F.cold||0)>=3) ? "隐藏" : "jerry";
+  } else {
+    route = winner;
+  }
+  state.route = route;
+  current = S["route_"+route];
+  elem.scene.textContent = "个人线 · " + route + (route==="隐藏"?"结局":"篇");
+  render();
+}
+
+// ============ 个人线：花姐 ============
+S["route_花姐"] = node({ name:"旁白", text:"【花姐线 · 称呼的重量】\n你被花姐叫去学生会室。原因是「今早在校门口没系领带」。\n学生会室里只有她一个人。她坐在靠窗的位置，桌上摊着文件，旁边一杯黑咖啡冒着热气。", next:"hua_H1" });
+S.hua_H1 = node({
+  name:"花姐",
+  text:"「你知不知道风纪分扣到一定程度会怎样？」\n「会请家长？」\n「你还挺清楚的。那怎么不把领带系好？」",
+  choices:[
+    { text:"「出门太急，忘了。」", next:"hua_H1a", effect:function(){ state.aff["花姐"]=(state.aff["花姐"]||0)+1; } },
+    { text:"「其实我不太会打领带。」", next:"hua_H1b", effect:function(){ state.aff["花姐"]=(state.aff["花姐"]||0)+2; state.flags.tie=true; } }
+  ]
+});
+S.hua_H1a = node({ name:"花姐", text:"花姐冷笑：「急到脖子都露着就出门，你倒是挺凉快。」她递过来一张风纪警告单，但纸的背面用铅笔写着一行小字——「下次注意点。」", next:"hua_H2" });
+S.hua_H1b = node({
+  name:"花姐",
+  text:"花姐在克制自己露出嫌弃的表情，但你从中读出了。她放下咖啡杯，站起来绕到你面前，伸手把你衬衫领子翻正，动作很快，像在掩饰什么：「……看好，这么打。」\n她的手很巧，但脸始终别向一边。\n（获得CG【学生会室的领带课】）",
+  next:"hua_H2"
+});
+S.hua_H2 = node({
+  name:"旁白",
+  text:"文化祭筹备期间，你被分到风纪组，跟着花姐巡场。她走在前面，你在后面。她不停地否定你的判断。\n「这个摊位消防通道堵住了，你没看见？」\n「看见了，正准备说。」\n「准备说？等火烧起来再说？」\n「下次直接说。」",
+  next:"hua_H2b"
+});
+S.hua_H2b = node({
+  name:"旁白",
+  text:"巡场结束后，花姐靠在体育器材室门口喝水。夕阳把她的影子拉得很长。她突然问：「他们背后黑我什么，你知道吗？」\n「……不知道，但我会攻击一切攻击你的人。」\n「你为什么这么做？」\n「迈姐，我……」\n她突然把水瓶递给你，打断了你的话：「……以后叫的好听点。」",
+  choices:[
+    { text:"「以后只叫花姐。」", next:"hua_H2a", effect:function(){ state.aff["花姐"]=(state.aff["花姐"]||0)+1; state.flags.call="花姐"; } },
+    { text:"「迈姐就挺好听的。」", next:"hua_H2b2", effect:function(){ state.aff["花姐"]=(state.aff["花姐"]||0)+2; state.flags.call="迈姐"; } }
+  ]
+});
+S.hua_H2a = node({ name:"花姐", text:"花姐愣了一下，转过头，声音低下来：「……随便你。」\n（进入【花姐·正名路线】）", next:"hua_H3" });
+S.hua_H2b2 = node({ name:"花姐", text:"花姐把水瓶扔还给你：「闭嘴。」但她的耳尖红了。\n（进入【花姐·迈姐路线】）", next:"hua_H3" });
+S.hua_H3 = node({
+  name:"旁白",
+  text:"放学时下起大雨。你没带伞，在校门口等雨停。花姐撑伞走过来，在你面前站定：「傻站着？」\n「没带伞。」\n「真没用。」\n她把伞往你这边偏了偏：「去便利店，顺路。别误会，我正好要去买东西。」",
+  next:"hua_H3b"
+});
+S.hua_H3b = node({
+  name:"旁白",
+  text:"便利店里，她拿起一罐黑咖啡，又放下，拿了一瓶草莓牛奶。结账时，店员说：「学生会长，这是你男朋友？」\n花姐：「关你什么事。」\n但她没有否认。\n出便利店，雨小了。她忽然问：「你觉得我过于严厉吗？」\n这问题来得太突然。",
+  choices:[
+    { text:"「不会，你是为大家好。」", next:"hua_H3a", effect:function(){ state.aff["花姐"]=(state.aff["花姐"]||0)+1; } },
+    { text:"「被这么漂亮的学姐教训也未尝不是一件美事。」", next:"hua_H3b2", effect:function(){ state.aff["花姐"]=(state.aff["花姐"]||0)+2; state.flags.milk=true; } }
+  ]
+});
+S.hua_H3a = node({ name:"花姐", text:"花姐冷笑：「敷衍。」但她的步伐明显轻快起来。", next:"hua_H4" });
+S.hua_H3b2 = node({ name:"花姐", text:"花姐差点把伞砸在你头上：「你要死啊？」然后打开插好草莓牛奶的吸管递给你。「喝吧，不想听你说话。」\n（获得CG【雨天的草莓牛奶】）", next:"hua_H4" });
+S.hua_H4 = node({
+  name:"旁白",
+  text:"文化祭前一天晚上，花姐叫你去天台。她站在围栏边，手里捏着一张纸。\n你走近，发现那是风纪检查日志，上面写着：高一（3）班，鬼屋，消防通道整改合格。名字是你签的。\n花姐：「字真丑。」\n「你叫我上来就为说这个？」\n「……不是。」",
+  next:"hua_H4b"
+});
+S.hua_H4b = node({
+  name:"花姐",
+  text:"她沉默了很久。远处是城市的光，车流像发光的河流。\n「你刚入学那天，叫了我什么？」\n「迈姐。」\n「当时我觉得，这人真是没大没小。后来发现，好像只有你会那么叫。别人叫都是笑话，只有你叫，像真的在叫一个人。」\n她转过身，直视你：「再叫一次。」",
+  choices:[
+    { text:"「迈姐。」", next:"hua_end1", effect:function(){} },
+    { text:"「花姐。」", next:"hua_end2", effect:function(){} }
+  ]
+});
+S.hua_end1 = node({
+  name:"花姐",
+  text:"她笑了一下，随即板起脸：「以后只能在没人的时候叫。」\n（花姐线结局【迈步的约定】·CG【天台上的迈姐】）",
+  next:"ending"
+});
+S.hua_end2 = node({
+  name:"花姐",
+  text:"她的眼中似有情绪万千，只是最后化为平静无波，轻声说：「……也好。」\n（花姐线结局【正名】·CG【被承认的名字】）",
+  next:"ending"
+});
+
+// ============ 个人线：xxj ============
+S["route_xxj"] = node({ name:"旁白", text:"【xxj线 · 为了帝皇，也为了你】\n周末，你在家打游戏。敲门声响起，是xxj。她穿着居家服，怀里抱着一个盒子，试探地开口：「……你上次说酷，我拼好了。要不要……看看？」", next:"xxj_X1" });
+S.xxj_X1 = node({
+  name:"旁白",
+  text:"你去了她家。房间不大，但很干净。书架上整排整排的轻小说，墙角放着一个透明展示柜，里面装着涂好颜色的战锤模型。战斗修女、星际战士、恐虐恶魔，每一个都涂得极其精细。\n「这些全是你涂的？」\n「嗯……周末会涂一下午。只有我一个人，就……涂这个。」",
+  choices:[
+    { text:"「涂得真厉害呀。」", next:"xxj_X1a", effect:function(){ state.aff["xxj"]=(state.aff["xxj"]||0)+2; } },
+    { text:"「这个战斗修女的配色很像凛香。」", next:"xxj_X1b", effect:function(){ state.aff["xxj"]=(state.aff["xxj"]||0)+3; state.flags.lingsa_hidden=true; } }
+  ]
+});
+S.xxj_X1a = node({ name:"xxj", text:"xxj看着你，眼睛亮亮的：「你懂行的话，下次我教你涂。」", next:"xxj_comiket" });
+S.xxj_X1b = node({ name:"xxj", text:"xxj微微一怔，随后认真地看着你：「……你还记得啊。」\n（解锁隐藏对话【凛香的火焰】）", next:"xxj_comiket" });
+S.xxj_comiket = node({
+  name:"旁白",
+  text:"市里漫展，xxj约你一起去。她穿了一件黑色连衣裙，头上别着星星发卡，脸上画了淡妆，整个人跟在学校里判若两人。\n在漫展上，她对着摊位的战锤同人画集移不开眼。你看着标价，拿起来去付钱。她追上来：「我自己来就好。」\n「我买给自己的，看完借你。」\n「骗人，你根本不看这个。」\n「现在开始看了。」",
+  next:"xxj_comiket2"
+});
+S.xxj_comiket2 = node({
+  name:"xxj",
+  text:"你们坐在漫展角落的咖啡区休息。她抱着那本画集，忽然说：「我似乎一直在寻找『同类』，但从未有过。」\n「那我可以是吗？」\n她抬头看你，目光平静而认真：「也许——我知道，你是认真的。」",
+  next:"xxj_paint"
+});
+S.xxj_paint = node({
+  name:"旁白",
+  text:"文化祭前，xxj说班里的鬼屋需要一个「帝皇雕像」当镇宅。你帮她一起涂模型，一直涂到深夜。\n房间里只有台灯亮着。xxj的手很稳，笔尖在模型表面移动时几乎不发出声音。你学着她的动作，涂得歪歪扭扭。她看了你一眼，轻轻笑了一下：「你涂得像被混沌污染了。」\n「你笑了。」\n她立刻板起脸：「好好涂嘛。」",
+  next:"xxj_paint2"
+});
+S.xxj_paint2 = node({
+  name:"xxj",
+  text:"模型完成时，我们并肩坐在她房间的地板上。她看着展柜里新加入的作品，忽然开口：「其实，我还有个秘密。我有时候会想，如果现实生活也能像战锤世界一样简单，喜欢什么都明明白白的，该多好。」\n她顿了顿，看向你：「但后来我发现，现实里有比涂完一个模型更开心的事。」",
+  choices:[
+    { text:"「比如什么？」", next:"xxj_X2a", effect:function(){} },
+    { text:"「比如和我一起涂模型？」", next:"xxj_X2b", effect:function(){ state.flags.xxj_confess=true; } }
+  ]
+});
+S.xxj_X2a = node({ name:"xxj", text:"她没立刻回答，过了一会儿才说：「……改天告诉你。」声音不大，却没有躲。\n（进入【告白前夜】）", next:"xxj_end" });
+S.xxj_X2b = node({ name:"xxj", text:"她抬起头，认真地点了点头。\n（获得CG【涂装之夜】，进入xxj线结局）", next:"xxj_end" });
+S.xxj_end = node({
+  name:"xxj",
+  text:"文化祭当天，鬼屋门口摆着那尊我们一起涂完的帝皇雕像。xxj站在入口，穿着你帮她选的cos服，对每一个游客认真地说「欢迎光临」。你在旁边帮她发传单。到了傍晚，她拉住你的袖口，仰头看着你，目光坦诚：「我想涂一个你。你愿意做我的模型吗？」\n你愣住了。她虽然红着脸，眼神却亮得惊人，没有躲开。\n「好。」你说。\n她笑了，那是我见过她最不压抑的笑容。\n（获得CG【帝皇见证的告白】·结局【为了帝皇，也为了你】）",
+  next:"ending"
+});
+
+// ============ 个人线：白给 ============
+S["route_白给"] = node({ name:"旁白", text:"【白给线 · 不帅的名字，帅的人】\n文化祭的鬼屋方案通过后，白给拉着你去采购材料。周末早上六点，手机狂震。你接起来：「干嘛？」\n白给：「起来！跑步去。顺便去批发市场看鬼屋材料，早上去便宜！」\n「才六点。」\n「六点怎么了？太阳都出来了！」", next:"baig_run" });
+S.baig_run = node({
+  name:"旁白",
+  text:"你磨磨蹭蹭下楼，她已经在小区的健身器材区做了三组引体向上。见我来了，跳下来拍拍手：「走！」\n我们沿着河边跑。她跑得很快，但总会放慢速度等你。跑了三公里后，她在便利店门口停下，买了两颗肉包，把大的递给你：「多吃点，长个子。」\n「你好像很习惯照顾人。」\n「照顾人？我这是带小弟。」\n她笑得露出虎牙，汗水把刘海粘在额头上。那副没心没肺的样子，在早晨的光里像一株野生植物。",
+  next:"baig_basket"
+});
+S.baig_basket = node({
+  name:"旁白",
+  text:"学校有一帮高三的男生占着篮球场。白给想练球，上去交涉，对方嬉皮笑脸：「高一的小妹妹，去那边玩跷跷板吧。」\n白给笑了：「你们几个大老爷们，球打得跟屎一样，还占着坑不拉。」\n场面一下子紧张起来。你上前一步，站到她旁边。白给侧头看你一眼：「你上来干嘛？怕我打不过？」\n「我怕你打死人。」\n白给大笑：「有眼光！」",
+  next:"baig_basket2"
+});
+S.baig_basket2 = node({
+  name:"旁白",
+  text:"最后变成3v3。白给打爆了对面，最后一球她在三分线外急停跳投，球空心入网。对方领头的脸色铁青，扔下一句「运气好」就走。白给站在原地，把手搭在额头上朝你喊：「看见没！就说报我名字没用，得看我打球！」\n你递给她一瓶水。她灌了一口，突然说：「白给这名字，别人听着像笑话。我不在乎。因为我知道，笑着念这名字的人，没几个能笑到最后。」\n她转头看你，眼里有光。",
+  choices:[
+    { text:"「我觉得这名字挺帅的。」", next:"baig_W1a", effect:function(){ state.aff["白给"]=(state.aff["白给"]||0)+2; } },
+    { text:"「那以后我叫你白哥？」", next:"baig_W1b", effect:function(){ state.aff["白给"]=(state.aff["白给"]||0)+1; state.flags.bai_ge=true; } }
+  ]
+});
+S.baig_W1a = node({ name:"白给", text:"白给愣了一下，然后用力拍了你后脑勺一下：「少恶心我！」但她的耳朵红了。", next:"baig_rain" });
+S.baig_W1b = node({ name:"白给", text:"白给笑得前仰后合：「行啊！以后白哥罩着你！」\n（解锁称呼【白哥】）", next:"baig_rain" });
+S.baig_rain = node({
+  name:"旁白",
+  text:"文化祭前夜，白给和你在天台上布置鬼屋的室外部分。忽然下起雨。我们躲在防水布下面，肩挨着肩。她身上有股洗衣粉和汗水混合的味道。\n白给：「问你个事。你为什么会选鬼屋？」\n「因为你说鬼屋好。」\n「就这？」\n「就这。」\n她沉默了一会儿，雨水打在防水布上，噼里啪啦的，像在放鞭炮。",
+  next:"baig_rain2"
+});
+S.baig_rain2 = node({
+  name:"白给",
+  text:"「你知道吗，从小到大，身边的人来来去去。我好像总是那个主动凑上去的人。主动打招呼，主动约球，主动大笑。别人觉得我什么都无所谓。其实我也挺害怕的，怕一个人打球，一个人吃饭，一个人走放学路。」\n她转过头，雨夜中她的眼睛亮晶晶的。\n「幸好，高一有你在。」",
+  choices:[
+    { text:"「我也是。」", next:"baig_W2a", effect:function(){} },
+    { text:"「你不会有一个人打球的时候。」", next:"baig_W2b", effect:function(){ state.aff["白给"]=(state.aff["白给"]||0)+3; } }
+  ]
+});
+S.baig_W2a = node({ name:"白给", text:"她一下笑出来，用力拍你：「那说好了，以后放学一起走！」\n（进入白给线结局【白哥的小弟】）", next:"baig_end" });
+S.baig_W2b = node({ name:"白给", text:"她愣住，然后别开头，声音低得像在自言自语：「……真是，肉麻死了。」\n（获得CG【雨夜天台】·进入白给线结局【不是兄弟】）", next:"baig_end" });
+S.baig_end = node({
+  name:"白给",
+  text:"文化祭结束后的那天晚上，白给约你到操场。她站在篮球架下，月光把她的影子拉得很长。她没笑，表情严肃得不像她。\n「我好像……不只想让你当小弟了。」\n她踢了一下地上的石子：「是不是挺没出息的？白给，白给，把喜欢也白给了。」\n你走过去，站在她面前：「那就不当小弟了。当别的。」\n她抬头，月光下，我第一次看见她哭。但她是在笑，咧嘴那种，眼泪和笑容一起。\n「你可别后悔。我可不会放你走了。」\n（获得CG【月光下的白给】）",
+  next:"ending"
+});
+
+// ============ 个人线：jerry ============
+S["route_jerry"] = node({ name:"旁白", text:"【jerry线 · 街边的学姐】\n某天放学，你独自走出校门。jerry靠在老位置——那根贴着褪色广告的电线杆旁。她叼着根没点燃的棒棒糖，见了你，把棒棒糖拿下来，笑了。\n「fresh meat。这么久没见，想我了嘛？」\n「没想。」\n「真伤人。我可是天天想你呢。」\n她凑近，身上有种奇妙的香气，你忽然忘记了手头要做的事。", next:"jerry_J1" });
+S.jerry_J1 = node({
+  name:"jerry",
+  text:"「说正事。你们文化祭缺不缺外援？我会做可丽饼。不是吹，之前在美食节帮过工，真材实料，吃过的人没有不排队的。」",
+  choices:[
+    { text:"「你怎么知道文化祭？」", next:"jerry_J1a", effect:function(){ state.aff["jerry"]=(state.aff["jerry"]||0)+1; } },
+    { text:"「可丽饼？大小姐还会做这种东西吗？」", next:"jerry_J1b", effect:function(){ state.aff["jerry"]=(state.aff["jerry"]||0)-0.5; } }
+  ]
+});
+S.jerry_J1a = node({ name:"jerry", text:"jerry笑：「tc高校那点事，哪里有我未能触及的领域。」", next:"jerry_night" });
+S.jerry_J1b = node({ name:"jerry", text:"jerry的语气似乎有种不易察觉的疏离：「随你怎么想咯，这种在校园祭必定最火最in的潮流小东西不是每年必备？」\n（你发现自己与学姐的经验还是差了很多。）", next:"jerry_night" });
+S.jerry_night = node({
+  name:"旁白",
+  text:"文化祭前一周，jerry约你晚上去夜市试吃她的可丽饼。夜市人挤人，她拉着你在人群里穿行，耀眼的红发在霓虹灯下像团移动的火焰。\n「这个加珍珠，那个加芝士，一口咬下去会拉丝——绝了。你们文化祭做这个，保准排队排到校门口。」\n「你懂的还挺多。」\n「你们男生不就喜欢这种一口一万千卡的食物。」",
+  next:"jerry_night2"
+});
+S.jerry_night2 = node({
+  name:"jerry",
+  text:"她买了一份递给你，自己不吃，就撑着下巴看你吃。你抬头：「你不吃？」\n「看fresh meat吃，比我自己吃香。」\n她说完自己先笑了，然后冲摊主喊：「老板，再来一份！跟他一样的！」",
+  next:"jerry_wound"
+});
+S.jerry_wound = node({
+  name:"旁白",
+  text:"文化祭前夜，jerry在旧校舍门口等你。天很黑，她一个人坐在台阶上，棒棒糖在指间明明灭灭，像发不出声音的警报。\n「你知道吗，我这头发，染红那年我十四。大家都说我不学好。我偏不染回去。我为何要收敛，燃烧殆尽总好过黯然凋零。」\n她轻「哼」了一声，把棒棒糖扔进垃圾桶：「后来发现，也就那样。不过我挺喜欢现在的自己。无人可以定义我。」",
+  next:"jerry_wound2"
+});
+S.jerry_wound2 = node({
+  name:"jerry",
+  text:"她突然转头，盯着你：「你呢？你是怎样的人？」\n「算是普通人吧。」\n「原谅自己的孤独和平庸吧？就今晚。」",
+  choices:[
+    { text:"「跟你在一起的话，我想我会无所不能。」", next:"jerry_J2a", effect:function(){} },
+    { text:"「我只想当你的朋友。」", next:"jerry_J2b", effect:function(){ state.aff["jerry"]=(state.aff["jerry"]||0)+1; } }
+  ]
+});
+S.jerry_J2a = node({ name:"jerry", text:"jerry笑出声，把一罐可乐扔给你。你们坐在旧校舍台阶上，聊了一整夜的天。\n路灯把她的红发染成暖色，夜风里她难得没有说怪话，只是安静地靠在你身边。\n「今晚，就我们两个。」\n天快亮时，她抬头看你，眼睛很亮：「你这个人，不算太糟糕。」\n她笑了，那是我见过她最不设防的笑。\n（结局【红发与夜色】）", next:"ending" });
+S.jerry_J2b = node({ name:"jerry", text:"jerry愣了一下，然后笑得前仰后合：「朋友？我这种人最不缺的就是朋友。」但她的笑没到眼睛里。\n（进入jerry线隐藏结局【不叫朋友的恋人】）", next:"jerry_end2" });
+S.jerry_end2 = node({
+  name:"jerry",
+  text:"文化祭结束当晚，jerry坐在旧校舍门口等你。她说：「我后来想了，朋友这个词太轻了。我要的是，你以后听到街边摩托车响，第一个想起我。」\n「你会为我准备头盔吗。」\n「会有的！你等着！」\n（结局【不叫朋友的恋人】）",
+  next:"ending"
+});
+
+// ============ 个人线：zeen ============
+S["route_zeen"] = node({ name:"旁白", text:"【zeen线 · 书页间的你】\nzeen终于把《借阅流程优化方案（盖章版）》贴了出来。你每天去图书馆，看着她站在门口，用红外线测距仪量书架间距。\n「这又是什么计划？」\nzeen：「基于人流动线优化的新书推荐位调整。我发现入口右手边的书架被浏览频次最高，但推荐位却在最里面。这是结构性错误。」", next:"zeen_Z1" });
+S.zeen_Z1 = node({
+  name:"旁白",
+  text:"然后她开始搬书架。你和她一起搬。结果搬到一半，发现新位置挡住了消防通道，只好搬回去。她擦了擦汗，语气平静：「这是试错。试错也是数据收集的一部分。」",
+  choices:[
+    { text:"「下次可以先量一下再搬。」", next:"zeen_Z1a", effect:function(){ state.aff["zeen"]=(state.aff["zeen"]||0)+1; } },
+    { text:"「我帮你。」", next:"zeen_Z1b", effect:function(){ state.aff["zeen"]=(state.aff["zeen"]||0)+2; } }
+  ]
+});
+S.zeen_Z1a = node({ name:"zeen", text:"zeen推了推眼镜：「你是在教我做事？」然后她翻开手里的本子写写画画，小声补了一句：「……我会量。」", next:"zeen_logic" });
+S.zeen_Z1b = node({ name:"zeen", text:"zeen看了你一眼，没说话，但把较轻的一边让给了你。", next:"zeen_logic" });
+S.zeen_logic = node({
+  name:"zeen",
+  text:"zeen说她的逻辑从来不会错，只是世界太复杂，变量没控制好。你问她：「你觉得我算可控变量吗？」\nzeen抬头，推了推眼镜，认真地说：「你属于不可控变量，但具有一定规律性。比如每周三、五来图书馆，借小说多过参考书，对悬疑类有偏好。性格上倾向于在有人遇到困难时主动介入，但介入深度有限。总体来说，可以建模。」\n「你到底观察了我多久？」\n「从你第一次来图书馆开始。你是我优化流程的一部分。」\n她说完这句话，低头继续编目。但你注意到她耳根有点发红。",
+  next:"zeen_rain"
+});
+S.zeen_rain = node({
+  name:"旁白",
+  text:"一次放学，突降暴雨。你看见zeen站在图书馆门口，抱着一摞书，没带伞。她看着雨幕，表情像在计算哪条路线淋湿最少。\n你撑伞过去：「送你到校门口。」\nzeen：「你的伞覆盖面积是标准单人伞，两人共撑的淋湿概率大概会增加百分之四十。但考虑到我的书不能淋湿，综合收益为正。同意。」",
+  next:"zeen_rain2"
+});
+S.zeen_rain2 = node({
+  name:"zeen",
+  text:"我们一起走。伞确实很小，你尽量把伞偏过去。她突然说：「你的右肩在淋雨。根据你的倾向，你判断我的书比你的衣服更重要。但这是非理性判断，因为衣物湿透可能导致感冒，进而影响出勤率，从系统角度看不划算。」\n你笑了：「你到底是关心我还是关心系统？」\nzeen沉默了很久，说：「我在关心一个包含你的系统。」",
+  choices:[
+    { text:"「那我希望你的系统里一直有我。」", next:"zeen_Z2a", effect:function(){ state.aff["zeen"]=(state.aff["zeen"]||0)+3; } },
+    { text:"「你还是只关心系统吧。」", next:"zeen_Z2b", effect:function(){ state.aff["zeen"]=(state.aff["zeen"]||0)+1; } }
+  ]
+});
+S.zeen_Z2a = node({ name:"zeen", text:"zeen停下脚步，转头看你。雨水从她黑发末梢滑下来。她小声说：「你这句话，会干扰我建模。」\n（获得CG【雨中的黑色伞沿】）", next:"zeen_report" });
+S.zeen_Z2b = node({ name:"zeen", text:"zeen认真说：「我的系统里没有『只』这个概念。」\n（她后续写了一份《关于主角重要性的初步评估报告》塞进你课桌。）", next:"zeen_report" });
+S.zeen_report = node({
+  name:"旁白",
+  text:"某天早上，你在课桌里发现一份文件，标题：《关于某人对本人行为影响的分析与应对策略》。作者是zeen。内容从「你是否改变了我去图书馆的频率」到「你的存在是否构成对我日常流程的显著扰动」一共七大项。结论那一行写着：「初步评估：构成不可忽视的正面干扰。」\n你把报告拿给她看。她推了推眼镜：「有意见吗？」",
+  next:"zeen_report2"
+});
+S.zeen_report2 = node({
+  name:"zeen",
+  text:"「没有。就是觉得挺像情书的。」\n「情书是信息传达效率极低且容易出现歧义的文体。我不会写。」\n「那你直接告诉我结论是什么。」\n「结论是，我可能喜欢你。」\n说完她低下头，用笔尖猛戳手边的便签本：「这个结论还需要进一步验证。」",
+  choices:[
+    { text:"「怎么验证？」", next:"zeen_Z3a", effect:function(){} },
+    { text:"「不用验证了，我也喜欢你。」", next:"zeen_Z3b", effect:function(){} }
+  ]
+});
+S.zeen_Z3a = node({ name:"zeen", text:"zeen抬头：「可以通过增加共处时间、观察心率变化、分析对话中非必要信息占比等方法来验证。你需要配合。」\n（进入zeen线结局【平行验证】）", next:"zeen_end" });
+S.zeen_Z3b = node({ name:"zeen", text:"zeen愣住，手里的笔掉在地上。她没去捡，只是小声说：「这不符合我的计划。」\n（获得CG【掉落的笔】·进入zeen线结局【计划之外】）", next:"zeen_end2" });
+S.zeen_end = node({
+  name:"zeen",
+  text:"文化祭后，zeen每天晚上给你发一份《今日互动分析报告》。第15天，报告结论写着：「经验证，我喜欢你的假设成立。建议关系升级为恋人。如果你不同意，我会继续优化方案。」\n你回了四个字：「方案通过。」\n（获得CG【图书馆的恋人逻辑】）",
+  next:"ending"
+});
+S.zeen_end2 = node({
+  name:"zeen",
+  text:"文化祭结束那天，zeen约你在图书馆见面。她没戴眼镜，黑长直披在肩上。你差点没认出来。她说：「我的计划里从来没有你。所以，这不在计划之内。但我决定保留这个例外。」",
+  next:"ending"
+});
+
+// ============ 个人线：充 ============
+S["route_充"] = node({ name:"旁白", text:"【充线 · 完美的裂痕】\n文化祭前一天，充忽然出现在你面前。她微笑着，递给你一张印刷精美的邀请函：「文化祭的焰火晚会，有空吗？我在找一个人一起看。」\n周围的空气都安静了。你注意到马蜂站在不远处，低头玩着手机，没有过来。但充的目光，落在你身上，像一片没有重量的羽毛。", next:"chong_C1" });
+S.chong_C1 = node({
+  name:"充",
+  text:"「文化祭的焰火晚会，有空吗？」",
+  choices:[
+    { text:"「我可能没时间。」", next:"chong_C1a", effect:function(){} },
+    { text:"「好。」", next:"chong_C1b", effect:function(){ state.aff["充"]=(state.aff["充"]||0)+1; } }
+  ]
+});
+S.chong_C1a = node({ name:"充", text:"充的笑意不减：「那真遗憾。」她没多纠缠，转身走了。马蜂抬头看了你一眼，眼神探究。", next:"chong_firework" });
+S.chong_C1b = node({ name:"充", text:"充的笑容更大了：「那晚上七点，天台见。」\n（进入【充·焰火前奏线】）", next:"chong_firework" });
+S.chong_firework = node({
+  name:"旁白",
+  text:"焰火晚会上，充站在天台边，夜风把她的长发吹开，像一张被风翻动的画。她听到你脚步声，回头笑：「你来了。」\n你们并肩看焰火。第一朵烟花在空中炸开时，她忽然说：「你知道吗，我和马蜂交往快一年了。」\n你看向她。她依旧笑着，但眼里有碎掉的光。",
+  next:"chong_firework2"
+});
+S.chong_firework2 = node({
+  name:"充",
+  text:"「他很好，很温柔。但他最近总说，他觉得自己不够好，配不上我。我不明白。完美的人，是不是就活该让人有压力？」\n「你为什么和我说这些？」\n「因为你看我的眼神，和他们都不一样。你在花圃那里看见我的时候，没有把我当校花，只是当一个人。」\n她转过身，仰头看你。焰火的颜色在她脸上明明灭灭。\n「我其实一点都不完美。我喜欢男娘，喜欢打游戏到凌晨，喜欢在旧校舍吃垃圾食品。我也想过，如果我不是校花，是不是可以更自由。」\n她顿了顿，轻声说：「但我也清楚，当上校花靠的不是运气。只是有时候，做好『别人眼里的我』和做好『我自己』，是两回事。」",
+  choices:[
+    { text:"「你不必一直完美。」", next:"chong_C2a", effect:function(){ state.aff["充"]=(state.aff["充"]||0)+3; } },
+    { text:"「你本来就很好。」", next:"chong_C2b", effect:function(){ state.aff["充"]=(state.aff["充"]||0)+2; } }
+  ]
+});
+S.chong_C2a = node({ name:"充", text:"充的眼眶微微发红，但她笑了：「谢谢。你是第一个这么说的人。」\n（获得CG【不完美的校花】）", next:"chong_mafeng" });
+S.chong_C2b = node({ name:"充", text:"充轻轻摇头：「不，我不够好。我只是擅长装。」\n（解锁隐藏对话【伪装的代价】）", next:"chong_mafeng" });
+S.chong_mafeng = node({
+  name:"马蜂",
+  text:"第二天，马蜂约你单独见面。我们坐在旧校舍后面。他依然扎着侧马尾，但眼眶很红。\n「我知道你想追她。不对，可能不是你想追，是她想靠近你。」\n「……为什么这么说？」\n「因为她已经很久没对我笑成昨晚那样了。在焰火下面。」",
+  next:"chong_mafeng2"
+});
+S.chong_mafeng2 = node({
+  name:"马蜂",
+  text:"他抬起手，揉了揉脸：「我不怪她。我是男生，但喜欢穿裙子，化妆，撒娇。她喜欢的是这样的我。可有时候我会怕，怕她只是把我当成一个有趣的符号。」\n他看着我，眼神里有一种奇异的坦诚：「如果换成你，你会怕吗？」",
+  choices:[
+    { text:"「我不会想那么多。喜欢就是喜欢。」", next:"chong_C3a", effect:function(){} },
+    { text:"「你对她也很重要。」", next:"chong_C3b", effect:function(){} }
+  ]
+});
+S.chong_C3a = node({ name:"马蜂", text:"马蜂苦笑：「真羡慕你。」", next:"chong_final" });
+S.chong_C3b = node({ name:"马蜂", text:"马蜂低下头，声音发涩：「谢谢，但你不用安慰我。」", next:"chong_final" });
+S.chong_final = node({
+  name:"旁白",
+  text:"文化祭结束后，充越来越频繁地找你。一起吃午饭，一起在图书馆整理书籍。她总是笑着说「你是我的安全区」。\n有一天，充约你到旧校舍。她看起来有些憔悴，眼下有淡淡的青黑。\n「我和马蜂分手了。是我提的。不是因为我不喜欢他了，是因为我觉得，他需要一个不会让他感到压力的人。我，他太喜欢我了，所以我每说一句话，他都觉得是自己的错。」\n她的声音很轻，像在陈述一道自己解不开的题。\n充：「所以我现在，可以喜欢你了吗？」",
+  choices:[
+    { text:"「可以。」", next:"chong_end1", effect:function(){} },
+    { text:"「你不需要问这个。」", next:"chong_end2", effect:function(){} }
+  ]
+});
+S.chong_end1 = node({
+  name:"充",
+  text:"充的眼睛瞬间亮起来。她扑上来抱住你，眼泪打湿你的校服。\n（获得CG【完美坠落】·进入充线结局【校花的自由】）\n充在下一学期主动辞去学生会干部职位，也不再做「校花」。她开始素颜上课，在班里讲垃圾食品有多好吃，放学后和你一起去旧校舍喂猫。有人说她变了，有人说她堕落了。她说：「管他呢，我现在笑得比烟花还大声。」",
+  next:"ending"
+});
+S.chong_end2 = node({
+  name:"充",
+  text:"充破涕为笑，把脸埋在你肩上：「你这个人，太聪明了。」\n（获得CG【不完美的恋人】·进入充线结局【只做自己】）\n充依旧维持着校花的光环，但只有你知道，她会在晚上十点后发来一张穿着恐龙睡衣的照片，配文「打完游戏了，今天也没死」。她会在别人面前微笑得体，在你面前把裙子撩起来扇风：「完美的人设今天也在加班。」",
+  next:"ending"
+});
+
+// ============ 隐藏结局 ============
+S["route_隐藏"] = node({
+  name:"旁白",
+  text:"【共通隐藏结局 · 路人的校园】\n第三章结束时，你没有满足任何个人线的进入条件。\n这个结局中，主角度过了一个普通的高中第一学期。没有恋爱，没有冲突。偶尔和花姐在走廊点个头，偶尔和xxj在楼下碰见点个头，白给还是会喊你打球，但你没有去。\n学期末，你坐在教室里，窗外蝉鸣震耳。黑板上写着「暑假愉快」。\n你忽然想：如果当时多叫一声「迈姐」就好了。",
+  next:"hidden_end"
+});
+S.hidden_end = node({
+  name:"旁白",
+  text:"画面暗下去。字幕浮现：\n「青春是一场没有存读档的游戏。」\n（获得CG【无人知晓的夏天】）",
+  next:"ending"
+});
+
+// ============ 结局 ============
+S.ending = node({
+  name:"旁白",
+  text:"—— 全剧终 ——\n感谢游玩《迈向昨日的明天 · 文化祭篇》。\n可刷新页面重新开始，体验不同的路线与结局。",
+  choices:[]
+});
+
+var PLATE = { "花姐":"hua","xxj":"xxj","白给":"bai","jerry":"jer","zeen":"zee","充":"cho","语倾":"yu","小赵":"xia","马蜂":"ma" };
+var AFFINFO = { "花姐":"#e8a888","xxj":"#8ab4d8","白给":"#e0a050","jerry":"#e8d060","zeen":"#b0a0e0","充":"#c89ad0" };
+
+
+// ============ 渲染引擎 ============
+var current = null;
+var elem = {
+  text: document.getElementById("text"),
+  choices: document.getElementById("choices"),
+  name: document.getElementById("nameplate"),
+  scene: document.getElementById("scene-label"),
+  affinity: document.getElementById("affinity"),
+  menu: document.getElementById("menu"),
+  ending: document.getElementById("ending-screen"),
+  endRoute: document.getElementById("end-route"),
+  endTitle: document.getElementById("end-title"),
+  endText: document.getElementById("end-text")
+};
+
+function render(){
+  if(!current){ return; }
+  var n = current;
+  elem.text.textContent = n.text;
+  // 名牌（按角色配色，纯文字）
+  var ck = (n.name==="？？？") ? "hua" : (PLATE[n.name]||"narration");
+  elem.name.className = ck;
+  elem.name.textContent = n.name;
+  // 选项
+  elem.choices.innerHTML = "";
+  n.choices.forEach(function(c){
+    if(c.show && !c.show()) return;
+    var b = document.createElement("button");
+    b.className = "choice";
+    b.textContent = c.text;
+    b.onclick = function(){
+      if(c.effect) c.effect();
+      if(c.next){
+        if(c.next==="ending"){ showEnding(n); }
+        else { current = S[c.next]; render(); updateAffinity(); }
+      }
+    };
+    elem.choices.appendChild(b);
+  });
+  updateAffinity();
+}
+
+function updateAffinity(){
+  var html = "";
+  AFFS.forEach(function(k){
+    var v = Math.max(0, state.aff[k]||0);
+    var bar = Math.min(100, v*14);
+    html += '<div class="af"><span class="heart" style="color:'+AFFINFO[k]+'">♥</span>'+
+      '<span class="nm">'+k+'</span><span class="val">'+v+'</span>'+
+      '<span class="bar"><i style="width:'+bar+'%;background:'+AFFINFO[k]+'"></i></span></div>';
+  });
+  elem.affinity.innerHTML = html;
+}
+
+function showEnding(node){
+  var m = node.text.match(/【([^】]+)】/);
+  var rt = state.route || "";
+  elem.endRoute.textContent = (rt==="隐藏") ? "共通隐藏结局" : (rt+"线结局");
+  elem.endTitle.textContent = m ? m[1] : "结局";
+  elem.endText.textContent = node.text;
+  elem.ending.style.display = "flex";
+}
+
+function startGame(){
+  elem.menu.style.display = "none";
+  current = S.pro_start;
+  render();
+}
+
+// 初始
+render();
+</script>
+</body>
+</html>
