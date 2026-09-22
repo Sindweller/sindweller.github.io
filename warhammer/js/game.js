@@ -16,6 +16,8 @@ const State = {
   history:[],
   autoMode:false,
   skipMode:false,
+  autoOvertime:false, // 每日加班快进：工作日默认加班、不去锤店
+  __autoOtBusy:false,
   typing:false,
   currentText:'',
   textIndex:0,
@@ -185,9 +187,6 @@ function renderScene(id){
   if(!sc) return;
   currentSceneId = id;
 
-  // 已满足结局条件时，任意场景切入都会结算（避免停在日程菜单不触发）
-  if(!sc.type && tryAffinityEndings()) return;
-
   // Apply scene-level flags (e.g. chapterOneDone at p1_19)
   if(sc.flags){
     for(const [key, val] of Object.entries(sc.flags)){
@@ -202,9 +201,6 @@ function renderScene(id){
   if(sc.onEnter && typeof window[sc.onEnter] === 'function'){
     try{ window[sc.onEnter](); }catch(e){ console.error(e); }
   }
-
-  // 场景 / onEnter 加好感后再次检查
-  if(tryAffinityEndings()) return;
 
   // Resolve dynamic text / choices for this render
   const scText = sc.textFn ? sc.textFn(State) : (sc.text || '');
@@ -233,6 +229,7 @@ function renderScene(id){
   if(scChoices && !scText){
     __pendingChoices = scChoices;
     showChoices(scChoices);
+    scheduleAutoOvertime();
     return;
   }
 
@@ -304,6 +301,8 @@ function renderScene(id){
       if(State.autoMode){
         setTimeout(advance, 1500);
       }
+      // 每日加班快进：打字结束后自动选加班/回家
+      scheduleAutoOvertime();
     });
   }, 300);
 }
@@ -397,9 +396,6 @@ function makeChoice(choice){
     }
     updateHUD();
   }
-
-  // 任意角色好感打满 → Good；一周后未满但 >50% → Normal
-  if(tryAffinityEndings()) return;
 
   // Apply attribute changes
   if(choice.attributes){
@@ -501,7 +497,6 @@ function handleAction(action, choice){
     case 'nextDay':
       // Called from P2-9-5 结算
       endDay();
-      if(tryAffinityEndings()) return;
       const target = getNextDaySceneId();
       setTimeout(()=>renderScene(target), 400);
       break;
@@ -963,96 +958,10 @@ function grabRandomEncounter(){
   return reId;
 }
 
-// HUD 满格 = affinity * 10 ≥ 100 → 阈值 10；任意角色好感打满即跳对应结局
-// 过完第 1 周后（week ≥ 2）：未满但好感条 > 50% → Normal 结局
+// HUD 满格参考：affinity * 10（仅显示用）
+// 结局不再因好感提前跳转，一律等到角色线尾 endingCheck → checkEnding()
 const AFFINITY_MAX = 10;
-const AFFINITY_NORMAL_PCT = 50; // 条百分比，大于 50 进 N
-const AFFINITY_ROUTE_ORDER = [
-  ['haidi', 'haidi'],
-  ['duorou', 'duorou'],
-  ['ligong', 'ligong'],
-  ['shalaxi', 'slaneesh'],
-  ['ss', 'ss']
-];
-const NORMAL_ENDING_BY_ROUTE = {
-  haidi: 'ending_haidi_normal',
-  duorou: 'ending_duorou_normal',
-  ligong: 'ending_ligong_normal',
-  ss: 'ending_ss_normal'
-  // 色孽线无 Normal 结局，仅满好感进升魔
-};
-
-function canTriggerAffinityEnding(){
-  if(State.__endingLock) return false;
-  const endingEl = $('ending-screen');
-  if(endingEl && endingEl.classList.contains('show')) return false;
-  const titleEl = $('title-screen');
-  if(titleEl && !titleEl.classList.contains('hidden')) return false;
-  return true;
-}
-
-function lockAndJumpEnding(routeOrScene, viaCheckEnding){
-  State.__endingLock = true;
-  State.gamePhase = 'ending';
-  const choices = $('choices-layer');
-  if(choices){
-    choices.classList.remove('show');
-    choices.innerHTML = '';
-  }
-  if(viaCheckEnding){
-    checkEnding(routeOrScene);
-  } else {
-    $('fade-overlay').classList.add('show');
-    setTimeout(()=>{
-      renderScene(routeOrScene);
-      $('fade-overlay').classList.remove('show');
-    }, 600);
-  }
-  return true;
-}
-
-/** 好感打满（≥10）→ 立刻进对应最高结局。任意阶段都可触发。 */
-function tryAffinityMaxEnding(){
-  if(!canTriggerAffinityEnding()) return false;
-  for(const [key, route] of AFFINITY_ROUTE_ORDER){
-    if((State[key] || 0) >= AFFINITY_MAX){
-      return lockAndJumpEnding(route, true);
-    }
-  }
-  return false;
-}
-
-/**
- * 一周过后（第二章 week ≥ 2）仍未打满，但好感条 > 50% → Normal。
- * 已进角色专属线时不中途截断（留给线末 endingCheck 出 Good/Normal/Bad）。
- */
-function tryAffinityNormalEnding(){
-  if(!canTriggerAffinityEnding()) return false;
-  if(State.route) return false;
-  if(!State.chapterTwoStarted || State.week < 2) return false;
-
-  let bestRoute = null;
-  let bestVal = -1;
-  for(const [key, route] of AFFINITY_ROUTE_ORDER){
-    const v = State[key] || 0;
-    if(v >= AFFINITY_MAX) continue;
-    if(v * 10 <= AFFINITY_NORMAL_PCT) continue;
-    if(!NORMAL_ENDING_BY_ROUTE[route]) continue;
-    if(v > bestVal){
-      bestVal = v;
-      bestRoute = route;
-    }
-  }
-  if(!bestRoute) return false;
-  return lockAndJumpEnding(NORMAL_ENDING_BY_ROUTE[bestRoute], false);
-}
-
-/** 先判满好感，再判一周后 N 结局 */
-function tryAffinityEndings(){
-  if(tryAffinityMaxEnding()) return true;
-  if(tryAffinityNormalEnding()) return true;
-  return false;
-}
+const AFFINITY_NORMAL_PCT = 50;
 
 function checkEnding(route){
   $('fade-overlay').classList.add('show');
@@ -1067,7 +976,7 @@ function checkEnding(route){
       else if(State.duorou * 10 > AFFINITY_NORMAL_PCT) ending = 'ending_duorou_normal';
       else ending = 'ending_bad_duo';
     } else if(route==='ligong'){
-      // 隐藏 ≥8 / Good ≥5 / Normal ≥2 / 其余 Bad —— 四档均可在线末触发
+      // 隐藏 ≥8 / Good ≥5 / Normal ≥2 / 其余 Bad
       if(State.ligong >= 8) ending = 'ending_ligong_wtc';
       else if(State.ligong >= 5) ending = 'ending_ligong_good';
       else if(State.ligong >= 2) ending = 'ending_ligong_normal';
@@ -1206,6 +1115,8 @@ function startNewGame(){
   State.modelQuality = 0;
   State.morningLuckBonus = false;
   State.route = null;
+  State.autoOvertime = false;
+  State.__autoOtBusy = false;
   State.randomEncountered = {zhou:false, huyou:false, tan:false, yao:false, alex:false};
   State.randomReturnTo = null;
   resetChapterTwoState();
@@ -1294,8 +1205,6 @@ function continueGame(){
   updateHUD();
   $('title-screen').classList.add('hidden');
   $('name-input-screen').classList.add('hidden');
-  // 读档时若已满足满好感 / 一周后 N 结局条件，直接进结局
-  if(tryAffinityEndings()) return;
   renderScene(data.scene && data.scene.startsWith('re_') ? 'c1_choice' : data.scene);
 }
 
@@ -1385,6 +1294,8 @@ $('btn-restart').addEventListener('click', ()=>{
   State.modelQuality = 0;
   State.morningLuckBonus = false;
   State.route = null;
+  State.autoOvertime = false;
+  State.__autoOtBusy = false;
   State.randomEncountered = {zhou:false, huyou:false, tan:false, yao:false, alex:false};
   State.randomReturnTo = null;
   resetChapterTwoState();
@@ -1420,6 +1331,134 @@ $('btn-skip-branch').addEventListener('click', (e)=>{
   e.stopPropagation();
   skipToNextBranch();
 });
+
+$('btn-skip-overtime').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  toggleAutoOvertime();
+});
+
+function updateAutoOvertimeBtn(){
+  const btn = $('btn-skip-overtime');
+  if(!btn) return;
+  btn.style.color = State.autoOvertime ? 'var(--gold-l)' : '';
+  btn.style.borderColor = State.autoOvertime ? 'var(--gold)' : '';
+  btn.textContent = State.autoOvertime ? '💼 加班中' : '💼 加班';
+}
+
+function stopAutoOvertime(msg){
+  if(!State.autoOvertime && !msg) return;
+  const wasOn = State.autoOvertime;
+  State.autoOvertime = false;
+  State.__autoOtBusy = false;
+  updateAutoOvertimeBtn();
+  if(wasOn && msg) alert(msg);
+}
+
+function toggleAutoOvertime(){
+  if(State.autoOvertime){
+    stopAutoOvertime();
+    alert('已关闭「每日加班」快进。');
+    return;
+  }
+  if(!State.chapterTwoStarted){
+    alert('请先进入第二章日常后再使用「每日加班」快进。');
+    return;
+  }
+  const ok = confirm(
+    '开启「每日加班」快进？\n\n' +
+    '开启后将自动：\n' +
+    '· 工作日选择「加班」（不去锤店）\n' +
+    '· 休息日进店后直接回家睡觉\n\n' +
+    '到第 4 周店赛临近时会自动停止并提醒你。\n' +
+    '可再次点击「加班」按钮手动关闭。'
+  );
+  if(!ok) return;
+  State.autoOvertime = true;
+  State.__autoOtBusy = false;
+  updateAutoOvertimeBtn();
+  scheduleAutoOvertime();
+}
+
+function scheduleAutoOvertime(){
+  if(!State.autoOvertime) return;
+  clearTimeout(State.__autoOtTimer);
+  State.__autoOtTimer = setTimeout(tickAutoOvertime, 400);
+}
+
+function tickAutoOvertime(){
+  if(!State.autoOvertime) return;
+  if(State.__autoOtBusy) return;
+  if(State.__endingLock) return;
+  if($('ending-screen').classList.contains('show')) return;
+  if($('title-screen') && !$('title-screen').classList.contains('hidden')) return;
+  if($('fade-overlay').classList.contains('show')) return;
+  if($('name-input-screen') && !$('name-input-screen').classList.contains('hidden')) return;
+
+  // 店赛临近：第4周周六起停止，交给玩家
+  if(State.week >= 4 && State.dayOfWeek >= 6){
+    stopAutoOvertime('已到店赛相关日期，「每日加班」快进已停止。请手动继续店赛流程。');
+    return;
+  }
+  if(currentSceneId === 'p2_9_11' || currentSceneId === 'p2_9_12' ||
+     currentSceneId === 'p2_9_12b' || currentSceneId === 'p2_9_12c' ||
+     currentSceneId === 'p2_9_12d' || (currentSceneId && currentSceneId.startsWith('p2_9_13')) ||
+     (currentSceneId && currentSceneId.startsWith('p2_9_14')) ||
+     (currentSceneId && currentSceneId.startsWith('p2_9_15')) ||
+     currentSceneId === 'p2_9_bridge' || currentSceneId === 'c1_choice'){
+    stopAutoOvertime('已进入店赛/路线选择，「每日加班」快进已停止。');
+    return;
+  }
+
+  const id = currentSceneId;
+  const sc = Scenes[id];
+  if(!sc) return;
+
+  // 跳过打字机，直接处理选项
+  skipTypewriter();
+
+  const pick = (choice)=>{
+    if(!choice) return false;
+    State.__autoOtBusy = true;
+    setTimeout(()=>{
+      State.__autoOtBusy = false;
+      if(!State.autoOvertime) return;
+      makeChoice(choice);
+    }, 200);
+    return true;
+  };
+
+  // 工作日：加班
+  if(id === 'p2_9_6' || id === 'p2_9_10'){
+    const ch = (sc.choices || []).find(c => c.next === 'p2_9_7');
+    if(pick(ch)) return;
+  }
+  // 加班后睡觉
+  if(id === 'p2_9_7'){
+    const ch = (sc.choices || []).find(c => c.action === 'nextDay');
+    if(pick(ch)) return;
+  }
+  // 夜归 → 下一天
+  if(id === 'p2_9_5'){
+    const ch = (sc.choices || []).find(c => c.action === 'nextDay');
+    if(pick(ch)) return;
+  }
+  // 店内菜单 → 直接回家（休息日被带进店时）
+  if(id === 'p2_9_1'){
+    const list = sc.choicesFn ? sc.choicesFn(State) : (sc.choices || []);
+    const home = list.find(c => c.next === 'p2_9_5');
+    if(pick(home)) return;
+  }
+  // 纯旁白推进（休息日开场 / 进店过渡）
+  if(id === 'p2_9_9' || id === 'p2_9_8'){
+    State.__autoOtBusy = true;
+    setTimeout(()=>{
+      State.__autoOtBusy = false;
+      if(!State.autoOvertime) return;
+      const next = sc.next || getNextSceneId(id);
+      if(next) renderScene(next);
+    }, 250);
+  }
+}
 
 // Skip instantly to the next choice/ending scene
 function skipToNextChoice(){
@@ -1890,7 +1929,6 @@ function applyPaintRewards(hits){
     State.modelQuality = 20;
   }
   updateHUD();
-  tryAffinityEndings();
 }
 
 $('paint-action-btn').addEventListener('click', (e)=>{ e.stopPropagation(); paintActionClick(); });
