@@ -1117,6 +1117,8 @@ function startNewGame(){
   State.route = null;
   State.autoOvertime = false;
   State.__autoOtBusy = false;
+  if(typeof clearAutoOvertimeTimer === 'function') clearAutoOvertimeTimer();
+  if(typeof updateAutoOvertimeBtn === 'function') updateAutoOvertimeBtn();
   State.randomEncountered = {zhou:false, huyou:false, tan:false, yao:false, alex:false};
   State.randomReturnTo = null;
   resetChapterTwoState();
@@ -1296,6 +1298,8 @@ $('btn-restart').addEventListener('click', ()=>{
   State.route = null;
   State.autoOvertime = false;
   State.__autoOtBusy = false;
+  if(typeof clearAutoOvertimeTimer === 'function') clearAutoOvertimeTimer();
+  if(typeof updateAutoOvertimeBtn === 'function') updateAutoOvertimeBtn();
   State.randomEncountered = {zhou:false, huyou:false, tan:false, yao:false, alex:false};
   State.randomReturnTo = null;
   resetChapterTwoState();
@@ -1345,11 +1349,22 @@ function updateAutoOvertimeBtn(){
   btn.textContent = State.autoOvertime ? '💼 加班中' : '💼 加班';
 }
 
+function clearAutoOvertimeTimer(){
+  if(State.__autoOtTimer){
+    clearTimeout(State.__autoOtTimer);
+    State.__autoOtTimer = null;
+  }
+  if(State.__autoOtInterval){
+    clearInterval(State.__autoOtInterval);
+    State.__autoOtInterval = null;
+  }
+}
+
 function stopAutoOvertime(msg){
-  if(!State.autoOvertime && !msg) return;
   const wasOn = State.autoOvertime;
   State.autoOvertime = false;
   State.__autoOtBusy = false;
+  clearAutoOvertimeTimer();
   updateAutoOvertimeBtn();
   if(wasOn && msg) alert(msg);
 }
@@ -1357,54 +1372,69 @@ function stopAutoOvertime(msg){
 function toggleAutoOvertime(){
   if(State.autoOvertime){
     stopAutoOvertime();
-    alert('已关闭「每日加班」快进。');
-    return;
-  }
-  if(!State.chapterTwoStarted){
-    alert('请先进入第二章日常后再使用「每日加班」快进。');
-    return;
+    return; // 关闭不再弹窗，避免「每次都提示」
   }
   const ok = confirm(
     '开启「每日加班」快进？\n\n' +
     '开启后将自动：\n' +
     '· 工作日选择「加班」（不去锤店）\n' +
     '· 休息日进店后直接回家睡觉\n\n' +
+    '第一章也会先尽量快进；进入第二章第 1 周起正式按天加班。\n' +
     '到第 4 周店赛临近时会自动停止并提醒你。\n' +
-    '可再次点击「加班」按钮手动关闭。'
+    '再点一次「加班」可关闭（无额外弹窗）。'
   );
   if(!ok) return;
   State.autoOvertime = true;
   State.__autoOtBusy = false;
   updateAutoOvertimeBtn();
-  scheduleAutoOvertime();
+  // 持续轮询，不依赖刚好停在某个场景
+  clearAutoOvertimeTimer();
+  State.__autoOtInterval = setInterval(()=>{
+    if(!State.autoOvertime){
+      clearAutoOvertimeTimer();
+      return;
+    }
+    tickAutoOvertime();
+  }, 450);
+  tickAutoOvertime();
 }
 
 function scheduleAutoOvertime(){
   if(!State.autoOvertime) return;
+  // interval 已在跑时不必再叠 timeout
+  if(State.__autoOtInterval) return;
   clearTimeout(State.__autoOtTimer);
-  State.__autoOtTimer = setTimeout(tickAutoOvertime, 400);
+  State.__autoOtTimer = setTimeout(tickAutoOvertime, 200);
 }
 
 function tickAutoOvertime(){
   if(!State.autoOvertime) return;
   if(State.__autoOtBusy) return;
   if(State.__endingLock) return;
-  if($('ending-screen').classList.contains('show')) return;
-  if($('title-screen') && !$('title-screen').classList.contains('hidden')) return;
-  if($('fade-overlay').classList.contains('show')) return;
-  if($('name-input-screen') && !$('name-input-screen').classList.contains('hidden')) return;
-
-  // 店赛临近：第4周周六起停止，交给玩家
-  if(State.week >= 4 && State.dayOfWeek >= 6){
-    stopAutoOvertime('已到店赛相关日期，「每日加班」快进已停止。请手动继续店赛流程。');
+  if($('ending-screen') && $('ending-screen').classList.contains('show')){
+    stopAutoOvertime('已进入结局，「每日加班」快进已停止。');
     return;
   }
-  if(currentSceneId === 'p2_9_11' || currentSceneId === 'p2_9_12' ||
-     currentSceneId === 'p2_9_12b' || currentSceneId === 'p2_9_12c' ||
-     currentSceneId === 'p2_9_12d' || (currentSceneId && currentSceneId.startsWith('p2_9_13')) ||
-     (currentSceneId && currentSceneId.startsWith('p2_9_14')) ||
-     (currentSceneId && currentSceneId.startsWith('p2_9_15')) ||
-     currentSceneId === 'p2_9_bridge' || currentSceneId === 'c1_choice'){
+  if($('title-screen') && !$('title-screen').classList.contains('hidden')) return;
+  if($('name-input-screen') && !$('name-input-screen').classList.contains('hidden')) return;
+  // fade 短暂出现时跳过本轮，不永久卡住
+  if($('fade-overlay') && $('fade-overlay').classList.contains('show')) return;
+  if($('race-modal') && $('race-modal').classList.contains('show')) return;
+  if($('qte-modal') && $('qte-modal').classList.contains('show')) return;
+
+  // 店赛临近停止
+  if(State.chapterTwoStarted && State.week >= 4 && State.dayOfWeek >= 6){
+    stopAutoOvertime('已到店赛相关日期，「每日加班」快进已停止。请手动继续。');
+    return;
+  }
+  const stopIds = {
+    p2_9_11:1, p2_9_12:1, p2_9_12b:1, p2_9_12c:1, p2_9_12d:1,
+    p2_9_bridge:1, c1_choice:1, c1:1
+  };
+  if(currentSceneId && (stopIds[currentSceneId] ||
+      currentSceneId.startsWith('p2_9_13') ||
+      currentSceneId.startsWith('p2_9_14') ||
+      currentSceneId.startsWith('p2_9_15'))){
     stopAutoOvertime('已进入店赛/路线选择，「每日加班」快进已停止。');
     return;
   }
@@ -1413,50 +1443,86 @@ function tickAutoOvertime(){
   const sc = Scenes[id];
   if(!sc) return;
 
-  // 跳过打字机，直接处理选项
   skipTypewriter();
 
   const pick = (choice)=>{
     if(!choice) return false;
     State.__autoOtBusy = true;
+    $('choices-layer').classList.remove('show');
     setTimeout(()=>{
       State.__autoOtBusy = false;
       if(!State.autoOvertime) return;
       makeChoice(choice);
-    }, 200);
+    }, 120);
     return true;
   };
 
-  // 工作日：加班
-  if(id === 'p2_9_6' || id === 'p2_9_10'){
-    const ch = (sc.choices || []).find(c => c.next === 'p2_9_7');
-    if(pick(ch)) return;
-  }
-  // 加班后睡觉
-  if(id === 'p2_9_7'){
-    const ch = (sc.choices || []).find(c => c.action === 'nextDay');
-    if(pick(ch)) return;
-  }
-  // 夜归 → 下一天
-  if(id === 'p2_9_5'){
-    const ch = (sc.choices || []).find(c => c.action === 'nextDay');
-    if(pick(ch)) return;
-  }
-  // 店内菜单 → 直接回家（休息日被带进店时）
-  if(id === 'p2_9_1'){
-    const list = sc.choicesFn ? sc.choicesFn(State) : (sc.choices || []);
-    const home = list.find(c => c.next === 'p2_9_5');
-    if(pick(home)) return;
-  }
-  // 纯旁白推进（休息日开场 / 进店过渡）
-  if(id === 'p2_9_9' || id === 'p2_9_8'){
+  const advanceNarration = ()=>{
     State.__autoOtBusy = true;
     setTimeout(()=>{
       State.__autoOtBusy = false;
       if(!State.autoOvertime) return;
-      const next = sc.next || getNextSceneId(id);
-      if(next) renderScene(next);
-    }, 250);
+      const next = sc.next || (sc.nextFn ? sc.nextFn(State) : null) || getNextSceneId(id);
+      if(next){
+        renderScene(next);
+      } else {
+        advance();
+      }
+    }, 120);
+    return true;
+  };
+
+  // —— 第二章日常：加班循环 ——
+  if(id === 'p2_9_6' || id === 'p2_9_10'){
+    const ch = (sc.choices || []).find(c => c.next === 'p2_9_7');
+    if(pick(ch)) return;
+  }
+  if(id === 'p2_9_7' || id === 'p2_9_5'){
+    const ch = (sc.choices || []).find(c => c.action === 'nextDay');
+    if(pick(ch)) return;
+  }
+  if(id === 'p2_9_1'){
+    const list = (sc.choicesFn ? sc.choicesFn(State) : (sc.choices || []))
+      .filter(c => !c.enabledIf || c.enabledIf(State));
+    const home = list.find(c => c.next === 'p2_9_5');
+    if(pick(home)) return;
+  }
+  if(id === 'p2_9_9' || id === 'p2_9_8' || id === 'p2_9_2' ||
+     id === 'p2_9_4' || (id && id.startsWith('p2_9_') && id.endsWith('_end'))){
+    if(!sc.choices && !sc.choicesFn){
+      if(advanceNarration()) return;
+    }
+  }
+
+  // 若当前已弹出选项层：优先点加班 / 回家 / 睡觉
+  if($('choices-layer').classList.contains('show')){
+    const pending = __pendingChoices ||
+      (sc.choicesFn ? sc.choicesFn(State) : sc.choices) || [];
+    const filtered = pending.filter(c => !c.enabledIf || c.enabledIf(State));
+    const prefer =
+      filtered.find(c => c.next === 'p2_9_7') ||
+      filtered.find(c => c.action === 'nextDay') ||
+      filtered.find(c => c.next === 'p2_9_5');
+    if(prefer && pick(prefer)) return;
+  }
+
+  // —— 尚未进入第二章：尽量快进旁白到下一选项（第一章）——
+  if(!State.chapterTwoStarted){
+    if(sc.choices || sc.choicesFn){
+      // 停在选项让玩家自己点（避免乱选线）；若只有「继续」类可自动点
+      return;
+    }
+    if(sc.endingCheck || sc.type) return;
+    if(sc.encounterOutro){
+      State.__autoOtBusy = true;
+      setTimeout(()=>{
+        State.__autoOtBusy = false;
+        if(!State.autoOvertime) return;
+        renderScene(takeEncounterReturn());
+      }, 120);
+      return;
+    }
+    advanceNarration();
   }
 }
 
