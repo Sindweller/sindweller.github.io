@@ -77,9 +77,19 @@ const State = {
   storeRaceRank:null,
   storeRaceScore:0,
   storeRacePlayed:false,
+  storeRaceWins:0,
+  chapter2Ending:null,       // 1~4
   slaneeshBlessed:false,     // 色孽赐福
   tzeentchBlessed:false,     // 巧高奇赐福（预留）
-  cutsceneShown:{khorne:false, hornedrat:false, slaneesh:false, tzeentch:false}
+  cutsceneShown:{khorne:false, hornedrat:false, slaneesh:false, tzeentch:false},
+
+  // === Chapter 3 / 4 ===
+  month:'july',              // 'july' | 'august'
+  chapter3Started:false,
+  chapter3Ending:null,       // 1~5
+  leagueQualified:false,
+  mysteriousRing:false,
+  __busyNpcName:null
 };
 
 /* ========================================
@@ -211,7 +221,7 @@ function renderScene(id){
 
   // Random encounter check at choice points
   // 触发条件：第一章已完成 + 未选路线 + 不在小剧场返回途中 + 非第二章日常循环内
-  if(scChoices && State.chapterOneDone && State.route === null && !State.randomReturnTo && !id.startsWith('p2_')){
+  if(scChoices && State.chapterOneDone && State.route === null && !State.randomReturnTo && !id.startsWith('p2_') && !id.startsWith('p3_') && !id.startsWith('p4_')){
     const reScene = grabRandomEncounter();
     if(reScene){
       State.randomReturnTo = id;
@@ -506,6 +516,16 @@ function handleAction(action, choice){
     case 'storeRace':
       runStoreRace();
       break;
+    case 'moraleCheck':
+      runMoraleCheck(choice);
+      break;
+    case 'buyMysteriousRing':
+      buyMysteriousRing();
+      if(nextId) setTimeout(()=>renderScene(nextId), 400);
+      break;
+    case 'finishExpoDay':
+      finishExpoDay();
+      break;
     default:
       // Fallback: 如果 action 是全局函数名，直接调用
       if(typeof window[action] === 'function'){
@@ -557,6 +577,34 @@ function getNextDaySceneId(){
     if(c === 'hornedrat') return 'p2_cs_hornedrat';
     if(c === 'slaneesh') return 'p2_cs_slaneesh';
   }
+
+  // ===== August calendar =====
+  if(State.month === 'august'){
+    // 第1周 · 周日：城市模型展
+    if(State.week === 1 && State.dayOfWeek === 7){
+      return 'p3_4';
+    }
+    // 第4周 · 周五：店赛前提醒
+    if(State.week === 4 && State.dayOfWeek === 5){
+      return 'p3_5';
+    }
+    // 第4周 · 周六：八月店赛
+    if(State.week === 4 && State.dayOfWeek === 6){
+      return State.storeRaceEnrolled ? 'p3_6_1' : 'p3_6_5_1';
+    }
+    // 第4周 · 周日（若误入）：仍导向店赛/旁观
+    if(State.week >= 4 && State.dayOfWeek >= 7){
+      return State.storeRaceEnrolled ? 'p3_6_1' : 'p3_6_5_1';
+    }
+    // 休息日
+    if(State.dayOfWeek >= 6){
+      return 'p3_3';
+    }
+    // 工作日
+    return 'p3_2';
+  }
+
+  // ===== July calendar =====
   // 第4周 · 周日：店赛日
   if(State.week >= 4 && State.dayOfWeek === 7){
     return State.storeRaceEnrolled ? 'p2_9_12' : 'p2_9_15';
@@ -587,14 +635,18 @@ const Race = {
   oppBonus:0,            // 对手随机加成
   myLocked:[false,false],// 骰子是否已确认（不能再重投）
   total:0,               // 累计有效分差
+  wins:0,                // 胜场（平局不计）
+  mode:'july',           // 'july' | 'august'
   rolled:false,          // 本轮玩家已掷
   oppRolled:false,       // 本轮对手已掷
   opponents:['李工','海底','多肉']
 };
 
-function openStoreRaceModal(){
+function openStoreRaceModal(mode){
+  Race.mode = mode || (State.month === 'august' ? 'august' : 'july');
   Race.round = 1;
   Race.total = 0;
+  Race.wins = 0;
   Race.rolled = false;
   Race.oppRolled = false;
   Race.myDice = [0,0];
@@ -730,7 +782,14 @@ function raceNext(){
   const opSum = Race.oppDice[0]+Race.oppDice[1]+Race.oppBonus;
   const diff = clamp20((mySum - opSum) * 2);
   Race.total += diff;
-  logRace(diff>=0 ? ('  → 本轮胜 +'+diff) : ('  → 本轮负 '+diff), diff>=0?'log-win':'log-lose');
+  if(mySum > opSum){
+    Race.wins += 1;
+    logRace('  → 本轮胜 +'+diff+'（胜场 '+Race.wins+'）', 'log-win');
+  } else if(mySum < opSum){
+    logRace('  → 本轮负 '+diff, 'log-lose');
+  } else {
+    logRace('  → 本轮平（不计胜场）', 'log-lose');
+  }
   Race.round += 1;
   Race.rolled = false;
   Race.oppRolled = false;
@@ -742,13 +801,24 @@ function raceNext(){
 
 function raceFinish(){
   $('race-modal').classList.remove('show');
-  // Compute rank
   State.storeRaceScore = Race.total;
+  State.storeRaceWins = Race.wins;
   State.storeRacePlayed = true;
-  if(Race.total >= 20) State.storeRaceRank = 1;
-  else if(Race.total >= 0) State.storeRaceRank = 2;
-  else State.storeRaceRank = 3 + Math.floor(Math.random()*3);
-  const nextId = State.storeRaceRank === 1 ? 'p2_9_13' : 'p2_9_14';
+  // 胜场定名次：3→第1｜2→第3｜0~1→第5（八月另文案第6）
+  if(Race.wins >= 3) State.storeRaceRank = 1;
+  else if(Race.wins === 2) State.storeRaceRank = 3;
+  else State.storeRaceRank = (Race.mode === 'august') ? 6 : 5;
+
+  let nextId;
+  if(Race.mode === 'august'){
+    if(Race.wins >= 3) nextId = 'p3_6_4_1';
+    else if(Race.wins === 2) nextId = 'p3_6_4_2';
+    else nextId = 'p3_6_4_3';
+  } else {
+    if(Race.wins >= 3){ State.chapter2Ending = 1; nextId = 'p2_9_13'; }
+    else if(Race.wins === 2){ State.chapter2Ending = 2; nextId = 'p2_9_14'; }
+    else { State.chapter2Ending = 3; nextId = 'p2_9_14d'; }
+  }
   setTimeout(()=>renderScene(nextId), 300);
 }
 
@@ -763,7 +833,30 @@ function logRace(msg, cls){
 
 // 由 handleAction('storeRace') 调用：改为打开 QTE 界面而非直接结算
 function runStoreRace(){
-  openStoreRaceModal();
+  openStoreRaceModal(State.month === 'august' ? 'august' : 'july');
+}
+
+/* 士气测试：2d6 + bonus，默认成功率阈值 7 */
+function runMoraleCheck(choice){
+  const bonus = choice.moraleBonus || 0;
+  const roll = rollD6() + rollD6() + bonus;
+  const need = choice.moraleNeed || 7;
+  const pass = roll >= need;
+  State.__lastMoraleRoll = roll;
+  State.__lastMoralePass = pass;
+  showAttributePopup('士气检定 ' + roll + (pass?' ✓':' ✗'), pass?1:-1);
+  const nextId = pass ? (choice.nextSuccess || choice.next) : (choice.nextFail || choice.next);
+  if(nextId) setTimeout(()=>renderScene(nextId), 500);
+}
+
+function buyMysteriousRing(){
+  const cost = State.money;
+  if(cost > 0){
+    State.money = 0;
+    showMoneyPopup(-cost);
+  }
+  State.mysteriousRing = true;
+  updateHUD();
 }
 
 function showAttributePopup(attr, val){
@@ -806,8 +899,12 @@ function updateHUD(){
     let extra = '';
     if(State.dailyDiceMod !== 0) extra = ' 🎲' + (State.dailyDiceMod>0?'+':'') + State.dailyDiceMod;
     if(State.dailyReroll > 0) extra += ' ♻️';
+    let mon = '';
+    if(State.chapterTwoStarted){
+      mon = (State.month === 'august' ? '八月' : '七月') + '·';
+    }
     let dow = State.chapterTwoStarted ? (' ' + weekdayName(State.dayOfWeek)) : '';
-    el.textContent = '第' + State.week + '周' + dow + ' | ' + '❤️'.repeat(State.energy) + '🖤'.repeat(Math.max(0, State.maxEnergy - State.energy)) + extra;
+    el.textContent = mon + '第' + State.week + '周' + dow + ' | ' + '❤️'.repeat(State.energy) + '🖤'.repeat(Math.max(0, State.maxEnergy - State.energy)) + extra;
   }
   // CP == 计谋
   const cpEl = $('hud-cp');
@@ -1071,10 +1168,17 @@ function saveGame(){
     storeRaceRank: State.storeRaceRank,
     storeRaceScore: State.storeRaceScore,
     storeRacePlayed: State.storeRacePlayed,
+    storeRaceWins: State.storeRaceWins,
+    chapter2Ending: State.chapter2Ending,
     slaneeshBlessed: State.slaneeshBlessed,
     tzeentchBlessed: State.tzeentchBlessed,
     cutsceneShown: State.cutsceneShown,
-    chapterOneDone: State.chapterOneDone
+    chapterOneDone: State.chapterOneDone,
+    month: State.month,
+    chapter3Started: State.chapter3Started,
+    chapter3Ending: State.chapter3Ending,
+    leagueQualified: State.leagueQualified,
+    mysteriousRing: State.mysteriousRing
   };
   localStorage.setItem('warhammer_save', JSON.stringify(data));
 }
@@ -1145,9 +1249,17 @@ function resetChapterTwoState(){
   State.storeRaceRank = null;
   State.storeRaceScore = 0;
   State.storeRacePlayed = false;
+  State.storeRaceWins = 0;
+  State.chapter2Ending = null;
   State.slaneeshBlessed = false;
   State.tzeentchBlessed = false;
   State.cutsceneShown = {khorne:false, hornedrat:false, slaneesh:false, tzeentch:false};
+  State.month = 'july';
+  State.chapter3Started = false;
+  State.chapter3Ending = null;
+  State.leagueQualified = false;
+  State.mysteriousRing = false;
+  State.__busyNpcName = null;
 }
 
 function continueGame(){
@@ -1200,9 +1312,16 @@ function continueGame(){
   State.storeRaceRank = data.storeRaceRank || null;
   State.storeRaceScore = data.storeRaceScore || 0;
   State.storeRacePlayed = !!data.storeRacePlayed;
+  State.storeRaceWins = data.storeRaceWins || 0;
+  State.chapter2Ending = data.chapter2Ending || null;
   State.slaneeshBlessed = !!data.slaneeshBlessed;
   State.tzeentchBlessed = !!data.tzeentchBlessed;
   State.cutsceneShown = data.cutsceneShown || {khorne:false, hornedrat:false, slaneesh:false, tzeentch:false};
+  State.month = data.month || 'july';
+  State.chapter3Started = !!data.chapter3Started;
+  State.chapter3Ending = data.chapter3Ending || null;
+  State.leagueQualified = !!data.leagueQualified;
+  State.mysteriousRing = !!data.mysteriousRing;
   $('hud').classList.add('show');
   updateHUD();
   $('title-screen').classList.add('hidden');
@@ -1422,20 +1541,27 @@ function tickAutoOvertime(){
   if($('race-modal') && $('race-modal').classList.contains('show')) return;
   if($('qte-modal') && $('qte-modal').classList.contains('show')) return;
 
-  // 店赛临近停止
-  if(State.chapterTwoStarted && State.week >= 4 && State.dayOfWeek >= 6){
+  // 店赛/模型展临近停止
+  if(State.chapterTwoStarted && State.week >= 4 && State.dayOfWeek >= 5){
     stopAutoOvertime('已到店赛相关日期，「每日加班」快进已停止。请手动继续。');
+    return;
+  }
+  if(State.month === 'august' && State.week === 1 && State.dayOfWeek >= 7){
+    stopAutoOvertime('已到模型展日，「每日加班」快进已停止。请手动继续。');
     return;
   }
   const stopIds = {
     p2_9_11:1, p2_9_12:1, p2_9_12b:1, p2_9_12c:1, p2_9_12d:1,
-    p2_9_bridge:1, c1_choice:1, c1:1
+    p2_9_bridge:1, c1_choice:1, c1:1,
+    p3_4:1, p3_5:1, p3_6_1:1, p3_6_5_1:1, p4_1:1, p4_spectate:1
   };
   if(currentSceneId && (stopIds[currentSceneId] ||
       currentSceneId.startsWith('p2_9_13') ||
       currentSceneId.startsWith('p2_9_14') ||
-      currentSceneId.startsWith('p2_9_15'))){
-    stopAutoOvertime('已进入店赛/路线选择，「每日加班」快进已停止。');
+      currentSceneId.startsWith('p2_9_15') ||
+      currentSceneId.startsWith('p3_6_') ||
+      currentSceneId.startsWith('p4_'))){
+    stopAutoOvertime('已进入店赛/模型展/联赛，「每日加班」快进已停止。');
     return;
   }
 
@@ -1472,12 +1598,16 @@ function tickAutoOvertime(){
     return true;
   };
 
-  // —— 第二章日常：加班循环 ——
+  // —— 第二/三章日常：加班循环 ——
   if(id === 'p2_9_6' || id === 'p2_9_10'){
     const ch = (sc.choices || []).find(c => c.next === 'p2_9_7');
     if(pick(ch)) return;
   }
-  if(id === 'p2_9_7' || id === 'p2_9_5'){
+  if(id === 'p3_2' || id === 'p3_5'){
+    const ch = (sc.choices || []).find(c => c.next === 'p3_2_1');
+    if(pick(ch)) return;
+  }
+  if(id === 'p2_9_7' || id === 'p2_9_5' || id === 'p3_2_1'){
     const ch = (sc.choices || []).find(c => c.action === 'nextDay');
     if(pick(ch)) return;
   }
@@ -1488,7 +1618,8 @@ function tickAutoOvertime(){
     if(pick(home)) return;
   }
   if(id === 'p2_9_9' || id === 'p2_9_8' || id === 'p2_9_2' ||
-     id === 'p2_9_4' || (id && id.startsWith('p2_9_') && id.endsWith('_end'))){
+     id === 'p2_9_4' || id === 'p3_3' ||
+     (id && id.startsWith('p2_9_') && id.endsWith('_end'))){
     if(!sc.choices && !sc.choicesFn){
       if(advanceNarration()) return;
     }
@@ -1501,6 +1632,7 @@ function tickAutoOvertime(){
     const filtered = pending.filter(c => !c.enabledIf || c.enabledIf(State));
     const prefer =
       filtered.find(c => c.next === 'p2_9_7') ||
+      filtered.find(c => c.next === 'p3_2_1') ||
       filtered.find(c => c.action === 'nextDay') ||
       filtered.find(c => c.next === 'p2_9_5');
     if(prefer && pick(prefer)) return;
@@ -1702,6 +1834,7 @@ function advanceDay(){
 function startChapter2(){
   if(State.chapterTwoStarted) return;
   State.chapterTwoStarted = true;
+  State.month = 'july';
   // 从第一章第一天之后，直接进入第一周·周一（早晨闹钟）
   State.week = 1;
   State.day = 1;
@@ -1711,6 +1844,51 @@ function startChapter2(){
   State.addiction = 1; // P2-1 "锤瘾"解锁 +1
   showAttributePopup('addiction', 1);
   updateHUD();
+}
+
+/* Chapter 3 onEnter: 八月开篇 */
+function startChapter3(){
+  if(State.chapter3Started) return;
+  State.chapter3Started = true;
+  State.month = 'august';
+  State.week = 1;
+  State.day = 1;
+  State.dayOfWeek = 1;
+  State.storeRaceEnrolled = false;
+  State.storeRacePlayed = false;
+  State.storeRaceWins = 0;
+  State.storeRaceRank = null;
+  State.storeRaceScore = 0;
+  State.worshipedToday = false;
+  State.dailyReroll = 0;
+  State.npcMetToday = {haidi:false, duorou:false, ligong:false, shalaxi:false};
+  State.ateToday = false;
+  State.battleToday = false;
+  State.eventToday = false;
+  State.maxEnergy = 2;
+  State.energy = 2;
+  // 七月结局 1/2 已有联赛资格
+  if(State.chapter2Ending === 1 || State.chapter2Ending === 2){
+    State.leagueQualified = true;
+  }
+  updateHUD();
+}
+
+/* 模型展结束后跳到八月第2周周一 */
+function finishExpoDay(){
+  State.week = 2;
+  State.dayOfWeek = 1;
+  State.day += 1;
+  State.worshipedToday = false;
+  State.dailyReroll = 0;
+  State.npcMetToday = {haidi:false, duorou:false, ligong:false, shalaxi:false};
+  State.ateToday = false;
+  State.battleToday = false;
+  State.eventToday = false;
+  State.maxEnergy = 2;
+  State.energy = 2;
+  updateHUD();
+  setTimeout(()=>renderScene('p3_2'), 300);
 }
 
 /* Chapter 2 onEnter: 拜骰神 —— scene P2-9-2 */
