@@ -1792,6 +1792,40 @@ re_alex3b:{
   ]
 },
 
+/* ===== 随机事件：经常同时出现的三个神秘生物 ===== */
+re_kids1:{
+  bg:'table', label:'随机事件', labelSub:'新鲜血液',
+  speaker:'narration', showKidsImage:true,
+  text:'你寻着喧闹的方向看去，看见两大一小的三个名为“孩子”的神秘生物。这是俱乐部的“新鲜血液”，只有在周六和节假日才能偶尔见到它们。',
+  next:'re_kids1b'
+},
+re_kids1b:{
+  bg:'table', speaker:'narration',
+  text:'三个孩子挤在桌子的同一侧，一脸凝重地观察着桌上的战局，偶尔发出一声哀叹，貌似是被对手凹得很惨。你看不出来它们是怎么分配作战任务的，但最小的那个孩子应该是起到了一个人工骰塔和吉祥物的作用。',
+  choices:[
+    {text:'和它们玩一局', next:'re_kids_play', hint:'计谋+1、锤瘾+1', attributes:{intellect:1}, addiction:1},
+    {text:'投喂一点零食', next:'re_kids_snack', hint:'资金-10、运气+3', money:-10, attributes:{luck:3}, enabledIf:st=>st.money>=10},
+    {text:'继续做自己的事', next:'re_kids_ignore'},
+    {text:'“你们的作业写完了没有”', next:'re_kids_hw', hint:'体力-1', energyDelta:-1}
+  ]
+},
+re_kids_play:{
+  bg:'table', speaker:'narration', encounterOutro:true,
+  text:'你趁着它们对局结束的时候走过去，表示自己想和它们玩一局，三小只爽快地答应了。旁边的某个人走过来向你表达了感谢，看来你是要暂时替他进行带孩子的任务了。\n\n对局开始，你发现对方小小年纪却操作极其阴险，刁钻的卡距、诡异的走位、迷惑的微操，不知是师出何方神圣。好在它们的战术能力趋近于0，运气更是为负的，一通菜鸡互啄后，你以微弱的优势赢得了对局。虽然这场战斗没什么含金量，但是你积累了应对毫无章法的对手的经验。\n\n（计谋 +1，锤瘾 +1）'
+},
+re_kids_snack:{
+  bg:'interior', speaker:'narration', encounterOutro:true,
+  text:'你去店门口的自动售卖机买了三瓶冰红茶拿过去，它们立刻两眼放光并封你为大王，表示将永远追随你，你还因此获得了来自“新鲜血液”的赐福。\n\n现在你拥有三个忠实的跟班了。\n\n（资金 -10，运气 +3）'
+},
+re_kids_ignore:{
+  bg:'table', speaker:'narration', encounterOutro:true,
+  text:'你看了看它们，接着低头做自己的事情。\n“真好，俱乐部的气氛又要活跃几分了。”你如此感叹道。'
+},
+re_kids_hw:{
+  bg:'table', speaker:'narration', encounterOutro:true,
+  text:'你发出了一句超高情商的提问，三小只先是疑惑地愣了一下，而后全部开始发出哀嚎。你没想到的是它们的怨念居然足以对你发起法术攻击，你受到了来自“新鲜血液”的诅咒。\n\n……不过欺负小孩真的很好玩。邪恶的你如此想到。\n\n（体力 -1）'
+},
+
 z1:{
   bg:'table', label:'周师傅线', labelSub:'观战与指导',
   text:'你走到对战桌另一头，那个端着保温杯的玩家身边。\n近距离看，他大概二十出头，穿着一件深绿色外套，气质像大学里那种随和的讲师。保温杯上贴着"战锤40K"的贴纸。'

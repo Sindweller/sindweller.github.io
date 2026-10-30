@@ -57,7 +57,7 @@ const State = {
 
   // Special flags
   morningLuckBonus:false,  // P0-1 迷路了 buff
-  randomEncountered:{zhou:false, huyou:false, tan:false, yao:false, alex:false},
+  randomEncountered:{zhou:false, huyou:false, tan:false, yao:false, alex:false, kids:false},
   randomReturnTo:null,
 
   // === Chapter 2 additions ===
@@ -281,6 +281,13 @@ function renderScene(id){
   if(sc.showYaoImage){
     setTimeout(()=>{
       $('yao-image-modal').classList.add('show');
+    }, 800);
+  }
+
+  // Kids image popup
+  if(sc.showKidsImage){
+    setTimeout(()=>{
+      $('kids-image-modal').classList.add('show');
     }, 800);
   }
 
@@ -1038,6 +1045,7 @@ function grabRandomEncounter(){
   if(!State.randomEncountered.tan) pool.push('tan');
   if(!State.randomEncountered.yao) pool.push('yao');
   if(!State.randomEncountered.alex) pool.push('alex');
+  if(!State.randomEncountered.kids) pool.push('kids');
   if(pool.length === 0) return null;
 
   const pick = pool[Math.floor(Math.random() * pool.length)];
@@ -1046,7 +1054,8 @@ function grabRandomEncounter(){
     huyou:['re_huyou1','re_huyou2'],
     tan:['re_tan1','re_tan2'],
     yao:['re_yao1','re_yao2'],
-    alex:['re_alex1','re_alex2','re_alex3']
+    alex:['re_alex1','re_alex2','re_alex3'],
+    kids:['re_kids1']
   };
   const ids = scenes[pick];
   const reId = ids[Math.floor(Math.random() * ids.length)];
@@ -1223,7 +1232,7 @@ function startNewGame(){
   State.__autoOtBusy = false;
   if(typeof clearAutoOvertimeTimer === 'function') clearAutoOvertimeTimer();
   if(typeof updateAutoOvertimeBtn === 'function') updateAutoOvertimeBtn();
-  State.randomEncountered = {zhou:false, huyou:false, tan:false, yao:false, alex:false};
+  State.randomEncountered = {zhou:false, huyou:false, tan:false, yao:false, alex:false, kids:false};
   State.randomReturnTo = null;
   resetChapterTwoState();
   $('hud').classList.add('show');
@@ -1292,7 +1301,10 @@ function continueGame(){
   State.modelQuality = data.modelQuality || 0;
   State.morningLuckBonus = data.morningLuckBonus || false;
   State.route = data.route || null;
-  State.randomEncountered = data.randomEncountered || {zhou:false, huyou:false, tan:false, yao:false, alex:false};
+  State.randomEncountered = Object.assign(
+    {zhou:false, huyou:false, tan:false, yao:false, alex:false, kids:false},
+    data.randomEncountered || {}
+  );
   State.randomReturnTo = null;
   State.chapterOneDone = !!data.chapterOneDone;
   // Chapter 2
@@ -1345,6 +1357,7 @@ $('game').addEventListener('click', (e)=>{
   if($('qrcode-modal').classList.contains('show')) return;
   if($('yao-image-modal').classList.contains('show')) return;
   if($('ligong-image-modal').classList.contains('show')) return;
+  if($('kids-image-modal') && $('kids-image-modal').classList.contains('show')) return;
   advance();
 });
 
@@ -1419,7 +1432,7 @@ $('btn-restart').addEventListener('click', ()=>{
   State.__autoOtBusy = false;
   if(typeof clearAutoOvertimeTimer === 'function') clearAutoOvertimeTimer();
   if(typeof updateAutoOvertimeBtn === 'function') updateAutoOvertimeBtn();
-  State.randomEncountered = {zhou:false, huyou:false, tan:false, yao:false, alex:false};
+  State.randomEncountered = {zhou:false, huyou:false, tan:false, yao:false, alex:false, kids:false};
   State.randomReturnTo = null;
   resetChapterTwoState();
   updateHUD();
@@ -1943,7 +1956,8 @@ function pickDailyRandomEvent(){
     huyou:['re_huyou1','re_huyou2'],
     tan:['re_tan1','re_tan2'],
     yao:['re_yao1','re_yao2'],
-    alex:['re_alex1','re_alex2','re_alex3']
+    alex:['re_alex1','re_alex2','re_alex3'],
+    kids:['re_kids1']
   };
   const pool = [];
   for(const key of Object.keys(scenes)){
@@ -2035,6 +2049,16 @@ $('ligong-image-close').addEventListener('click', ()=>{
 $('yao-image-modal').addEventListener('click', (e)=>{
   if(e.target === $('yao-image-modal')){
     $('yao-image-modal').classList.remove('show');
+  }
+});
+
+/* ======== KIDS IMAGE MODAL ======== */
+$('kids-image-close').addEventListener('click', ()=>{
+  $('kids-image-modal').classList.remove('show');
+});
+$('kids-image-modal').addEventListener('click', (e)=>{
+  if(e.target === $('kids-image-modal')){
+    $('kids-image-modal').classList.remove('show');
   }
 });
 
@@ -2288,4 +2312,72 @@ if(loadGame()){
   $('title-screen').classList.add('hidden');
   State.__endingLock = true;
   setTimeout(()=>renderScene(id), 100);
+})();
+
+/* 调试跳转：
+ *  三小只事件 → http://127.0.0.1:8765/?event=kids
+ *  任意场景   → http://127.0.0.1:8765/?scene=re_kids1
+ * 控制台也可：debugScene('re_kids1') / debugEvent('kids')
+ */
+const DEBUG_EVENT_MAP = {
+  kids: 're_kids1',
+  zhou: 're_zhou1',
+  huyou: 're_huyou1',
+  tan: 're_tan1',
+  yao: 're_yao1',
+  alex: 're_alex1'
+};
+
+function prepareDebugJump(){
+  State.gamePhase = 'prologue';
+  State.__endingLock = false;
+  State.chapterOneDone = true;
+  State.chapterTwoStarted = true;
+  State.month = State.month || 'july';
+  State.week = State.week || 2;
+  State.dayOfWeek = State.dayOfWeek || 6;
+  State.energy = Math.max(State.energy || 0, 2);
+  State.maxEnergy = Math.max(State.maxEnergy || 0, 2);
+  State.money = Math.max(State.money || 0, 200);
+  State.player = State.player || '调试员';
+  State.randomReturnTo = 'p2_9_1';
+  State.eventToday = false;
+  $('title-screen').classList.add('hidden');
+  $('name-input-screen').classList.add('hidden');
+  $('ending-screen').classList.remove('show');
+  $('hud').classList.add('show');
+  updateHUD();
+}
+
+function debugScene(id){
+  if(!Scenes[id]){
+    console.warn('[debug] 场景不存在:', id);
+    return false;
+  }
+  prepareDebugJump();
+  renderScene(id);
+  console.log('[debug] 已跳转 →', id);
+  return true;
+}
+
+function debugEvent(key){
+  const id = DEBUG_EVENT_MAP[key] || (key && key.startsWith('re_') ? key : null);
+  if(!id){
+    console.warn('[debug] 未知事件。可用:', Object.keys(DEBUG_EVENT_MAP).join(', '));
+    return false;
+  }
+  return debugScene(id);
+}
+
+window.debugScene = debugScene;
+window.debugEvent = debugEvent;
+
+(function previewSceneFromQuery(){
+  const params = new URLSearchParams(location.search);
+  if(params.get('ending')) return; // 结局预览优先
+  const eventKey = params.get('event');
+  const sceneId = params.get('scene');
+  const target = (eventKey && DEBUG_EVENT_MAP[eventKey]) || sceneId;
+  if(!target || !Scenes[target]) return;
+  setTimeout(()=>debugScene(target), 120);
 })();
